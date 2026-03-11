@@ -1,7 +1,7 @@
-# [PROJECT_NAME]
+# Trade Execution Platform
 
-> [ONE_LINE_DESCRIPTION]
-> Tech Stack: [TECH_STACK]
+> Banking-domain saga orchestration demo with Kafka exactly-once and Resilience4j
+> Tech Stack: Spring Boot 3 · Kotlin · Kafka · Gradle · Resilience4j
 
 ## Initialization Check
 
@@ -57,17 +57,3 @@ Load these into context before working on any task (if not already loaded):
 - Commit format: `feat(FEAT-NNN): description` / `fix(BUG-NNN): description` / `chore: description`
 - Commit after each passing test iteration — do not accumulate uncommitted work
 - At workflow end: offer to create a PR with a generated title and description
-
----
-
-## Project Initialization Template
-
-> The following sections are filled during the `init-project` workflow.
-> Remove this block after initialization.
-
-**Brainstorming prompts for initialization:**
-- What is the core problem this project solves?
-- Who are the primary users?
-- What are the 3 most important things this system must do?
-- What are the hardest technical challenges anticipated?
-- What does success look like in 6 months?

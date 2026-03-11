@@ -9,3 +9,4 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 
 | ID | Type | Title | Status |
 |---|---|---|---|
+| FEAT-000 | FEAT | Project initialization | complete |
