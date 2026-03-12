@@ -1,6 +1,6 @@
 # PLAN-001: Create Gradle Multi-Module Structure — Implementation Plan
 
-Status: draft
+Status: complete
 Date: 2026-03-12
 Feature: [FEAT-001](../features/FEAT-001-create-modules.md)
 
@@ -59,7 +59,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** `./gradlew projects` prints all 7 submodule names; `./gradlew help` resolves without error.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -80,7 +80,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** `./gradlew :order:test` — `OrderApplicationTests.contextLoads` passes with embedded Kafka (spring-kafka-test autoconfigures EmbeddedKafkaBroker).
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -104,7 +104,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** `./gradlew :shared:test` passes; verifies `Order.copy()` produces equal instances with changed field.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -122,7 +122,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** `./gradlew build` — all modules compile; `./gradlew test` — all contextLoads tests pass (embedded Kafka used automatically by spring-kafka-test).
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -139,4 +139,4 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** `docker compose up -d` exits 0; `docker compose ps` shows `kafka` in healthy state; `docker compose down` cleans up.
 
-**Status:** [ ] todo
+**Status:** [x] done

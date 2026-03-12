@@ -1,6 +1,6 @@
 # FEAT-001: Create Gradle Multi-Module Structure
 
-Status: in-progress
+Status: complete
 Date: 2026-03-12
 Author: Claude
 
@@ -12,12 +12,12 @@ The Spring Initializr starter is a single Gradle module (`trader`). The architec
 
 ## Goals
 
-- [ ] Restructure the project into 7 Gradle submodules (`:shared` + 6 service modules)
-- [ ] Each service module is an independently runnable Spring Boot application
-- [ ] `:shared` is a pure Kotlin library (no Spring Boot) holding domain + event types
-- [ ] Dependency versions managed centrally in root `build.gradle.kts` (Spring BOM) and `gradle/libs.versions.toml` (Resilience4j)
-- [ ] Kafka runs in Docker (KRaft mode); services run on JVM for daily development
-- [ ] Both dev and full-Docker workflows documented in `README.md`
+- [x] Restructure the project into 7 Gradle submodules (`:shared` + 6 service modules)
+- [x] Each service module is an independently runnable Spring Boot application
+- [x] `:shared` is a pure Kotlin library (no Spring Boot) holding domain + event types
+- [x] Dependency versions managed centrally in root `build.gradle.kts` (Spring BOM) and `gradle/libs.versions.toml` (Resilience4j)
+- [x] Kafka runs in Docker (KRaft mode); services run on JVM for daily development
+- [x] Both dev and full-Docker workflows documented in `README.md`
 
 ## Non-Goals
 
@@ -96,18 +96,18 @@ All other service interfaces are Kafka topics (defined in `docs/arch/architectur
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew projects` lists 7 submodules
-- [ ] `./gradlew build` compiles all modules with zero errors
-- [ ] `./gradlew :order:test` passes (contextLoads with embedded Kafka)
-- [ ] `./gradlew :shared:build` compiles all domain + event classes
-- [ ] `:shared` `build.gradle.kts` has no `spring-boot` plugin applied
-- [ ] Root `src/` directory no longer exists
-- [ ] `docker compose up -d` starts Kafka healthy on port 9092
-- [ ] `README.md` covers both dev and full-Docker workflows
+- [x] `./gradlew projects` lists 7 submodules
+- [x] `./gradlew build` compiles all modules with zero errors
+- [x] `./gradlew :order:test` passes (contextLoads with embedded Kafka)
+- [x] `./gradlew :shared:build` compiles all domain + event classes
+- [x] `:shared` `build.gradle.kts` has no `spring-boot` plugin applied
+- [x] Root `src/` directory no longer exists
+- [x] `docker compose up -d` starts Kafka healthy on port 9092
+- [x] `README.md` covers both dev and full-Docker workflows
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
+Version management deviated slightly from spec: Resilience4j is managed by the Spring Cloud BOM (via `spring-cloud-starter-circuitbreaker-resilience4j`), so no separate Resilience4j version entry was needed in `gradle/libs.versions.toml`. That file now serves as a documentation reference for BOM versions and plugin aliases rather than active dependency aliases.
 
 ## Related Docs
 
