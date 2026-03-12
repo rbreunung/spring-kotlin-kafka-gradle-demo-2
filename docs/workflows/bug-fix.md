@@ -26,7 +26,7 @@ When a defect, crash, or unexpected behavior is reported. The workflow has two p
 | 9 | Fix | Commit fix + test | `fix(BUG-NNN): description` |
 | 10 | Fix | Update bug report (root cause, fix summary, test reference) | Complete bug doc |
 | 11 | Fix | Doc review (flag any specs or arch doc needing update) | Docs consistent |
-| 12 | Fix | Opt-in retrospective | `RETRO-NNN-bugfix-*.md` |
+| 12 | Fix | Opt-in retrospective — see [retrospective workflow](retrospective.md) | `RETRO-NNN-bugfix-*.md` |
 | 13 | Fix | Offer PR | PR created (with confirmation) |
 
 ## Bug Report Structure

@@ -18,7 +18,7 @@ Before implementing any new feature. The spec workflow ensures the feature is we
 | 1 | Allocate FEAT-NNN from `docs/registry.md` | Registry updated |
 | 2 | Create git branch `feat/FEAT-NNN-*` from main | Branch ready |
 | 3 | Load context (max 5 files) | Context in memory |
-| 4 | Architecture brainstorm (Q&A, one question at a time) | Design direction agreed |
+| 4 | Architecture brainstorm (Q&A, one question at a time) — if the feature involves infrastructure (Kafka, Docker, databases), present infra options *before* module/service design | Design direction agreed |
 | 5 | Scope clarification (goals, non-goals, edge cases, criteria) | Scope locked |
 | 6 | Consistency check (conflicts with existing specs?) | Conflicts resolved |
 | 7 | Write `docs/features/FEAT-NNN-*.md` from template | Feature spec |
@@ -26,7 +26,7 @@ Before implementing any new feature. The spec workflow ensures the feature is we
 | 9 | Write `docs/plans/PLAN-NNN-*.md` with vertical slices | Implementation plan |
 | 10 | Commit all docs | `feat(FEAT-NNN): add spec, arch update, plan` |
 | 11 | Merge decision (merge spec to main now, or keep one branch?) | Branch strategy set |
-| 12 | Opt-in retrospective | `docs/retrospectives/RETRO-NNN-spec-*.md` |
+| 12 | Opt-in retrospective — see [retrospective workflow](retrospective.md) | `docs/retrospectives/RETRO-NNN-spec-*.md` |
 
 ## Vertical Slice Principle
 

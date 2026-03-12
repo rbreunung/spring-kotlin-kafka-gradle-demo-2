@@ -21,9 +21,9 @@ After a feature spec is complete and the implementation plan has been reviewed. 
 | 3 | Branch setup (switch to or create `feat/FEAT-NNN-*`) | On feature branch |
 | 4 | **TDD loop** (repeat per slice): write test → implement → green → commit → update progress | Code + tests per slice |
 | 5 | Run full test suite | All green |
-| 6 | **Implementation review**: verify all acceptance criteria have tests; write results to plan | Review section in plan doc |
+| 6 | **Implementation review**: verify all acceptance criteria have tests; write results to plan; set `Status: complete` in feature doc and plan doc; tick all `[ ]` goal and acceptance checkboxes | Review section in plan doc; both docs finalised |
 | 7 | Update architecture doc if implementation differed from spec | Arch doc current |
-| 8 | Opt-in retrospective | `docs/retrospectives/RETRO-NNN-impl-*.md` |
+| 8 | Opt-in retrospective — see [retrospective workflow](retrospective.md) | `docs/retrospectives/RETRO-NNN-impl-*.md` |
 | 9 | Offer PR | PR created (with confirmation) |
 
 ## TDD Loop Detail
