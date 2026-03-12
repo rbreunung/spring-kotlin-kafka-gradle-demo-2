@@ -8,6 +8,7 @@ import de.antrophos.demo.spring.kafka.trader.order.exception.OrderNotFoundExcept
 import de.antrophos.demo.spring.kafka.trader.order.exception.OrderNotCancellableException
 import de.antrophos.demo.spring.kafka.trader.order.repository.OrderRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
+import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.events.OrderCancelled
 import de.antrophos.demo.spring.kafka.trader.shared.events.OrderPlaced
 import org.slf4j.LoggerFactory
@@ -40,11 +41,11 @@ class OrderCommandService(
         )
         orderRepository.save(entity)
         val order = Order(
-            id = id,
-            traderId = request.traderId,
-            symbol = request.symbol,
-            quantity = request.quantity,
-            side = request.side
+            id = entity.id,
+            traderId = entity.traderId,
+            symbol = entity.symbol,
+            quantity = entity.quantity,
+            side = Side.valueOf(entity.side)
         )
         kafkaTemplate.send("orders", id.toString(), OrderPlaced(order))
         return OrderResponse.from(entity)
@@ -64,7 +65,7 @@ class OrderCommandService(
     }
 
     @Transactional
-    fun applyTransition(orderId: UUID, toStatus: OrderStatus, tradeId: UUID? = null) {
+    fun applyTransition(orderId: UUID, toStatus: OrderStatus, tradeId: UUID? = null, fromStatus: OrderStatus? = null) {
         val entity = orderRepository.findById(orderId).orElse(null)
         if (entity == null) {
             log.warn("applyTransition: order {} not found, skipping", orderId)
@@ -73,6 +74,11 @@ class OrderCommandService(
         val current = OrderStatus.valueOf(entity.status)
         if (current.isTerminal) {
             log.warn("applyTransition: order {} is terminal ({}), skipping transition to {}", orderId, current, toStatus)
+            return
+        }
+        if (fromStatus != null && entity.status != fromStatus.name) {
+            log.warn("applyTransition: order {} has status {} but expected {}, skipping transition to {}",
+                orderId, entity.status, fromStatus, toStatus)
             return
         }
         entity.status = toStatus.name

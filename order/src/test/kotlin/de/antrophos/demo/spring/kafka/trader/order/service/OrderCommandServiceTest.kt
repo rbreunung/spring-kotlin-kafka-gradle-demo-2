@@ -99,7 +99,7 @@ class OrderCommandServiceTest {
         `when`(orderRepository.findById(id)).thenReturn(Optional.of(entity))
         `when`(orderRepository.save(any(OrderEntity::class.java))).thenAnswer { it.arguments[0] }
 
-        service.applyTransition(id, OrderStatus.RISK_APPROVED)
+        service.applyTransition(id, OrderStatus.RISK_APPROVED, fromStatus = OrderStatus.PENDING)
 
         assertEquals(OrderStatus.RISK_APPROVED.name, entity.status)
     }
@@ -112,7 +112,7 @@ class OrderCommandServiceTest {
         `when`(orderRepository.findById(id)).thenReturn(Optional.of(entity))
         `when`(orderRepository.save(any(OrderEntity::class.java))).thenAnswer { it.arguments[0] }
 
-        service.applyTransition(id, OrderStatus.EXECUTED, tradeId)
+        service.applyTransition(id, OrderStatus.EXECUTED, tradeId, fromStatus = OrderStatus.RISK_APPROVED)
 
         assertEquals(OrderStatus.EXECUTED.name, entity.status)
         assertEquals(tradeId, entity.tradeId)
@@ -137,6 +137,18 @@ class OrderCommandServiceTest {
 
         service.applyTransition(id, OrderStatus.RISK_APPROVED) // no exception
 
+        verify(orderRepository, never()).save(any())
+    }
+
+    @Test
+    fun `applyTransition on wrong fromStatus is silently skipped`() {
+        val id = UUID.randomUUID()
+        val entity = pendingEntity(id) // status = PENDING
+        `when`(orderRepository.findById(id)).thenReturn(Optional.of(entity))
+
+        service.applyTransition(id, OrderStatus.EXECUTED, fromStatus = OrderStatus.RISK_APPROVED) // expects RISK_APPROVED but is PENDING
+
+        assertEquals(OrderStatus.PENDING.name, entity.status)
         verify(orderRepository, never()).save(any())
     }
 }
