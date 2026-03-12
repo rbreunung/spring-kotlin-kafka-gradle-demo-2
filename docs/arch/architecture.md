@@ -60,13 +60,43 @@ data class Position(val traderId: String, val symbol: String, val quantity: Int,
 enum class Side { BUY, SELL }
 ```
 
+## Gradle Module Layout
+
+```
+:shared            — Kotlin library (no Spring Boot): domain classes + Kafka event types
+:order             — Spring Boot app: REST endpoint + Kafka producer (port 8080)
+:risk              — Spring Boot app: Kafka consumer/producer
+:execution         — Spring Boot app: Kafka consumer/producer
+:settlement        — Spring Boot app: Kafka consumer/producer
+:notification      — Spring Boot app: Kafka consumer/producer
+:saga-orchestrator — Spring Boot app: Kafka consumer/producer (orchestrates saga)
+```
+
+Module dependency rule: all service modules depend on `:shared` only; no cross-service compile dependencies.
+
+Version management:
+- Spring BOM applied via `subprojects {}` in root `build.gradle.kts` — no Spring/Kafka versions in submodule files
+- `gradle/libs.versions.toml` (Version Catalog) — Resilience4j and other non-BOM versions
+
+## Local Infrastructure
+
+| Component | Image | Port | Notes |
+|---|---|---|---|
+| Kafka | `apache/kafka:3.9` (KRaft) | 9092 | No Zookeeper needed |
+
+- `docker-compose.yml` — Kafka only (daily dev; services run on JVM)
+- `docker-compose.full.yml` — Kafka + all 6 services (demo/CI; each service built from `Dockerfile`)
+
 ## Technology Decisions
 
 | Decision | Choice | Reason |
 |---|---|---|
 | Build | Gradle Kotlin DSL | Idiomatic with Kotlin codebase |
+| Module structure | Gradle multi-module, service-per-module | Compile-time boundaries mirror microservice topology |
+| Version management | Spring BOM + Version Catalog | No version numbers scattered across submodule files |
 | Messaging | Spring Kafka | Native Spring Boot integration |
 | Resilience | Resilience4j | Lightweight, annotation-driven, Spring Boot starter |
 | Serialization | JSON (Jackson) | Simple; swap for Avro/Protobuf in a future feature |
 | Persistence | In-memory (HashMap) | Keeps focus on Kafka patterns; swap for PostgreSQL later |
-| Infra | Docker Compose | Single-command local Kafka + Zookeeper |
+| Infra | Docker Compose (KRaft) | Single-container Kafka, no Zookeeper dependency |
+| Dev workflow | JVM services + Docker Kafka | Fast iteration; full Docker available via `docker-compose.full.yml` |

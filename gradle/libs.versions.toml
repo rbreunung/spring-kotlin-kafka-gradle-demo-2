@@ -1,0 +1,14 @@
+# Version Catalog — reference for non-BOM-managed versions
+# Spring Boot and Spring Cloud versions are in gradle.properties
+# Spring framework, Kafka, and Resilience4j versions are managed by the BOMs declared in each module
+
+[versions]
+spring-boot = "3.5.11"          # see gradle.properties: springBootVersion
+spring-cloud = "2025.0.1"       # see gradle.properties: springCloudVersion
+kotlin = "1.9.25"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }

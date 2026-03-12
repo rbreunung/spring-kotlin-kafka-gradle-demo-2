@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: risk-service
+  kafka:
+    bootstrap-servers: localhost:9092
+  main:
+    web-application-type: none
