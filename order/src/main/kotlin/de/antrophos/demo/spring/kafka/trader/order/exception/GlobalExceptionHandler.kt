@@ -21,6 +21,11 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ErrorResponse(errors))
     }
 
+    // This handler is intentionally scoped to the `side` field:
+    // PlaceOrderRequest has one enum field (`side`), and Jackson throws
+    // HttpMessageNotReadableException when an unrecognised string is submitted for it.
+    // If additional enum fields are added to PlaceOrderRequest, this handler must be updated
+    // to inspect the exception cause and extract the actual field name.
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleNotReadable(ex: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
         val error = FieldError("side", "Invalid value. Accepted values: BUY, SELL")
