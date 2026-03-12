@@ -13,3 +13,4 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | FEAT-001 | FEAT | Create Gradle multi-module structure | complete |
 | PLAN-001 | PLAN | Create Gradle multi-module structure | complete |
 | RETRO-001 | RETRO | FEAT-001 spec and implementation | complete |
+| FEAT-002 | FEAT | Order Service — REST API, Persistence, and Status Tracking | in-progress |
