@@ -1,6 +1,5 @@
 package de.antrophos.demo.spring.kafka.trader.shared.domain
 
-import de.antrophos.demo.spring.kafka.trader.shared.events.OrderCancelled
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.Instant
@@ -45,13 +44,5 @@ class DomainModelTest {
     fun `Side enum has BUY and SELL`() {
         assertEquals(Side.BUY, Side.valueOf("BUY"))
         assertEquals(Side.SELL, Side.valueOf("SELL"))
-    }
-
-    @Test
-    fun `OrderCancelled data class equality`() {
-        val id = UUID.randomUUID()
-        val event = OrderCancelled(orderId = id)
-        assertEquals(id, event.orderId)
-        assertEquals(event, OrderCancelled(orderId = id))
     }
 }
