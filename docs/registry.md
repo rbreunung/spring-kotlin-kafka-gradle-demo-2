@@ -10,5 +10,5 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | ID | Type | Title | Status |
 |---|---|---|---|
 | FEAT-000 | FEAT | Project initialization | complete |
-| FEAT-001 | FEAT | Create Gradle multi-module structure | in-progress |
-| PLAN-001 | PLAN | Create Gradle multi-module structure | in-progress |
+| FEAT-001 | FEAT | Create Gradle multi-module structure | complete |
+| PLAN-001 | PLAN | Create Gradle multi-module structure | complete |
