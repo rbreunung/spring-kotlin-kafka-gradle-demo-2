@@ -4,5 +4,8 @@ enum class OrderStatus {
     PENDING, RISK_APPROVED, RISK_REJECTED, EXECUTED, SETTLED, EXECUTION_FAILED, CANCELLED;
 
     val isTerminal: Boolean
-        get() = this in setOf(RISK_REJECTED, SETTLED, EXECUTION_FAILED, CANCELLED)
+        get() = when (this) {
+            RISK_REJECTED, SETTLED, EXECUTION_FAILED, CANCELLED -> true
+            else -> false
+        }
 }

@@ -69,6 +69,8 @@ class OrderRepositoryTest {
         repo.save(anOrder(traderId = "bob", status = OrderStatus.PENDING.name))
         val result = repo.findAllByTraderIdAndStatus("alice", OrderStatus.PENDING.name)
         assertEquals(1, result.size)
+        assertEquals("alice", result[0].traderId)
+        assertEquals(OrderStatus.PENDING.name, result[0].status)
     }
 
     @Test
