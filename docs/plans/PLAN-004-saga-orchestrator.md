@@ -8,8 +8,8 @@ Feature: [FEAT-004](../features/FEAT-004-saga-orchestrator.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 1
-Completed Slices: []
+Current Slice: 2
+Completed Slices: [1]
 Last Updated: 2026-03-13
 
 ## Implementation Review
@@ -66,7 +66,7 @@ Gaps: —
 
 **Test description:** `@DataJpaTest` — save a `SagaStateEntity` with step `RISK_REQUESTED`, read it back, assert orderId and step match. Save with step `RISK_APPROVED`, assert step stored as string "RISK_APPROVED".
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
