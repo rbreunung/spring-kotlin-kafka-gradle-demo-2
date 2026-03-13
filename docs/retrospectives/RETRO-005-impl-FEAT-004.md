@@ -43,3 +43,17 @@ Duration: ~1 session (branch setup → implementation review → retro)
 **Description:** The `SettlementRequested` signature ambiguity (Data Model said `(trade, order)`, Publisher table said `(trade)`) required a clarification round-trip during implementation. Both referenced the same event but disagreed on its shape.
 
 **Actionable Change:** In `feature-spec.md` STEP 7, add a consistency sub-check: "Verify that every event's field list is identical wherever it appears in the spec (Data Model, Publisher table, Consumer table). Mismatches must be resolved before the spec is committed."
+
+### 4. Process Gap — Spec completeness review did not surface known open points
+
+**Description (raised by user):** Before implementation began, a spec completeness review was performed as part of the feature-impl workflow. It did not surface the two main gaps that caused friction during implementation: the `orderJson` storage omission and the `SettlementRequested` signature inconsistency. Both were present in the committed spec and were findable by inspection — yet the review step missed them. This is a process reliability concern: if the completeness check does not catch detectable issues, it provides false confidence.
+
+**Actionable Change:** In `feature-impl.md` STEP 2 (spec review), add explicit checklist items:
+- For every event published by the feature, verify that the publishing component has access to all required fields at the time of publishing — trace back through the data flow and confirm each field is available (received earlier, stored in entity, or derivable).
+- Cross-check every event's field list across all spec sections (Data Model, Publisher table, Consumer table, sequence diagram). Any mismatch is a blocker before implementation starts.
+
+### 5. Process Gap — Implementation learnings not systematically fed back to architecture docs and ADRs
+
+**Description (raised by user):** Decisions made during implementation (e.g., the `orderJson` field, the `SettlementRequested` Option A resolution, the intermediate-state persistence rule) were captured in the feature doc's Implementation Notes and in ADR-001. However, there is no systematic step in the workflow that ensures these learnings reach `architecture.md` or the ADR index in a way that future spec sessions will find and use them for consistency checks. If a future feature spec is written without reading ADR-001, the intermediate-state rule will be silently violated again.
+
+**Actionable Change:** In `feature-impl.md` STEP 7 (retrospective / wrap-up), add: "Review all implementation deviations and decisions. For each one, determine whether it represents an architectural rule or constraint applicable to future features. If yes: (a) create or update an ADR, (b) ensure `architecture.md` references the ADR in its Key Design Decisions table, (c) add a pointer in the relevant feature-spec checklist or workflow step so future spec authors are directed to it." ADR-001 is the first instance of this pattern for this project.
