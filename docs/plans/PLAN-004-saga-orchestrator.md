@@ -8,8 +8,8 @@ Feature: [FEAT-004](../features/FEAT-004-saga-orchestrator.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 3
-Completed Slices: [1, 2]
+Current Slice: 4
+Completed Slices: [1, 2, 3]
 Last Updated: 2026-03-13
 
 ## Implementation Review
@@ -102,7 +102,7 @@ Gaps: —
 - Publish `RiskApproved` for unknown orderId → assert no state created; no exception
 - Publish `RiskApproved` when state already `RISK_REJECTED` → assert state unchanged
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
