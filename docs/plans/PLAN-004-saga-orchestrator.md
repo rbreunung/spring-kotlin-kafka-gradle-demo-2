@@ -8,8 +8,8 @@ Feature: [FEAT-004](../features/FEAT-004-saga-orchestrator.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 4
-Completed Slices: [1, 2, 3]
+Current Slice: 5
+Completed Slices: [1, 2, 3, 4]
 Last Updated: 2026-03-13
 
 ## Implementation Review
@@ -120,7 +120,7 @@ Gaps: —
 - `PositionSettled` with precondition `SETTLEMENT_REQUESTED` → state `SETTLED`; `NotificationRequested` on `notifications` topic
 - `SettlementFailed` with precondition `SETTLEMENT_REQUESTED` → state `SETTLEMENT_FAILED`; warning logged
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
