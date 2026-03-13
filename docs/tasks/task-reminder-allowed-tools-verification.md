@@ -5,6 +5,27 @@
 - Created `CLAUDE.md` in project root with instruction to avoid piped/compound bash commands
 - Replaced accumulated entries in `.claude/settings.local.json` with clean wildcard rules
 
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit*)",
+      "Bash(git branch*)",
+      "Bash(git merge-base*)",
+      "Bash(git rm *)",
+      "Bash(docker compose*)",
+      "Bash(ls *)",
+      "Bash(find *)"
+    ]
+  }
+}
+```
+
 ## Why
 
 Subagents were piping gradle output (`2>&1 | tail -N`) which bypasses wildcard permission rules
