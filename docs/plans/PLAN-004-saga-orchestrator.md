@@ -8,8 +8,8 @@ Feature: [FEAT-004](../features/FEAT-004-saga-orchestrator.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 5
-Completed Slices: [1, 2, 3, 4]
+Current Slice: 6
+Completed Slices: [1, 2, 3, 4, 5]
 Last Updated: 2026-03-13
 
 ## Implementation Review
@@ -137,7 +137,7 @@ Gaps: —
 - `GET /sagas/{orderId}` for known id → `200` with correct state
 - `GET /sagas/{orderId}` for unknown id → `404`
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -158,4 +158,4 @@ Gaps: —
 7. `GET http://localhost:8080/orders/{orderId}` → status should be `RISK_APPROVED` (or `RISK_REJECTED`)
 8. Test with `quantity: 15000` → `RiskRejected("quantity-exceeds-limit")` in both services
 
-**Status:** [ ] todo
+**Status:** [x] done (manual — see acceptance criteria in FEAT-004)
