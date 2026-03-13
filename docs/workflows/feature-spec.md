@@ -86,6 +86,10 @@ Review the docs loaded in STEP 3:
 - Does this feature make any existing doc outdated?
 - Flag conflicts to the user and note how to resolve them.
 
+**ADR constraint check** — read `docs/arch/architecture.md` "Key Design Decisions" table. For each linked ADR:
+- Is this feature's design consistent with the ADR's decision and constraints?
+- If the feature touches the same area (e.g., saga state persistence, resilience patterns), the ADR's constraints are binding — note them in the spec explicitly so they are not re-litigated during implementation.
+
 Make any necessary updates to existing docs now (keep changes minimal).
 
 ### STEP 7: Write Feature Spec
