@@ -22,7 +22,6 @@ class RiskService(
             if (externalClient.evaluate(order)) {
                 publisher.publishApproved(order.id)
             }
-            // false: rejection already published by RiskExternalClient fallback
         } catch (ex: RiskEngineException) {
             publisher.publishRejected(order.id, "evaluation-failed")
         }

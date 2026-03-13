@@ -1,5 +1,6 @@
 package de.antrophos.demo.spring.kafka.trader.risk
 
+import de.antrophos.demo.spring.kafka.trader.risk.external.RiskEngineException
 import de.antrophos.demo.spring.kafka.trader.risk.external.RiskExternalClient
 import de.antrophos.demo.spring.kafka.trader.risk.kafka.RiskEventPublisher
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
@@ -63,12 +64,26 @@ class RiskServiceTest {
     }
 
     @Test
-    fun `do not publish approved when external client returns false (fallback already published)`() {
+    fun `do not publish when external client returns false`() {
         val order = order(100)
         `when`(externalClient.evaluate(order)).thenReturn(false)
 
         service.handle(RiskCheckRequested(order))
 
+        verify(publisher, never()).publishApproved(order.id)
+        verifyNoMoreInteractions(publisher)
+    }
+
+    @Test
+    fun `publish evaluation-failed when external client throws RiskEngineException`() {
+        val order = order(100)
+        `when`(externalClient.evaluate(order)).thenThrow(
+            RiskEngineException("simulated failure")
+        )
+
+        service.handle(RiskCheckRequested(order))
+
+        verify(publisher).publishRejected(order.id, "evaluation-failed")
         verify(publisher, never()).publishApproved(order.id)
     }
 }
