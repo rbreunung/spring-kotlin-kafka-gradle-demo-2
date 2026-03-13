@@ -49,4 +49,3 @@ git rebase main                    # only if branch not yet pushed to origin
 - **One commit per vertical slice** (one logical unit of deliverable work).
 - Commit message format: `type(scope): short description` (e.g. `feat(risk): add RiskKafkaListener`).
 - Never accumulate multiple slices before committing.
-- If interrupted mid-slice, commit partial work as a WIP commit rather than leaving it uncommitted.
