@@ -64,6 +64,30 @@ erDiagram
 |---|---|
 | [edge case] | [how the system responds] |
 
+## Configuration
+
+> Include this section when the feature introduces Spring Boot configuration (Kafka, JPA, etc.). Omit for features with no new configuration.
+
+### `src/main/resources/application.yml`
+
+```yaml
+# new config keys introduced by this feature
+```
+
+### `src/test/resources/application.yml`
+
+> Required for Kafka features: prevents KafkaAutoConfiguration from failing in @DataJpaTest
+> and @WebMvcTest slices. Minimum required:
+
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: localhost:9999   # sentinel — no real broker needed
+    listener:
+      auto-startup: false
+    # repeat producer/consumer serializer config from main application.yml
+```
+
 ## Acceptance Criteria
 
 - [ ] [Criterion 1 — testable, specific]

@@ -25,7 +25,7 @@ flowchart LR
 
 | Service | Role |
 |---|---|
-| `OrderService` | Accepts REST order submissions; publishes `OrderPlaced` event |
+| `OrderService` | Accepts REST order submissions (port 8080); persists orders in H2 (Spring Data JPA); publishes `OrderPlaced` / `OrderCancelled`; consumes `RiskApproved`, `RiskRejected`, `TradeExecuted`, `PositionSettled`, `SettlementFailed` to update order status |
 | `SagaOrchestrator` | Stateful orchestrator; drives saga steps; handles compensation |
 | `RiskService` | External stub; validates order against risk limits; Resilience4j CB |
 | `ExecutionService` | Simulates trade execution on exchange; publishes `TradeExecuted` |
@@ -37,9 +37,9 @@ flowchart LR
 | Topic | Producer | Consumer | Notes |
 |---|---|---|---|
 | `orders` | OrderService | SagaOrchestrator | Order intake |
-| `risk-results` | RiskService | SagaOrchestrator | Risk approve/reject |
-| `executions` | ExecutionService | SagaOrchestrator, PositionService | Multiple consumer groups |
-| `settlements` | SettlementService | SagaOrchestrator | Settlement outcomes |
+| `risk-results` | RiskService | SagaOrchestrator, OrderService | Risk approve/reject |
+| `executions` | ExecutionService | SagaOrchestrator, OrderService, SettlementService | Multiple consumer groups |
+| `settlements` | SettlementService | SagaOrchestrator, OrderService | Settlement outcomes |
 | `notifications` | SagaOrchestrator | NotificationService | Trader alerts |
 | `dlq.settlements` | Spring Kafka DLT | Manual review consumer | Poison-pill + retry exhaustion |
 
@@ -64,7 +64,7 @@ enum class Side { BUY, SELL }
 
 ```
 :shared            — Kotlin library (no Spring Boot): domain classes + Kafka event types
-:order             — Spring Boot app: REST endpoint + Kafka producer (port 8080)
+:order             — Spring Boot app: REST API (port 8080), Spring Data JPA (H2), Kafka producer + consumer
 :risk              — Spring Boot app: Kafka consumer/producer
 :execution         — Spring Boot app: Kafka consumer/producer
 :settlement        — Spring Boot app: Kafka consumer/producer
@@ -97,6 +97,6 @@ Version management:
 | Messaging | Spring Kafka | Native Spring Boot integration |
 | Resilience | Resilience4j | Lightweight, annotation-driven, Spring Boot starter |
 | Serialization | JSON (Jackson) | Simple; swap for Avro/Protobuf in a future feature |
-| Persistence | In-memory (HashMap) | Keeps focus on Kafka patterns; swap for PostgreSQL later |
+| Persistence | H2 in-memory (Spring Data JPA) | Structured, queryable order state for status tracking; swap for PostgreSQL in production |
 | Infra | Docker Compose (KRaft) | Single-container Kafka, no Zookeeper dependency |
 | Dev workflow | JVM services + Docker Kafka | Fast iteration; full Docker available via `docker-compose.full.yml` |
