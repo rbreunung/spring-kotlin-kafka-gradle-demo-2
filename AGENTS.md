@@ -50,6 +50,20 @@ Load these into context before working on any task (if not already loaded):
 - Directories: created on demand — never create empty directories
 - Architecture diagrams: Mermaid, embedded in `docs/arch/architecture.md`
 
+## Bash Command Style
+
+When running build, test, or git commands:
+- **Do not pipe or redirect output** — avoid `|`, `2>&1`, `&&` chains in a single Bash call
+- Run gradle and git as simple commands: `./gradlew :order:test`, not `./gradlew :order:test 2>&1 | tail -40`
+- If you need multiple sequential operations, use separate Bash tool calls
+- Output is automatically truncated — manual tail/grep is unnecessary
+
+This keeps commands simple enough to match pre-approved wildcard rules and avoids repeated approval prompts.
+
+> **Note:** Do not create a `CLAUDE.md` in this project. Use this file (`AGENTS.md`) for all agent instructions — it is loaded by Claude Code, Opencode, and other agents.
+
+---
+
 ## Git Conventions
 
 - Feature branch: `feat/FEAT-NNN-kebab-title` (created at spec time, covers spec + impl)
