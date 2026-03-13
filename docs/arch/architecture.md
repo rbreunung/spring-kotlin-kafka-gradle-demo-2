@@ -76,7 +76,7 @@ enum class Side { BUY, SELL }
 | `RiskRejected(orderId, reason)` | RiskService | SagaOrchestrator, OrderService |
 | `ExecutionRequested(order)` | SagaOrchestrator | ExecutionService (future) |
 | `TradeExecuted(trade)` | ExecutionService | SagaOrchestrator, OrderService, SettlementService |
-| `SettlementRequested(trade, order)` | SagaOrchestrator | SettlementService (future) |
+| `SettlementRequested(trade)` | SagaOrchestrator | SettlementService (future) |
 | `PositionSettled(tradeId, position)` | SettlementService | SagaOrchestrator, OrderService |
 | `SettlementFailed(tradeId, reason)` | SettlementService | SagaOrchestrator, OrderService |
 | `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |
@@ -108,6 +108,12 @@ Version management:
 
 - `docker-compose.yml` — Kafka only (daily dev; services run on JVM)
 - `docker-compose.full.yml` — Kafka + all 6 services (demo/CI; each service built from `Dockerfile`)
+
+## Key Design Decisions
+
+| ID | Decision | Status |
+|---|---|---|
+| [ADR-001](adr/ADR-001-saga-state-as-recovery-anchor.md) | Saga state entity is the authoritative recovery anchor for future compensation logic | accepted |
 
 ## Technology Decisions
 
