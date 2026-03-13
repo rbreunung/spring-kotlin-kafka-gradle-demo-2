@@ -240,6 +240,27 @@ spring:
         spring.json.use.type.headers: true
 ```
 
+### `order/src/test/resources/application.yml`
+
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: localhost:9999
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: order-service
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "de.antrophos.demo.spring.kafka.trader.shared.events,de.antrophos.demo.spring.kafka.trader.shared.domain"
+        spring.json.use.type.headers: true
+    listener:
+      auto-startup: false
+```
+
+The sentinel `bootstrap-servers: localhost:9999` prevents `KafkaAutoConfiguration` from attempting a real connection in `@DataJpaTest` and `@WebMvcTest` slices. `auto-startup: false` prevents listeners from starting in non-Kafka test contexts. `@EmbeddedKafka` integration tests override `bootstrap-servers` via `@TestPropertySource` and flip `auto-startup` back to `true`.
+
 ## Files to Create / Modify
 
 | Path | Action |
