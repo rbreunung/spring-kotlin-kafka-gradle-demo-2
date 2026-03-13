@@ -62,9 +62,10 @@ class SagaOrchestrator(
         val entity = findOrWarn(event.orderId, "onRiskApproved") ?: return
         if (isTerminalOrWarn(entity, "onRiskApproved")) return
         val order = objectMapper.readValue<Order>(entity.orderJson)
-        repository.save(entity.copy(step = SagaStep.EXECUTION_REQUESTED.name, updatedAt = Instant.now()))
+        val approved = repository.save(entity.copy(step = SagaStep.RISK_APPROVED.name, updatedAt = Instant.now()))
+        repository.save(approved.copy(step = SagaStep.EXECUTION_REQUESTED.name, updatedAt = Instant.now()))
         publisher.publishExecutionRequested(order)
-        log.info("Risk approved for orderId={}, transitioning to EXECUTION_REQUESTED", event.orderId)
+        log.info("Risk approved for orderId={}, transitioning RISK_APPROVED → EXECUTION_REQUESTED", event.orderId)
     }
 
     @Transactional
@@ -80,15 +81,16 @@ class SagaOrchestrator(
         val orderId = event.trade.orderId
         val entity = findOrWarn(orderId, "onTradeExecuted") ?: return
         if (isTerminalOrWarn(entity, "onTradeExecuted")) return
-        repository.save(
+        val complete = repository.save(
             entity.copy(
-                step = SagaStep.SETTLEMENT_REQUESTED.name,
+                step = SagaStep.EXECUTION_COMPLETE.name,
                 tradeId = event.trade.id,
                 updatedAt = Instant.now()
             )
         )
+        repository.save(complete.copy(step = SagaStep.SETTLEMENT_REQUESTED.name, updatedAt = Instant.now()))
         publisher.publishSettlementRequested(event.trade)
-        log.info("Trade executed for orderId={}, tradeId={}", orderId, event.trade.id)
+        log.info("Trade executed for orderId={}, tradeId={}, transitioning EXECUTION_COMPLETE → SETTLEMENT_REQUESTED", orderId, event.trade.id)
     }
 
     @Transactional

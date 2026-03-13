@@ -1,40 +1,33 @@
 # PLAN-004: Saga Orchestrator — Implementation Plan
 
-Status: draft
+Status: complete
 Date: 2026-03-13
 Feature: [FEAT-004](../features/FEAT-004-saga-orchestrator.md)
 
-## Progress
-
-> Agent: update after each completed slice. Remove entire section when all slices done.
-
-Current Slice: 6
-Completed Slices: [1, 2, 3, 4, 5]
-Last Updated: 2026-03-13
 
 ## Implementation Review
 
-> Agent: fill this section during the final review step of feature-impl.
-
-Status: pending
-Reviewed: —
+Status: passed
+Reviewed: 2026-03-13
 
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| New shared events compile | — | pending |
-| `OrderPlaced` → `RISK_REQUESTED` + `RiskCheckRequested` published | — | pending |
-| `RiskApproved` → `RISK_APPROVED` → `EXECUTION_REQUESTED` | — | pending |
-| `RiskRejected` → `RISK_REJECTED` (terminal) | — | pending |
-| `TradeExecuted` → `EXECUTION_COMPLETE` → `SETTLEMENT_REQUESTED` | — | pending |
-| `PositionSettled` → `SETTLED` + `NotificationRequested` | — | pending |
-| `SettlementFailed` → `SETTLEMENT_FAILED` (terminal) | — | pending |
-| Unknown orderId → skip | — | pending |
-| Terminal state → skip | — | pending |
-| `GET /sagas` → list | — | pending |
-| `GET /sagas/{orderId}` → state or 404 | — | pending |
-| End-to-end: POST /orders → saga + order status visible | — | pending |
+| New shared events compile | `:shared:build` (ExecutionRequested, SettlementRequested, NotificationRequested) | ✅ |
+| `OrderPlaced` → `RISK_REQUESTED` + `RiskCheckRequested` published | `SagaOrderPlacedIntegrationTest: OrderPlaced persists saga state...` | ✅ |
+| `OrderCancelled` (in `RISK_REQUESTED`) → saga removed | `SagaOrderPlacedIntegrationTest: OrderCancelled in RISK_REQUESTED state removes saga state` | ✅ |
+| `RiskApproved` → `RISK_APPROVED` → `EXECUTION_REQUESTED` + `ExecutionRequested` published | `SagaRiskResultsIntegrationTest: RiskApproved transitions to EXECUTION_REQUESTED...` | ✅ |
+| `RiskRejected` → `RISK_REJECTED` (terminal) | `SagaRiskResultsIntegrationTest: RiskRejected transitions to RISK_REJECTED terminal state` | ✅ |
+| `TradeExecuted` → `EXECUTION_COMPLETE` → `SETTLEMENT_REQUESTED` + `SettlementRequested` published | `SagaDownstreamIntegrationTest: TradeExecuted transitions to SETTLEMENT_REQUESTED...` | ✅ |
+| `PositionSettled` → `SETTLED` + `NotificationRequested` published | `SagaDownstreamIntegrationTest: PositionSettled transitions to SETTLED...` | ✅ |
+| `SettlementFailed` → `SETTLEMENT_FAILED` (terminal) | `SagaDownstreamIntegrationTest: SettlementFailed transitions to SETTLEMENT_FAILED terminal state` | ✅ |
+| Unknown orderId → logged and skipped | `SagaRiskResultsIntegrationTest: RiskApproved for unknown orderId is silently skipped` | ✅ |
+| Terminal-state saga → logged and skipped | `SagaRiskResultsIntegrationTest: RiskApproved for terminal saga state is ignored` | ✅ |
+| `GET /sagas` → `200` with list | `SagaControllerTest: GET sagas returns 200 with list of saga states` | ✅ |
+| `GET /sagas/{orderId}` (known) → `200` | `SagaControllerTest: GET sagas by known orderId returns 200 with saga state` | ✅ |
+| `GET /sagas/{orderId}` (unknown) → `404` | `SagaControllerTest: GET sagas by unknown orderId returns 404` | ✅ |
+| End-to-end: POST /orders → saga + order status visible | Manual — `docker compose up -d` + start services | ✅ (manual) |
 
-Gaps: —
+Gaps: none — two intermediate-state gaps (`RISK_APPROVED`, `EXECUTION_COMPLETE` not persisted) were found and fixed before review passed.
 
 ---
 

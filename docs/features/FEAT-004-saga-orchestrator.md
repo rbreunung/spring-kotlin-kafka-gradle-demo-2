@@ -1,6 +1,6 @@
 # FEAT-004: Saga Orchestrator — Saga State Machine and Kafka Routing
 
-Status: draft
+Status: complete
 Date: 2026-03-13
 Author: Claude
 
@@ -16,15 +16,15 @@ After this feature, placing an order via `POST /orders` on the OrderService prod
 
 ## Goals
 
-- [ ] Add `ExecutionRequested`, `SettlementRequested`, and `NotificationRequested` events to `:shared`
-- [ ] H2 in-memory + Spring Data JPA saga state persistence (`SagaStateEntity`, `SagaStep`, `SagaStateRepository`)
-- [ ] Consume `orders` topic: `OrderPlaced` → persist `RISK_REQUESTED` → publish `RiskCheckRequested`; `OrderCancelled` → remove saga state
-- [ ] Consume `risk-results` topic: `RiskApproved` → update state to `RISK_APPROVED` → stub-publish `ExecutionRequested`; `RiskRejected` → terminal state `RISK_REJECTED`
-- [ ] Consume `executions` topic: `TradeExecuted` → stub handler (log + update state to `EXECUTION_COMPLETE` → stub-publish `SettlementRequested`)
-- [ ] Consume `settlements` topic: `PositionSettled` → update state to `SETTLED` → stub-publish `NotificationRequested`; `SettlementFailed` → terminal state `SETTLEMENT_FAILED`
-- [ ] Guard all transitions: silently ignore events for unknown or terminal orderIds (idempotent)
-- [ ] REST observability: `GET /sagas` and `GET /sagas/{orderId}` on port 8085
-- [ ] Integration tests covering each saga step
+- [x] Add `ExecutionRequested`, `SettlementRequested`, and `NotificationRequested` events to `:shared`
+- [x] H2 in-memory + Spring Data JPA saga state persistence (`SagaStateEntity`, `SagaStep`, `SagaStateRepository`)
+- [x] Consume `orders` topic: `OrderPlaced` → persist `RISK_REQUESTED` → publish `RiskCheckRequested`; `OrderCancelled` → remove saga state
+- [x] Consume `risk-results` topic: `RiskApproved` → update state to `RISK_APPROVED` → stub-publish `ExecutionRequested`; `RiskRejected` → terminal state `RISK_REJECTED`
+- [x] Consume `executions` topic: `TradeExecuted` → stub handler (log + update state to `EXECUTION_COMPLETE` → stub-publish `SettlementRequested`)
+- [x] Consume `settlements` topic: `PositionSettled` → update state to `SETTLED` → stub-publish `NotificationRequested`; `SettlementFailed` → terminal state `SETTLEMENT_FAILED`
+- [x] Guard all transitions: silently ignore events for unknown or terminal orderIds (idempotent)
+- [x] REST observability: `GET /sagas` and `GET /sagas/{orderId}` on port 8085
+- [x] Integration tests covering each saga step
 
 ## Non-Goals
 
@@ -250,21 +250,21 @@ spring:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :shared:build` — `ExecutionRequested`, `SettlementRequested`, `NotificationRequested` compile
-- [ ] `./gradlew :saga-orchestrator:test` — all tests pass
-- [ ] `OrderPlaced` consumed → `SagaStateEntity` persisted with step `RISK_REQUESTED`; `RiskCheckRequested` published to `risk-checks`
-- [ ] `OrderCancelled` consumed (in `RISK_REQUESTED` state) → saga state removed
-- [ ] `RiskApproved` consumed → state transitions `RISK_REQUESTED → RISK_APPROVED → EXECUTION_REQUESTED`; `ExecutionRequested` published
-- [ ] `RiskRejected` consumed → state transitions to `RISK_REJECTED` (terminal); reason logged
-- [ ] `TradeExecuted` consumed → state transitions `EXECUTION_REQUESTED → EXECUTION_COMPLETE → SETTLEMENT_REQUESTED`
-- [ ] `PositionSettled` consumed → state transitions to `SETTLED`; `NotificationRequested` published
-- [ ] `SettlementFailed` consumed → state transitions to `SETTLEMENT_FAILED` (terminal); warning logged
-- [ ] Event for unknown orderId → logged and skipped; no exception
-- [ ] Event for terminal-state saga → logged and skipped; no state change
-- [ ] `GET /sagas` → `200` with list of all saga states
-- [ ] `GET /sagas/{orderId}` (known) → `200` with correct saga state
-- [ ] `GET /sagas/{orderId}` (unknown) → `404`
-- [ ] End-to-end: `docker compose up -d` → `POST /orders` → `GET /sagas/{orderId}` shows `RISK_APPROVED` or `RISK_REJECTED` → `GET /orders/{id}` shows matching status
+- [x] `./gradlew :shared:build` — `ExecutionRequested`, `SettlementRequested`, `NotificationRequested` compile
+- [x] `./gradlew :saga-orchestrator:test` — all tests pass
+- [x] `OrderPlaced` consumed → `SagaStateEntity` persisted with step `RISK_REQUESTED`; `RiskCheckRequested` published to `risk-checks`
+- [x] `OrderCancelled` consumed (in `RISK_REQUESTED` state) → saga state removed
+- [x] `RiskApproved` consumed → state transitions `RISK_REQUESTED → RISK_APPROVED → EXECUTION_REQUESTED`; `ExecutionRequested` published
+- [x] `RiskRejected` consumed → state transitions to `RISK_REJECTED` (terminal); reason logged
+- [x] `TradeExecuted` consumed → state transitions `EXECUTION_REQUESTED → EXECUTION_COMPLETE → SETTLEMENT_REQUESTED`
+- [x] `PositionSettled` consumed → state transitions to `SETTLED`; `NotificationRequested` published
+- [x] `SettlementFailed` consumed → state transitions to `SETTLEMENT_FAILED` (terminal); warning logged
+- [x] Event for unknown orderId → logged and skipped; no exception
+- [x] Event for terminal-state saga → logged and skipped; no state change
+- [x] `GET /sagas` → `200` with list of all saga states
+- [x] `GET /sagas/{orderId}` (known) → `200` with correct saga state
+- [x] `GET /sagas/{orderId}` (unknown) → `404`
+- [x] End-to-end: `docker compose up -d` → `POST /orders` → `GET /sagas/{orderId}` shows `RISK_APPROVED` or `RISK_REJECTED` → `GET /orders/{id}` shows matching status
 
 ## Files to Create / Modify
 
@@ -287,7 +287,9 @@ spring:
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
+**`SagaStateEntity` carries `orderJson: String`** — The spec's entity definition has no field for the original `Order`. During implementation it became clear that `onRiskApproved` must publish `ExecutionRequested(order)`, but `RiskApproved` only carries `orderId`. The entity was extended with a `orderJson` column (serialized JSON, length 4096) populated on `OrderPlaced`. The orchestrator deserializes it on demand. This is a minor addition; the spec's entity table remains otherwise accurate.
+
+**`SettlementRequested(val trade: Trade)` — not `(trade, order)`** — The spec's Data Model section lists `SettlementRequested(val trade: Trade, val order: Order)` but the Publisher table and implementation plan both show only `trade`. Since `trade.orderId` already links to the order, the `order` field was omitted (Option A, confirmed with user).
 
 ## Related Docs
 
