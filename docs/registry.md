@@ -21,3 +21,8 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | PLAN-003 | PLAN | Risk Service — Kafka Integration and Resilience4j Circuit Breaker | draft |
 | FEAT-004 | FEAT | Saga Orchestrator — Saga State Machine and Kafka Routing | draft |
 | PLAN-004 | PLAN | Saga Orchestrator — Saga State Machine and Kafka Routing | draft |
+| FEAT-005 | FEAT | Execution Service — Kafka Integration and Trade Simulation | draft |
+| PLAN-005 | PLAN | Execution Service — Kafka Integration and Trade Simulation | draft |
+| FEAT-006 | FEAT | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
+| PLAN-006 | PLAN | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
+| RETRO-003 | RETRO | Feature spec session — FEAT-003 through FEAT-006 | complete |
