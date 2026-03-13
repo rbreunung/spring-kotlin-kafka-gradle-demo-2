@@ -9,6 +9,7 @@ Duration: ~1 session (branch setup → implementation review → retro)
 
 ## What Went Well
 
+- **PR creation was straightforward.** The branch was clean, all commits were well-scoped, and the PR body could be generated directly from the feature spec's acceptance criteria and implementation notes. No rebasing or cleanup was needed before opening.
 - **Pattern consistency was high.** The existing modules (risk, order) provided very clear precedent for every pattern needed: `@KafkaListener` with `ConsumerRecord<String, Any>` dispatch, `KafkaTemplate` fire-and-forget producers, `@DataJpaTest` fixtures, `@WebMvcTest` with `@MockitoBean`. No guesswork required.
 - **TDD caught real gaps.** The implementation review found two missing intermediate-state saves (`RISK_APPROVED`, `EXECUTION_COMPLETE`). The tests already passed before the fix (final states were correct), but the review process against the acceptance criteria caught the deviation — exactly what the review step is for. The need to persist all intermediate states is now codified in [ADR-001](../arch/adr/ADR-001-saga-state-as-recovery-anchor.md) as a constraint for all future saga features.
 - **The Awaitility + orderId-filter pattern** for Kafka output assertions proved robust across all four integration test classes. Using a shared class-level consumer with orderId filtering prevented the `getSingleRecord` "more than one record" failure that appeared in the first Slice 2 run.
