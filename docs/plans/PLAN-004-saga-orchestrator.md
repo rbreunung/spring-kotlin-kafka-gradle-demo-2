@@ -8,8 +8,8 @@ Feature: [FEAT-004](../features/FEAT-004-saga-orchestrator.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 2
-Completed Slices: [1]
+Current Slice: 3
+Completed Slices: [1, 2]
 Last Updated: 2026-03-13
 
 ## Implementation Review
@@ -82,7 +82,7 @@ Gaps: —
 
 **Test description:** `@EmbeddedKafka` integration test — publish `OrderPlaced`; assert `SagaStateEntity` in DB has step `RISK_REQUESTED`; assert `RiskCheckRequested` arrives on `risk-checks` topic with matching orderId.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
