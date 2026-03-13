@@ -26,8 +26,8 @@ flowchart LR
 | Service | Role |
 |---|---|
 | `OrderService` | Accepts REST order submissions (port 8080); persists orders in H2 (Spring Data JPA); publishes `OrderPlaced` / `OrderCancelled`; consumes `RiskApproved`, `RiskRejected`, `TradeExecuted`, `PositionSettled`, `SettlementFailed` to update order status |
-| `SagaOrchestrator` | Stateful orchestrator; drives saga steps; handles compensation |
-| `RiskService` | External stub; validates order against risk limits; Resilience4j CB |
+| `SagaOrchestrator` | Stateful orchestrator (port 8085); H2 + JPA saga state; drives saga steps; REST observability (`GET /sagas`); compensation deferred |
+| `RiskService` | Kafka-only; consumes `RiskCheckRequested`; quantity-based approval rule; Resilience4j CB wrapping simulated external call |
 | `ExecutionService` | Simulates trade execution on exchange; publishes `TradeExecuted` |
 | `SettlementService` | Updates positions; transactional Kafka producer; Resilience4j retry + bulkhead |
 | `NotificationService` | Sends trader notification (log stub) |
@@ -36,11 +36,12 @@ flowchart LR
 
 | Topic | Producer | Consumer | Notes |
 |---|---|---|---|
-| `orders` | OrderService | SagaOrchestrator | Order intake |
-| `risk-results` | RiskService | SagaOrchestrator, OrderService | Risk approve/reject |
-| `executions` | ExecutionService | SagaOrchestrator, OrderService, SettlementService | Multiple consumer groups |
-| `settlements` | SettlementService | SagaOrchestrator, OrderService | Settlement outcomes |
-| `notifications` | SagaOrchestrator | NotificationService | Trader alerts |
+| `orders` | OrderService | SagaOrchestrator | Order intake (`OrderPlaced`, `OrderCancelled`) |
+| `risk-checks` | SagaOrchestrator | RiskService | Risk evaluation requests (`RiskCheckRequested`) |
+| `risk-results` | RiskService | SagaOrchestrator, OrderService | Risk approve/reject (`RiskApproved`, `RiskRejected`) |
+| `executions` | ExecutionService | SagaOrchestrator, OrderService, SettlementService | Trade fills (`TradeExecuted`); SagaOrchestrator also stub-produces `ExecutionRequested` |
+| `settlements` | SettlementService | SagaOrchestrator, OrderService | Settlement outcomes (`PositionSettled`, `SettlementFailed`); SagaOrchestrator stub-produces `SettlementRequested` |
+| `notifications` | SagaOrchestrator | NotificationService | Trader alerts (`NotificationRequested`) |
 | `dlq.settlements` | Spring Kafka DLT | Manual review consumer | Poison-pill + retry exhaustion |
 
 ## Resilience4j Usage
@@ -51,7 +52,9 @@ flowchart LR
 | SettlementService | Retry | Retry transient settlement failures (3 attempts, exponential backoff) |
 | SettlementService | Bulkhead (ThreadPool) | Limit concurrent settlement calls |
 
-## Data Model (stubs)
+## Data Model
+
+### Shared domain (`:shared`)
 
 ```kotlin
 data class Order(val id: UUID, val traderId: String, val symbol: String, val quantity: Int, val side: Side)
@@ -59,6 +62,23 @@ data class Trade(val id: UUID, val orderId: UUID, val executedPrice: BigDecimal,
 data class Position(val traderId: String, val symbol: String, val quantity: Int, val avgCost: BigDecimal)
 enum class Side { BUY, SELL }
 ```
+
+### Shared Kafka events (`:shared`)
+
+| Event | Published by | Consumed by |
+|---|---|---|
+| `OrderPlaced(order)` | OrderService | SagaOrchestrator |
+| `OrderCancelled(orderId)` | OrderService | SagaOrchestrator |
+| `RiskCheckRequested(order)` | SagaOrchestrator | RiskService |
+| `RiskApproved(orderId)` | RiskService | SagaOrchestrator, OrderService |
+| `RiskRejected(orderId, reason)` | RiskService | SagaOrchestrator, OrderService |
+| `ExecutionRequested(order)` | SagaOrchestrator | ExecutionService (future) |
+| `TradeExecuted(trade)` | ExecutionService | SagaOrchestrator, OrderService, SettlementService |
+| `SettlementRequested(trade)` | SagaOrchestrator | SettlementService (future) |
+| `PositionSettled(tradeId, position)` | SettlementService | SagaOrchestrator, OrderService |
+| `SettlementFailed(tradeId, reason)` | SettlementService | SagaOrchestrator, OrderService |
+| `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |
+| `TraderNotified(traderId, orderId, message)` | NotificationService | — |
 
 ## Gradle Module Layout
 
