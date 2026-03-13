@@ -23,7 +23,8 @@ class SagaStateRepositoryTest {
         orderId = UUID.randomUUID(),
         step = step.name,
         tradeId = tradeId,
-        updatedAt = Instant.now()
+        updatedAt = Instant.now(),
+        orderJson = """{"id":"${UUID.randomUUID()}","traderId":"T1","symbol":"AAPL","quantity":100,"side":"BUY"}"""
     )
 
     @Test
@@ -42,6 +43,21 @@ class SagaStateRepositoryTest {
         repo.save(entity)
         val found = repo.findById(entity.orderId).orElseThrow()
         assertEquals("RISK_APPROVED", found.step)
+    }
+
+    @Test
+    fun `findByTradeId returns entity with matching tradeId`() {
+        val tradeId = UUID.randomUUID()
+        repo.save(aSagaState(tradeId = tradeId))
+        repo.save(aSagaState())
+        val found = repo.findByTradeId(tradeId)
+        kotlin.test.assertNotNull(found)
+        assertEquals(tradeId, found.tradeId)
+    }
+
+    @Test
+    fun `findByTradeId returns null when not found`() {
+        kotlin.test.assertNull(repo.findByTradeId(UUID.randomUUID()))
     }
 
     @Test

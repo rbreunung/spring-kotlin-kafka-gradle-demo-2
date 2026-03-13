@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface SagaStateRepository : JpaRepository<SagaStateEntity, UUID> {
     fun findAllByOrderByUpdatedAtDesc(): List<SagaStateEntity>
+    fun findByTradeId(tradeId: UUID): SagaStateEntity?
 }

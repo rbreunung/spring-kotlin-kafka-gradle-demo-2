@@ -21,5 +21,8 @@ data class SagaStateEntity(
     val tradeId: UUID? = null,
 
     @Column(nullable = false)
-    val updatedAt: Instant
+    val updatedAt: Instant,
+
+    @Column(nullable = false, length = 4096)
+    val orderJson: String = ""
 )
