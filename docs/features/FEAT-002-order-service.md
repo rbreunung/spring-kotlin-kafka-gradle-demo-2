@@ -1,6 +1,6 @@
 # FEAT-002: Order Service — REST API, Persistence, and Status Tracking
 
-Status: in-progress
+Status: complete
 Date: 2026-03-12
 Author: Claude
 
@@ -14,13 +14,13 @@ The architecture document records `Persistence | In-memory (HashMap)` as the des
 
 ## Goals
 
-- [ ] Expose a REST API (`POST`, `GET`, `DELETE /orders`) with Bean Validation
-- [ ] Persist orders in H2 via Spring Data JPA with a separate `OrderEntity` (`:shared` stays annotation-free)
-- [ ] Track fine-grained order status through the full saga lifecycle
-- [ ] Publish `OrderPlaced` and `OrderCancelled` events to the `orders` Kafka topic
-- [ ] Consume downstream Kafka events (`RiskApproved`, `RiskRejected`, `TradeExecuted`, `PositionSettled`, `SettlementFailed`) to update order status
-- [ ] Add `OrderCancelled` event to `:shared`
-- [ ] Update `docs/arch/architecture.md` to reflect H2 persistence and new Kafka consumer role
+- [x]Expose a REST API (`POST`, `GET`, `DELETE /orders`) with Bean Validation
+- [x]Persist orders in H2 via Spring Data JPA with a separate `OrderEntity` (`:shared` stays annotation-free)
+- [x]Track fine-grained order status through the full saga lifecycle
+- [x]Publish `OrderPlaced` and `OrderCancelled` events to the `orders` Kafka topic
+- [x]Consume downstream Kafka events (`RiskApproved`, `RiskRejected`, `TradeExecuted`, `PositionSettled`, `SettlementFailed`) to update order status
+- [x]Add `OrderCancelled` event to `:shared`
+- [x]Update `docs/arch/architecture.md` to reflect H2 persistence and new Kafka consumer role
 
 ## Non-Goals
 
@@ -261,22 +261,22 @@ spring:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :shared:build` — `OrderCancelled` compiles
-- [ ] `./gradlew :order:test` — all tests pass (context loads, unit tests for command/query services, Kafka listener tests with embedded Kafka)
-- [ ] `POST /orders` with valid body → `201` + PENDING status + `OrderPlaced` published to `orders` topic
-- [ ] `POST /orders` with `quantity: 0` → `400` with field error
-- [ ] `GET /orders/{id}` → `200` with correct order
-- [ ] `GET /orders/{id}` for unknown id → `404`
-- [ ] `GET /orders?traderId=trader-42` → filtered list
-- [ ] `GET /orders?status=PENDING` → filtered list
-- [ ] `DELETE /orders/{id}` on PENDING order → `204` + status `CANCELLED` + `OrderCancelled` published
-- [ ] `DELETE /orders/{id}` on non-PENDING order → `409`
-- [ ] Consuming `RiskApproved` event → order status transitions PENDING → RISK_APPROVED
-- [ ] Consuming `RiskRejected` event → order status transitions PENDING → RISK_REJECTED
-- [ ] Consuming `TradeExecuted` event → order looked up by `event.trade.orderId`; status transitions RISK_APPROVED → EXECUTED; `event.trade.id` persisted as `tradeId`
-- [ ] Consuming `PositionSettled` event → order status transitions EXECUTED → SETTLED (lookup by tradeId)
-- [ ] Consuming `SettlementFailed` event → order status transitions EXECUTED → EXECUTION_FAILED
-- [ ] Invalid transition (e.g. duplicate event on terminal order) → logged and skipped; no exception
+- [x]`./gradlew :shared:build` — `OrderCancelled` compiles
+- [x]`./gradlew :order:test` — all tests pass (context loads, unit tests for command/query services, Kafka listener tests with embedded Kafka)
+- [x]`POST /orders` with valid body → `201` + PENDING status + `OrderPlaced` published to `orders` topic
+- [x]`POST /orders` with `quantity: 0` → `400` with field error
+- [x]`GET /orders/{id}` → `200` with correct order
+- [x]`GET /orders/{id}` for unknown id → `404`
+- [x]`GET /orders?traderId=trader-42` → filtered list
+- [x]`GET /orders?status=PENDING` → filtered list
+- [x]`DELETE /orders/{id}` on PENDING order → `204` + status `CANCELLED` + `OrderCancelled` published
+- [x]`DELETE /orders/{id}` on non-PENDING order → `409`
+- [x]Consuming `RiskApproved` event → order status transitions PENDING → RISK_APPROVED
+- [x]Consuming `RiskRejected` event → order status transitions PENDING → RISK_REJECTED
+- [x]Consuming `TradeExecuted` event → order looked up by `event.trade.orderId`; status transitions RISK_APPROVED → EXECUTED; `event.trade.id` persisted as `tradeId`
+- [x]Consuming `PositionSettled` event → order status transitions EXECUTED → SETTLED (lookup by tradeId)
+- [x]Consuming `SettlementFailed` event → order status transitions EXECUTED → EXECUTION_FAILED
+- [x]Invalid transition (e.g. duplicate event on terminal order) → logged and skipped; no exception
 
 ## Related Docs
 
