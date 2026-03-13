@@ -26,3 +26,4 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | FEAT-006 | FEAT | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
 | PLAN-006 | PLAN | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
 | RETRO-003 | RETRO | Feature spec session — FEAT-003 through FEAT-006 | complete |
+| RETRO-004 | RETRO | FEAT-003 implementation retrospective | complete |
