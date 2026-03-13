@@ -39,8 +39,10 @@ flowchart LR
 | `orders` | OrderService | SagaOrchestrator | Order intake (`OrderPlaced`, `OrderCancelled`) |
 | `risk-checks` | SagaOrchestrator | RiskService | Risk evaluation requests (`RiskCheckRequested`) |
 | `risk-results` | RiskService | SagaOrchestrator, OrderService | Risk approve/reject (`RiskApproved`, `RiskRejected`) |
-| `executions` | ExecutionService | SagaOrchestrator, OrderService, SettlementService | Trade fills (`TradeExecuted`); SagaOrchestrator also stub-produces `ExecutionRequested` |
-| `settlements` | SettlementService | SagaOrchestrator, OrderService | Settlement outcomes (`PositionSettled`, `SettlementFailed`); SagaOrchestrator stub-produces `SettlementRequested` |
+| `execution-requests` | SagaOrchestrator | ExecutionService | Execution requests (`ExecutionRequested`) |
+| `executions` | ExecutionService | SagaOrchestrator, OrderService, SettlementService | Trade fills (`TradeExecuted`) |
+| `settlement-requests` | SagaOrchestrator | SettlementService | Settlement requests (`SettlementRequested`) |
+| `settlements` | SettlementService | SagaOrchestrator, OrderService | Settlement outcomes (`PositionSettled`, `SettlementFailed`) |
 | `notifications` | SagaOrchestrator | NotificationService | Trader alerts (`NotificationRequested`) |
 | `dlq.settlements` | Spring Kafka DLT | Manual review consumer | Poison-pill + retry exhaustion |
 
@@ -74,7 +76,7 @@ enum class Side { BUY, SELL }
 | `RiskRejected(orderId, reason)` | RiskService | SagaOrchestrator, OrderService |
 | `ExecutionRequested(order)` | SagaOrchestrator | ExecutionService (future) |
 | `TradeExecuted(trade)` | ExecutionService | SagaOrchestrator, OrderService, SettlementService |
-| `SettlementRequested(trade)` | SagaOrchestrator | SettlementService (future) |
+| `SettlementRequested(trade, order)` | SagaOrchestrator | SettlementService (future) |
 | `PositionSettled(tradeId, position)` | SettlementService | SagaOrchestrator, OrderService |
 | `SettlementFailed(tradeId, reason)` | SettlementService | SagaOrchestrator, OrderService |
 | `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |

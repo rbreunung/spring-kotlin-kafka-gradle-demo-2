@@ -89,8 +89,8 @@ SagaController             — GET /sagas, GET /sagas/{orderId}
 | Topic | Event | When |
 |---|---|---|
 | `risk-checks` | `RiskCheckRequested(order)` | On `OrderPlaced` |
-| `executions` | `ExecutionRequested(order)` | On `RiskApproved` (stub — no consumer yet) |
-| `settlements` | `SettlementRequested(trade)` | On `TradeExecuted` (stub — no consumer yet) |
+| `execution-requests` | `ExecutionRequested(order)` | On `RiskApproved` (stub — no consumer yet) |
+| `settlement-requests` | `SettlementRequested(trade, order)` | On `TradeExecuted` (stub — no consumer yet) |
 | `notifications` | `NotificationRequested(traderId, orderId, message)` | On `PositionSettled` (stub — no consumer yet) |
 
 ### REST API (Observability)
@@ -110,7 +110,7 @@ Port 8085. Read-only — no mutations.
 
 ```kotlin
 data class ExecutionRequested(val order: Order)
-data class SettlementRequested(val trade: Trade)
+data class SettlementRequested(val trade: Trade, val order: Order)
 data class NotificationRequested(val traderId: String, val orderId: UUID, val message: String)
 ```
 
@@ -166,8 +166,10 @@ interface SagaStateRepository : JpaRepository<SagaStateEntity, UUID> {
 | `risk-checks` topic | Kafka producer | Publishes `RiskCheckRequested` |
 | `orders` topic | Kafka consumer | Receives `OrderPlaced`, `OrderCancelled` |
 | `risk-results` topic | Kafka consumer | Receives `RiskApproved`, `RiskRejected` |
-| `executions` topic | Kafka consumer + producer | Receives `TradeExecuted`; publishes `ExecutionRequested` (stub) |
-| `settlements` topic | Kafka consumer + producer | Receives `PositionSettled`, `SettlementFailed`; publishes `SettlementRequested` (stub) |
+| `execution-requests` topic | Kafka producer | Publishes `ExecutionRequested` (stub) |
+| `executions` topic | Kafka consumer | Receives `TradeExecuted` |
+| `settlement-requests` topic | Kafka producer | Publishes `SettlementRequested(trade, order)` (stub) |
+| `settlements` topic | Kafka consumer | Receives `PositionSettled`, `SettlementFailed` |
 | `notifications` topic | Kafka producer | Publishes `NotificationRequested` (stub) |
 
 ## Edge Cases & Error Handling
