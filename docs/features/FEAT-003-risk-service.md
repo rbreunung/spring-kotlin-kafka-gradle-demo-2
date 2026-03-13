@@ -1,6 +1,6 @@
 # FEAT-003: Risk Service — Kafka Integration and Resilience4j Circuit Breaker
 
-Status: draft
+Status: complete
 Date: 2026-03-13
 Author: Claude
 
@@ -16,14 +16,14 @@ After this feature, a `RiskCheckRequested` event can be manually published and a
 
 ## Goals
 
-- [ ] Add `RiskCheckRequested(val order: Order)` event to `:shared`
-- [ ] Kafka consumer on `risk-checks` topic: consume `RiskCheckRequested`, trigger evaluation
-- [ ] Business rule: approve orders with `quantity ≤ 10_000`; reject above with reason `"quantity-exceeds-limit"`
-- [ ] Simulated external risk engine call (`RiskExternalClient`) with configurable failure probability (`risk.simulate-failure-probability`, default `0.0`)
-- [ ] Resilience4j Circuit Breaker (COUNT_BASED, window=10, threshold=50%, open=10s) wrapping `RiskExternalClient`
-- [ ] CB fallback when OPEN: publish `RiskRejected(orderId, "risk-service-unavailable")`
-- [ ] Kafka producer on `risk-results` topic: `RiskApproved(orderId)` or `RiskRejected(orderId, reason)`
-- [ ] Integration tests with embedded Kafka covering consumer, producer, business rule, and CB behaviour
+- [x] Add `RiskCheckRequested(val order: Order)` event to `:shared`
+- [x] Kafka consumer on `risk-checks` topic: consume `RiskCheckRequested`, trigger evaluation
+- [x] Business rule: approve orders with `quantity ≤ 10_000`; reject above with reason `"quantity-exceeds-limit"`
+- [x] Simulated external risk engine call (`RiskExternalClient`) with configurable failure probability (`risk.simulate-failure-probability`, default `0.0`)
+- [x] Resilience4j Circuit Breaker (COUNT_BASED, window=10, threshold=50%, open=10s) wrapping `RiskExternalClient`
+- [x] CB fallback when OPEN: publish `RiskRejected(orderId, "risk-service-unavailable")`
+- [x] Kafka producer on `risk-results` topic: `RiskApproved(orderId)` or `RiskRejected(orderId, reason)`
+- [x] Integration tests with embedded Kafka covering consumer, producer, business rule, and CB behaviour
 
 ## Non-Goals
 
@@ -177,13 +177,13 @@ risk:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :shared:build` — `RiskCheckRequested` compiles
-- [ ] `./gradlew :risk:test` — all tests pass
-- [ ] Consuming `RiskCheckRequested` with `quantity ≤ 10_000` and `simulate-failure-probability=0.0` → `RiskApproved` published to `risk-results`
-- [ ] Consuming `RiskCheckRequested` with `quantity > 10_000` → `RiskRejected("quantity-exceeds-limit")` published
-- [ ] With `simulate-failure-probability=1.0`, consuming one `RiskCheckRequested` → `RiskRejected("evaluation-failed")` published; failure counted by CB
-- [ ] With `simulate-failure-probability=1.0`, after 5 failures (50% of 10-call window, via `minimumNumberOfCalls` or filling window), CB opens → subsequent events receive `RiskRejected("risk-service-unavailable")` via fallback without calling evaluator
-- [ ] Kafka poison message (malformed JSON) → logged and skipped; no exception propagated
+- [x] `./gradlew :shared:build` — `RiskCheckRequested` compiles
+- [x] `./gradlew :risk:test` — all tests pass
+- [x] Consuming `RiskCheckRequested` with `quantity ≤ 10_000` and `simulate-failure-probability=0.0` → `RiskApproved` published to `risk-results`
+- [x] Consuming `RiskCheckRequested` with `quantity > 10_000` → `RiskRejected("quantity-exceeds-limit")` published
+- [x] With `simulate-failure-probability=1.0`, consuming one `RiskCheckRequested` → `RiskRejected("evaluation-failed")` published; failure counted by CB
+- [x] With `simulate-failure-probability=1.0`, after 5 failures (50% of 10-call window, via `minimumNumberOfCalls`), CB opens → subsequent events receive `RiskRejected("risk-service-unavailable")` via fallback without calling evaluator
+- [x] Kafka poison message (malformed JSON) → logged and skipped; no exception propagated
 
 ## Files to Create / Modify
 
@@ -199,7 +199,14 @@ risk:
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
+**CB implementation — programmatic vs annotation-based:**
+`@CircuitBreaker` annotation AOP was not used because `FallbackExecutor` (required by `CircuitBreakerAspect`) is not auto-configured by `spring-cloud-starter-circuitbreaker-resilience4j`. Instead, `RiskExternalClient` uses `CircuitBreakerRegistry.circuitBreaker("riskEngine").executeSupplier { }` programmatically. `RiskService` catches `RiskEngineException` (evaluation failure, counted) and `CallNotPermittedException` (CB open, not counted) separately.
+
+**`minimumNumberOfCalls: 5`:**
+Added to the CB config (both main and test `application.yml`). This allows the CB test to open after exactly 5 failure calls rather than requiring the full `slidingWindowSize=10`. The test `RiskCircuitBreakerIntegrationTest` verifies calls 1–5 produce `"evaluation-failed"` and call 6 produces `"risk-service-unavailable"`.
+
+**ObjectMapper in integration tests:**
+`@SpringBootTest` with `spring-boot-starter` (no web) does not auto-configure a Jackson `ObjectMapper` bean. Integration tests instantiate `ObjectMapper().registerKotlinModule()` directly.
 
 ## Related Docs
 

@@ -17,8 +17,8 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | PLAN-002 | PLAN | Order Service — REST API, Persistence, and Status Tracking | complete |
 | RETRO-002 | RETRO | FEAT-002 feature-impl retrospective | complete |
 | RETRO-REVIEW-001 | RETRO-REVIEW | First retro review — RETRO-001 and RETRO-002 | complete |
-| FEAT-003 | FEAT | Risk Service — Kafka Integration and Resilience4j Circuit Breaker | draft |
-| PLAN-003 | PLAN | Risk Service — Kafka Integration and Resilience4j Circuit Breaker | draft |
+| FEAT-003 | FEAT | Risk Service — Kafka Integration and Resilience4j Circuit Breaker | complete |
+| PLAN-003 | PLAN | Risk Service — Kafka Integration and Resilience4j Circuit Breaker | complete |
 | FEAT-004 | FEAT | Saga Orchestrator — Saga State Machine and Kafka Routing | draft |
 | PLAN-004 | PLAN | Saga Orchestrator — Saga State Machine and Kafka Routing | draft |
 | FEAT-005 | FEAT | Execution Service — Kafka Integration and Trade Simulation | draft |
