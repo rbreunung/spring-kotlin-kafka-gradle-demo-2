@@ -1,52 +1,97 @@
-# Workflow: Retrospective Review
+# Retrospective Review Workflow
 
-**Trigger:** "run retrospective review"
-**Skill:** `retro-review`
-**Branch:** none (commits to current branch or main)
-**Output:** Improvements to workflows/docs, `RETRO-REVIEW-NNN.md`
+```mermaid
+flowchart TD
+    A[Read all RETRO-NNN docs] --> B[Identify themes]
+    B --> C[Draft improvements per theme]
+    C --> D[Present + discuss with user]
+    D --> E[Apply agreed changes]
+    E --> F[Write RETRO-REVIEW-NNN doc]
+    F --> G[Commit all changes]
+```
+
+## Context Budget
+
+Files to read:
+- All `docs/retrospectives/RETRO-NNN-*.md` files (use glob — do NOT read RETRO-REVIEW files)
+- `AGENTS.md` (for potential updates)
+- Any specific workflow or feature doc flagged for improvement
 
 ---
 
-## When to Run
-
-Periodically — a good cadence is every 5–10 features or bugs, or when you notice repeated friction in the workflows. Can be run on-demand at any time.
-
 ## Steps
 
-| # | Step | Output |
-|---|---|---|
-| 1 | Read all `RETRO-NNN-*.md` files (exclude review summaries) | Themes in memory |
-| 2 | Identify recurring themes by category | Theme list with counts |
-| 3 | Draft 2–3 actionable improvements per theme | Improvement proposals |
-| 4 | Present analysis + discuss with user | Agreed improvement list |
-| 5 | Apply agreed changes to skills, workflows, AGENTS.md, or feature docs; commit each logical group | Updated files |
-| 6 | Write `docs/retrospectives/RETRO-REVIEW-NNN.md` | Review summary doc |
-| 7 | Commit all changes | `chore(RETRO-REVIEW-NNN): [theme summary]` |
+### STEP 1: Read All Retrospectives
 
-## Theme Categories
+Use glob to list all files matching `docs/retrospectives/RETRO-[0-9]*.md`.
 
-- **Context Loading** — wrong files, too many files, context overflow
-- **Spec Clarity** — ambiguous requirements, missing edge cases
-- **Test Coverage** — test gaps, weak assertions
-- **Workflow Steps** — confusing, missing, or unnecessary steps
-- **Git Flow** — branching or commit issues
-- **Documentation** — too long, outdated, inconsistent
-- **Other**
+Read each one. For any `RETRO-REVIEW-NNN.md` files that exist, read them to determine which retrospectives have already been reviewed — focus analysis on the **unreviewed** ones, but note any recurring patterns from older ones too.
 
-## What Can Be Improved
+### STEP 2: Identify Themes
 
-The review outcome can update any of:
-- `.claude/skills/` — workflow skill files
-- `docs/workflows/` — reference docs (kept in sync with skills)
-- `AGENTS.md` — conventions or workflow index
-- `docs/templates/` — document templates
-- `docs/features/FEAT-NNN-*.md` — individual feature specs (e.g., missing context)
+Group friction points and suggestions across all retrospectives by category:
 
-All improvements are **brainstormed with the user first** — no changes are applied without agreement.
+| Category | Description |
+|---|---|
+| **Context Loading** | Too many files read, wrong files loaded, context overflows |
+| **Spec Clarity** | Ambiguous requirements, missing edge cases, vague acceptance criteria |
+| **Test Coverage** | Test gaps, unclear test descriptions, tests that don't catch real bugs |
+| **Workflow Steps** | Steps that are confusing, missing, in the wrong order, or unnecessary |
+| **Git Flow** | Branching, commit, or PR issues |
+| **Documentation** | Docs too long, outdated, inconsistent, missing |
+| **Other** | Anything not captured above |
 
-## Output Doc
+For each category: list the RETRO IDs that mention it and count occurrences.
 
-`docs/retrospectives/RETRO-REVIEW-NNN.md` lists:
-- Which retrospectives were covered
-- Themes found with examples
-- Changes made and where
+### STEP 3: Draft Improvements
+
+For each category with **2 or more mentions**, draft 2–3 actionable improvements:
+- Identify the specific friction from the retrospectives
+- Propose a concrete change (edit a skill, add a step, remove a step, update a template, etc.)
+- Reference the RETRO IDs as evidence
+
+### STEP 4: Present and Discuss
+
+Present the analysis to the user:
+
+> "I reviewed [N] retrospectives. Here are the recurring themes:
+>
+> **[Category]** (mentioned N times: RETRO-001, RETRO-003)
+> - [Description of friction]
+> - Proposed fix: [specific change]
+>
+> [repeat for each theme]
+>
+> Which of these do you want to act on?"
+
+Discuss each proposed change. Some may need adjustment. Agree on a prioritized list before making any changes.
+
+### STEP 5: Apply Agreed Changes
+
+For each agreed improvement, make the change:
+
+| Target | Action |
+|---|---|
+| Workflow skill | Edit `.claude/skills/[workflow].md` |
+| Reference doc | Edit `docs/workflows/[workflow].md` to match |
+| AGENTS.md | Edit `AGENTS.md` |
+| Feature spec | Edit `docs/features/FEAT-NNN-*.md` |
+| Document template | Edit `docs/templates/[template].md` |
+
+**Important:** When editing a workflow skill (`.claude/skills/`), always update the corresponding `docs/workflows/` file to match — both files must stay in sync. They serve different agents but must contain identical workflow logic.
+
+Commit each logical group of changes:
+```
+chore: [brief description of improvement] — retro review finding
+```
+
+### STEP 6: Write Review Doc
+
+1. Allocate RETRO-REVIEW-NNN from `docs/registry.md`
+2. Copy `docs/templates/retro-review-template.md` to `docs/retrospectives/RETRO-REVIEW-NNN.md`
+3. Fill:
+   - Retrospectives reviewed (list RETRO IDs)
+   - Previously reviewed up to (highest RETRO-REVIEW NNN before this one, if any)
+   - Themes found with examples and agreed actions
+   - Changes made (list of files updated)
+4. Commit: `chore(RETRO-REVIEW-NNN): retrospective review — [one-line theme summary]`

@@ -8,8 +8,8 @@
 **If `docs/project-idea.md` does not exist:** run the project initialization workflow before
 anything else — do not answer other questions until initialization is complete.
 
-- Claude Code: invoke the `init-project` skill
-- Opencode / other agents: read `docs/workflows/init-project.md` and follow the steps
+- Claude Code (local, Skill tool available): invoke the `init-project` skill
+- Claude Code (cloud/mobile) / Opencode / other: read `docs/workflows/init-project.md` and follow the steps directly
 
 ---
 
@@ -34,8 +34,8 @@ Load these into context before working on any task (if not already loaded):
 | Bug Fix | "fix a bug" | `bug-fix` | When a defect is reported |
 | Retro Review | "run retrospective review" | `retro-review` | Periodically to improve workflows |
 
-**Claude Code:** `Skill: <skill-name>` to invoke.
-**Opencode / other:** read the corresponding `docs/workflows/<skill-name>.md` and follow steps.
+**Claude Code (local, Skill tool available):** `Skill: <skill-name>` to invoke.
+**Claude Code (cloud/mobile) / Opencode / other:** read `docs/workflows/<skill-name>.md` and follow the steps directly.
 
 ---
 
@@ -61,6 +61,18 @@ When running build, test, or git commands:
 This keeps commands simple enough to match pre-approved wildcard rules and avoids repeated approval prompts.
 
 > **Note:** Do not create a `CLAUDE.md` in this project. Use this file (`AGENTS.md`) for all agent instructions — it is loaded by Claude Code, Opencode, and other agents.
+
+---
+
+## Behavioral Disciplines
+
+Apply these at all times — for workflow tasks and ad-hoc requests:
+
+- **Design before coding.** For any non-trivial change, agree on the approach before writing implementation code. Ask questions one at a time; do not start implementation until the design is unambiguous.
+- **Test before implementation.** Write a failing test first. The test must fail before the fix/feature is written. If it passes without implementation, it does not verify the right thing.
+- **Verify before claiming done.** Run the tests. See the output. Do not assert "tests pass" without running them. Evidence before assertions.
+- **Review before PR.** Before offering a pull request, check each acceptance criterion from the spec against the actual test coverage.
+- **Minimum change.** Implement only what the current task requires. Do not refactor surrounding code, add unrelated improvements, or speculate about future needs.
 
 ---
 

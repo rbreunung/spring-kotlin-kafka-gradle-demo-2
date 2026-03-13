@@ -1,58 +1,182 @@
-# Workflow: Feature Implementation
+# Feature Implementation Workflow
 
-**Trigger:** "implement feature FEAT-NNN"
-**Standalone review trigger:** "review implementation FEAT-NNN"
-**Skill:** `feature-impl`
-**Branch:** `feat/FEAT-NNN-*` (created at spec time or now if spec was merged)
-**Prerequisite:** Feature spec (`docs/features/FEAT-NNN-*.md`) and implementation plan (`docs/plans/PLAN-NNN-*.md`) must exist.
+```mermaid
+flowchart TD
+    A[Load context] --> B[Pre-impl review]
+    B --> C{Ambiguities?}
+    C -->|yes| D[Clarify + update plan]
+    D --> B
+    C -->|no| E[Branch setup]
+    E --> F[Read current slice from Progress]
+    F --> G[Write failing test]
+    G --> H[Implement slice]
+    H --> I{Tests pass?}
+    I -->|no| H
+    I -->|yes| J[Commit + update Progress]
+    J --> K{More slices?}
+    K -->|yes| F
+    K -->|no| L[Run full test suite]
+    L --> M[Implementation Review]
+    M --> N{Gaps?}
+    N -->|yes| F
+    N -->|no| O[Update arch doc if needed]
+    O --> P{Retrospective?}
+    P -->|yes| Q[Write retro]
+    P -->|no| R[Offer PR]
+    Q --> R
+```
+
+## Context Budget
+
+Read these files at STEP 1 (max 3):
+1. `docs/features/FEAT-NNN-title.md` — the feature spec
+2. `docs/plans/PLAN-NNN-title.md` — the implementation plan
+3. `docs/arch/architecture.md`
 
 ---
 
-## When to Run
-
-After a feature spec is complete and the implementation plan has been reviewed. The workflow implements the feature one vertical slice at a time using TDD, with tests and progress committed after each slice.
-
 ## Steps
 
-| # | Step | Output |
-|---|---|---|
-| 1 | Load context (spec, plan, arch) | Context in memory |
-| 2 | Pre-impl review: clarify any ambiguous slices | Plan updated if needed |
-| 3 | Branch setup (switch to or create `feat/FEAT-NNN-*`) | On feature branch |
-| 4 | **TDD loop** (repeat per slice): write test → implement → green → commit → update progress | Code + tests per slice |
-| 5 | Run full test suite | All green |
-| 6 | **Implementation review**: verify all acceptance criteria have tests; write results to plan; set `Status: complete` in feature doc and plan doc; tick all `[ ]` goal and acceptance checkboxes. **Do not recreate `PLAN-NNN`** — update the existing file only: fill in the Implementation Review table, set status to complete, remove the `## Progress` section. | Review section in plan doc; both docs finalised |
-| 7 | Update architecture doc if implementation differed from spec | Arch doc current |
-| 8 | Opt-in retrospective — see [retrospective workflow](retrospective.md) | `docs/retrospectives/RETRO-NNN-impl-*.md` |
-| 9 | Offer PR | PR created (with confirmation) |
+### STEP 1: Load Context
 
-## TDD Loop Detail
+Find and read (use glob `docs/features/FEAT-NNN-*.md` and `docs/plans/PLAN-NNN-*.md`):
+- Feature spec for the requested FEAT-NNN
+- Implementation plan (same number: PLAN-NNN)
+- Architecture doc
 
-For each vertical slice in the plan:
-1. **Red** — write a failing test that proves the slice works
-2. **Green** — implement the minimum code to pass the test
-3. **Commit** — `feat(FEAT-NNN): implement [slice] with tests`
-4. **Progress** — update `## Progress` in plan doc and commit
+Check `## Progress` in the plan doc. If present, resume from the indicated slice — skip completed slices.
 
-Never move to the next slice with a failing test.
+### STEP 2: Pre-Implementation Review
 
+Read each vertical slice in the plan. For each one, verify:
+- Is the scope clear? Could you write the test right now?
+- Are the files to touch identified?
+- Does the test description specify what to assert?
+
+If any slice is ambiguous: ask the user to clarify. Update the plan doc with the clarification.
+Do not start coding until every upcoming slice is unambiguous.
+
+### STEP 3: Branch Setup
+
+Check if branch `feat/FEAT-NNN-*` exists:
+- If yes: `git checkout feat/FEAT-NNN-*`
+- If no: `git checkout -b feat/FEAT-NNN-kebab-title` from main/master
+
+### STEP 4: TDD Iteration Loop
+
+Repeat for each uncompleted slice (in order):
+
+#### 4a. Read Slice
+Read the current slice from the plan. Note: files to touch, test description.
+
+#### 4b. Write Failing Test
+Write the test **before** any implementation code. The test must:
+- Target exactly what the slice describes
+- Be the minimum test that proves the slice behavior
+- Follow existing test conventions and file structure in the project
+
+**Run the test. It must FAIL.** If it passes immediately without implementation, the test does not verify the right thing — revise it.
+
+#### 4c. Implement the Slice
+Write the minimum code to make the test pass. Follow:
+- Existing code patterns and naming conventions
+- Architecture defined in `docs/arch/architecture.md`
+- YAGNI — only what the test requires; no speculative code
+
+#### 4d. Run Tests
+Run the full available test suite (or the affected module's tests if the full suite is slow). All tests must be green. If red:
+- Fix the implementation (not the test, unless the test has a genuine error)
+- Repeat 4c → 4d until green
+
+#### 4e. Commit
+```
+feat(FEAT-NNN): implement [slice name] with tests
+```
+
+#### 4f. Update Progress
+In `docs/plans/PLAN-NNN-*.md`, mark the slice's checkbox `[x]` and update `## Progress`:
+- Current Slice: [next]
+- Completed Slices: [add this one]
+- Last Updated: [today]
+
+Commit:
+```
+chore(FEAT-NNN): progress — slice [N] complete
+```
+
+### STEP 5: Full Test Suite
+
+After all slices are complete, run the complete test suite. Every test must pass before proceeding.
+
+### STEP 6: Implementation Review
+
+> **This step also runs standalone** when user says "review implementation FEAT-NNN".
+> Start here if triggered independently — load context (STEP 1) first.
+
+Read:
+1. `docs/features/FEAT-NNN-*.md` → Acceptance Criteria section
+2. `docs/plans/PLAN-NNN-*.md` → all vertical slices
+
+For **each acceptance criterion** in the spec:
+- Find the test(s) that cover it
+- Confirm the test(s) pass
+- Mark ✅ or ❌
+
+For **each vertical slice** in the plan:
+- Confirm at least one test exists for it
+- Confirm the test passes
+
+Write results to `## Implementation Review` in the plan doc:
+
+```markdown
 ## Implementation Review
 
-At the end of all slices, the agent:
-- Reads every acceptance criterion from the feature spec
-- Confirms a test exists for each criterion
-- Confirms all tests pass
-- Writes a pass/fail table to the plan doc
+Status: passed | failed
+Reviewed: [date]
 
-If gaps are found, the agent returns to the TDD loop for the affected slices.
+| Acceptance Criterion | Covering Test | Status |
+|---|---|---|
+| [criterion] | [test file:test name] | ✅ |
 
-**The review can also be triggered standalone** at any time: "review implementation FEAT-NNN"
+Gaps: [none / description]
+```
 
-## Commit Convention
+**Important:** Do NOT recreate `PLAN-NNN` — update the existing file only. Fill in the Implementation Review table, set `Status: complete` in both the feature doc and plan doc, tick all `[ ]` goal and acceptance checkboxes, then remove the `## Progress` section.
 
-| Event | Commit message |
-|---|---|
-| Slice complete | `feat(FEAT-NNN): implement [slice name] with tests` |
-| Progress update | `chore(FEAT-NNN): progress — slice N complete` |
-| Review complete | `chore(FEAT-NNN): implementation review — passed` |
-| Arch update | `docs(FEAT-NNN): update architecture for implementation` |
+Commit: `chore(FEAT-NNN): implementation review — [passed / N gaps found]`
+
+**If gaps are found:** return to STEP 4 for the affected slices. Re-run the review after fixing.
+
+### STEP 7: Update Architecture Doc
+
+Remove the `## Progress` section from `docs/plans/PLAN-NNN-*.md` — implementation is complete.
+
+If the implementation revealed differences from the spec's architecture (e.g., a component was split, a different pattern was used):
+- Update `docs/arch/architecture.md` (Component Map or Data Model)
+- Add an `## Implementation Notes` section to the feature spec noting the deviation
+
+Commit any changes made in this step:
+```
+docs(FEAT-NNN): update architecture for implementation
+```
+
+### STEP 8: Opt-in Retrospective
+
+Ask: "Would you like to add a retrospective for this implementation?"
+
+If yes:
+1. Allocate RETRO-NNN from registry
+2. Copy `docs/templates/retrospective-template.md`
+3. Write `docs/retrospectives/RETRO-NNN-impl-FEAT-NNN.md`
+4. Commit: `chore(RETRO-NNN): feature impl retrospective for FEAT-NNN`
+
+### STEP 9: Offer PR
+
+Ask: "Ready to create a pull request for `feat/FEAT-NNN-*`?"
+
+If yes: generate PR title (`feat(FEAT-NNN): [feature title]`) and body summarizing:
+- What the feature does (from spec purpose)
+- Acceptance criteria covered
+- Tests added
+
+Confirm the PR description with the user before creating.
