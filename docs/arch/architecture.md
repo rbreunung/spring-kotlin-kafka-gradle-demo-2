@@ -109,6 +109,59 @@ Version management:
 - `docker-compose.yml` — Kafka only (daily dev; services run on JVM)
 - `docker-compose.full.yml` — Kafka + all 6 services (demo/CI; each service built from `Dockerfile`)
 
+## Key Flows
+
+### Full Order Lifecycle (Happy Path)
+
+```mermaid
+sequenceDiagram
+    participant Trader
+    participant OrderService
+    participant SagaOrchestrator
+    participant RiskService
+    participant ExecutionService
+    participant SettlementService
+    participant NotificationService
+
+    Trader->>OrderService: POST /orders
+    OrderService->>OrderService: persist Order (PENDING)
+    OrderService-->>Kafka: OrderPlaced
+
+    Kafka-->>SagaOrchestrator: OrderPlaced
+    SagaOrchestrator->>SagaOrchestrator: persist RISK_REQUESTED
+    SagaOrchestrator-->>Kafka: RiskCheckRequested
+
+    Kafka-->>RiskService: RiskCheckRequested
+    RiskService->>RiskService: evaluate risk (external call via CB)
+    RiskService-->>Kafka: RiskApproved
+
+    Kafka-->>SagaOrchestrator: RiskApproved
+    SagaOrchestrator->>SagaOrchestrator: persist RISK_APPROVED → EXECUTION_REQUESTED
+    SagaOrchestrator-->>Kafka: ExecutionRequested
+    Kafka-->>OrderService: RiskApproved → update order status
+
+    Kafka-->>ExecutionService: ExecutionRequested
+    ExecutionService->>ExecutionService: simulate trade fill
+    ExecutionService-->>Kafka: TradeExecuted
+
+    Kafka-->>SagaOrchestrator: TradeExecuted
+    SagaOrchestrator->>SagaOrchestrator: persist EXECUTION_COMPLETE → SETTLEMENT_REQUESTED
+    SagaOrchestrator-->>Kafka: SettlementRequested
+    Kafka-->>OrderService: TradeExecuted → update order status
+
+    Kafka-->>SettlementService: SettlementRequested
+    SettlementService->>SettlementService: update position (retry + bulkhead)
+    SettlementService-->>Kafka: PositionSettled
+
+    Kafka-->>SagaOrchestrator: PositionSettled
+    SagaOrchestrator->>SagaOrchestrator: persist SETTLED
+    SagaOrchestrator-->>Kafka: NotificationRequested
+    Kafka-->>OrderService: PositionSettled → update order status
+
+    Kafka-->>NotificationService: NotificationRequested
+    NotificationService-->>Kafka: TraderNotified
+```
+
 ## Key Design Decisions
 
 | ID | Decision | Status |

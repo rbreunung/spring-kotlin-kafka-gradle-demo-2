@@ -23,11 +23,14 @@ Duration: ~1 session (branch setup → implementation review → retro)
 
 ## Suggested Improvements
 
-### 1. Spec Clarity — Document `orderJson` storage requirement in entity specs
+### 1. Spec Clarity — Document `orderJson` storage requirement in entity specs; require sequence diagram
 
-**Description:** When a saga orchestrator needs to republish event data received earlier (e.g., the `Order` in `ExecutionRequested`), the entity definition must include a storage strategy. The spec omitted this, creating a mid-implementation design decision and a committed slice that needed retrofitting.
+**Description:** When a saga orchestrator needs to republish event data received earlier (e.g., the `Order` in `ExecutionRequested`), the entity definition must include a storage strategy. The spec omitted this, creating a mid-implementation design decision and a committed slice that needed retrofitting. A sequence diagram showing the full data flow would have made this gap visible at spec time: the arrow `SagaOrchestrator -->> ExecutionService: ExecutionRequested(order)` immediately raises the question "where does the orchestrator get `order` at this point?"
 
-**Actionable Change:** In `feature-spec.md` STEP 7 guidance, add: "If an orchestrator service must republish data from earlier events, the entity definition must explicitly specify how that data is stored (e.g., a JSON column). Do not leave this implicit."
+**Actionable Changes:**
+1. In `feature-spec.md` STEP 7 guidance, add: "If an orchestrator service must republish data from earlier events, the entity definition must explicitly specify how that data is stored (e.g., a JSON column). Do not leave this implicit."
+2. The `feature-spec-template.md` Architecture section now requires a Mermaid `sequenceDiagram` for any feature involving inter-service communication or multi-step data flow. This has been added to `docs/templates/feature-spec-template.md`.
+3. A full order lifecycle sequence diagram has been added to `docs/arch/architecture.md` as the canonical reference for the happy path.
 
 ### 2. Test Coverage — Establish `@Autowired ObjectMapper` as the standard for integration tests involving temporal types
 

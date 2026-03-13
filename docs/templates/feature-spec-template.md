@@ -38,6 +38,23 @@ graph TD
     B --> C[External System]
 ```
 
+### Key Flows
+
+> Required: include a sequence diagram for every feature that involves inter-service communication,
+> Kafka events, or multi-step data flow. This makes the expected data flow explicit and prevents
+> implementation gaps (e.g., missing intermediate state saves, undocumented entity fields needed
+> to republish earlier event data).
+
+```mermaid
+sequenceDiagram
+    participant A as ServiceA
+    participant B as ServiceB
+    A-->>Kafka: EventName
+    Kafka-->>B: EventName
+    B->>B: persist state
+    B-->>Kafka: ResponseEvent
+```
+
 ## Data Model
 
 [Describe new or changed data structures, entities, or schemas.]
