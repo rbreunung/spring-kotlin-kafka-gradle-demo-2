@@ -137,8 +137,9 @@ class OrderEventListenerTest {
         val order = savedOrder(status = OrderStatus.SETTLED.name)
         kafkaTemplate.send("risk-results", order.id.toString(), RiskApproved(order.id))
 
-        Thread.sleep(2000) // brief pause — state should NOT change
-        val updated = orderRepository.findById(order.id).orElseThrow()
-        assertEquals(OrderStatus.SETTLED.name, updated.status)
+        await.during(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(5)).untilAsserted {
+            val updated = orderRepository.findById(order.id).orElseThrow()
+            assertEquals(OrderStatus.SETTLED.name, updated.status)
+        }
     }
 }
