@@ -7,6 +7,8 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.kafka.core.KafkaTemplate
 import java.util.UUID
+import de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved
+import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
 
 @ExtendWith(MockitoExtension::class)
 class RiskEventPublisherTest {
@@ -23,8 +25,7 @@ class RiskEventPublisherTest {
         verify(kafkaTemplate).send(
             org.mockito.Mockito.eq("risk-results"),
             org.mockito.Mockito.eq(orderId.toString()),
-            org.mockito.Mockito.argThat { it is de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved &&
-                (it as de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved).orderId == orderId }
+            org.mockito.Mockito.argThat { it is RiskApproved && it.orderId == orderId }
         )
     }
 
@@ -38,9 +39,7 @@ class RiskEventPublisherTest {
         verify(kafkaTemplate).send(
             org.mockito.Mockito.eq("risk-results"),
             org.mockito.Mockito.eq(orderId.toString()),
-            org.mockito.Mockito.argThat { it is de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected &&
-                (it as de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected).orderId == orderId &&
-                it.reason == "quantity-exceeds-limit" }
+            org.mockito.Mockito.argThat { it is RiskRejected && it.orderId == orderId && it.reason == "quantity-exceeds-limit" }
         )
     }
 }
