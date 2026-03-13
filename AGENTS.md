@@ -59,6 +59,10 @@ When running build, test, or git commands:
 - Output is automatically truncated — manual tail/grep is unnecessary
 
 This keeps commands simple enough to match pre-approved wildcard rules and avoids repeated approval prompts.
+- **Final verification uses a clean build.** Use `./gradlew :module:clean :module:test`
+  (not just `:module:test`) for the final verification step — prevents false passes from Gradle's task cache.
+- **No writes to `/tmp`.** `/tmp` is outside the workspace and triggers permission prompts.
+  Use `build/agent-debug/` for any temp or diagnostic output (already git-ignored by Gradle).
 
 > **Note:** Do not create a `CLAUDE.md` in this project. Use this file (`AGENTS.md`) for all agent instructions — it is loaded by Claude Code, Opencode, and other agents.
 
