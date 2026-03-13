@@ -1,8 +1,6 @@
 spring:
-  application:
-    name: risk-service
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:9999
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
@@ -12,17 +10,8 @@ spring:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "de.antrophos.demo.spring.kafka.trader.shared.events,de.antrophos.demo.spring.kafka.trader.shared.domain"
         spring.json.use.type.headers: true
+    listener:
+      auto-startup: false
 
 risk:
   simulate-failure-probability: 0.0
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      riskEngine:
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-        permittedNumberOfCallsInHalfOpenState: 3
