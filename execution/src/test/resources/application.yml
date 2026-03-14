@@ -1,8 +1,6 @@
 spring:
   kafka:
     bootstrap-servers: localhost:9999
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: execution-service
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
