@@ -8,7 +8,7 @@ Feature: [FEAT-007](../features/FEAT-007-system-test.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 7
+Current Slice: 1
 Completed Slices: []
 Last Updated: 2026-03-14
 
@@ -24,6 +24,7 @@ Reviewed: —
 | `./gradlew :system-test:build` — module compiles | — | pending |
 | `./gradlew :system-test:test` — all tests run and pass | — | pending |
 | Docker check at test startup | SystemTestBase | pending |
+| All 6 services start via DockerComposeContainer and happy path completes E2E | HappyPathSagaFlowTest | pending |
 | All 8 test scenarios implemented | — | pending |
 | GitHub Action workflow configured | — | pending |
 | User documentation created | docs/system-test-guide.md | pending |
@@ -38,12 +39,12 @@ Gaps: —
 
 > Resolve before starting implementation. Update or remove as answered.
 
-- [x] Test infrastructure approach — Testcontainers (resolved)
+- [x] Test infrastructure approach — `DockerComposeContainer` wrapping `docker-compose.full.yml` (resolved)
 - [x] Test scenarios — All 8 scenarios (resolved)
 - [x] Docker availability handling — Check and abort (resolved)
 - [x] Execution method — `./gradlew :system-test:test` (resolved)
 - [x] CI/CD integration — GitHub Action (resolved)
-- [x] Test isolation — Parallel execution support (resolved)
+- [x] Test isolation — Test classes run in parallel (parallelism=4); methods within a class run sequentially with unique order IDs (resolved)
 
 ---
 
@@ -51,33 +52,22 @@ Gaps: —
 
 Each slice = one testable piece of behavior. Implement and test before moving to next.
 
-### Slice 1: Module Setup and Docker Check
+### Slice 1: Module Setup, Docker Check, and Compose Stack
 
-**What it delivers:** New Gradle module `:system-test` with basic structure and Docker availability check
+**What it delivers:** New Gradle module `:system-test` with basic structure, Docker availability check, and `DockerComposeContainer` setup that starts the full service stack
 **Files to touch:**
 - `build.gradle.kts` — Add `system-test` as new subproject with required dependencies
-- `system-test/build.gradle.kts` — Create module build file with Testcontainers and Awaitility dependencies
-- `system-test/src/test/kotlin/de/antrophos/demo/spring/kafka/trader/systemtest/SystemTestBase.kt` — Create base class with Docker check
+- `system-test/build.gradle.kts` — Create module build file with Testcontainers and Awaitility dependencies (versions from Spring Boot BOM)
+- `system-test/src/test/resources/application.yml` — Placeholder Kafka bootstrap-servers config
+- `system-test/src/test/kotlin/de/antrophos/demo/spring/kafka/trader/systemtest/SystemTestBase.kt` — Create base class with: Docker check (abort with clear error if unavailable); `DockerComposeContainer` wrapping `docker-compose.full.yml`; `@BeforeAll`/`@AfterAll` lifecycle; `@DynamicPropertySource` to inject Kafka mapped port into `spring.kafka.bootstrap-servers`
 
-**Test description:** Verify that the system-test module compiles and that running `./gradlew :system-test:test` aborts with a clear error message when Docker is not available.
-
-**Status:** [ ] todo
-
----
-
-### Slice 2: Kafka Testcontainers Setup
-
-**What it delivers:** Auto-start and stop Kafka container for each test class
-**Files to touch:**
-- `system-test/src/test/kotlin/de/antrophos/demo/spring/kafka/trader/systemtest/SystemTestBase.kt` — Add `createKafkaContainer()` method
-
-**Test description:** Verify that Kafka container starts successfully and is stopped after all tests in the class complete.
+**Test description:** Verify that the system-test module compiles, that `./gradlew :system-test:test` aborts with a clear error when Docker is not available, and that when Docker is available the compose stack starts and all services are healthy.
 
 **Status:** [ ] todo
 
 ---
 
-### Slice 3: Happy Path Saga Flow Test
+### Slice 2: Happy Path Saga Flow Test
 
 **What it delivers:** End-to-end test of full order lifecycle in happy path scenario
 **Files to touch:**
@@ -89,7 +79,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 4: Order Cancellation Test
+### Slice 3: Order Cancellation Test
 
 **What it delivers:** Test order cancellation in RISK_REQUESTED state
 **Files to touch:**
@@ -101,7 +91,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 5: Risk Rejection Test
+### Slice 4: Risk Rejection Test
 
 **What it delivers:** Test saga termination on risk rejection
 **Files to touch:**
@@ -113,7 +103,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 6: Settlement Failure Test
+### Slice 5: Settlement Failure Test
 
 **What it delivers:** Test settlement failure with DLQ verification
 **Files to touch:**
@@ -125,7 +115,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 7: Concurrent Orders Test
+### Slice 6: Concurrent Orders Test
 
 **What it delivers:** Test saga isolation with concurrent orders
 **Files to touch:**
@@ -137,7 +127,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 8: Resilience Scenarios Test
+### Slice 7: Resilience Scenarios Test
 
 **What it delivers:** Test circuit breaker, retry, and bulkhead behavior
 **Files to touch:**
@@ -149,7 +139,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 9: Data Consistency Test
+### Slice 8: Data Consistency Test
 
 **What it delivers:** Verify consistency between order status, saga state, and positions
 **Files to touch:**
@@ -161,7 +151,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 10: Kafka DLQ Test
+### Slice 9: Kafka DLQ Test
 
 **What it delivers:** Test poison message handling and DLQ contents
 **Files to touch:**
@@ -173,7 +163,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 11: User Documentation
+### Slice 10: User Documentation
 
 **What it delivers:** Complete user and agent documentation
 **Files to touch:**
@@ -185,7 +175,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 12: GitHub Action Integration
+### Slice 11: GitHub Action Integration
 
 **What it delivers:** CI/CD integration for automated testing
 **Files to touch:**
@@ -197,7 +187,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 ---
 
-### Slice 13: Workflow Integration
+### Slice 12: Workflow Integration
 
 **What it delivers:** System tests run as part of feature-impl and bugfix workflows
 **Files to touch:**

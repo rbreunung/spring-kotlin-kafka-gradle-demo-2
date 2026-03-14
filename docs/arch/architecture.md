@@ -169,6 +169,7 @@ sequenceDiagram
 | ID | Decision | Status |
 |---|---|---|
 | [ADR-001](adr/ADR-001-saga-state-as-recovery-anchor.md) | Saga state entity is the authoritative recovery anchor for future compensation logic | accepted |
+| [ADR-002](adr/ADR-002-testcontainers-dockercompose-for-e2e-tests.md) | Testcontainers `DockerComposeContainer` wrapping `docker-compose.full.yml` for E2E system tests | accepted |
 
 ## Technology Decisions
 

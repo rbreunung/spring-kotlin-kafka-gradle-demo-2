@@ -31,24 +31,38 @@ The system test module is **only meaningful with Docker** — without Docker, th
 
 - No Testcontainers for unit tests (embedded Kafka already exists in individual modules)
 - No test mocking (tests use real Kafka and services)
-- No additional services beyond Kafka (services start automatically via Testcontainers)
+- All services (including Kafka) start via `DockerComposeContainer` wrapping `docker-compose.full.yml`; no in-process service startup
 - No test data cleanup beyond Testcontainers container lifecycle
 - No performance testing or load testing
 - No test coverage report generation (existing coverage tools handle unit tests)
 
 ## Architecture
 
-The `:system-test` module is a separate Gradle module with its own build configuration, completely isolated from production code. It uses Testcontainers to spin up a real Kafka container for each test class.
+The `:system-test` module is a separate Gradle module with its own build configuration, completely isolated from production code. It uses Testcontainers `DockerComposeContainer` to start the full service stack (all 6 services + Kafka) via the existing `docker-compose.full.yml`.
+
+**How it works:**
+- All services run as Docker containers within the compose network and connect to Kafka via the internal service name (`kafka:9092`) — no special configuration needed
+- Test code (JVM, outside Docker) accesses services via Testcontainers-mapped ports:
+  - Kafka mapped port → used by `KafkaTestUtils` to produce/consume test messages
+  - `order-service:8080` mapped port → used for REST calls (`POST /orders`, `POST /orders/{id}/cancel`, `GET /orders/{id}`)
+- The test's own Spring context has `spring.kafka.bootstrap-servers` overridden via `@DynamicPropertySource` with the container's actual mapped port
+
+**Module dependency:** `:system-test` only depends on `:shared` (for event types). No compile dependency on any service module — all services run externally as Docker containers.
+
+**Test speed:** `DockerComposeContainer` runs `docker-compose build` before first startup (building all service images from their Dockerfiles). Subsequent runs use Docker layer cache. CI cold-start is slow by design; this is the expected trade-off for true end-to-end isolation.
 
 ```mermaid
 graph TD
-    SystemTest[system-test Module] -->|tests| KafkaContainer[Testcontainers Kafka]
-    SystemTest -->|validates| OrderService[OrderService]
-    SystemTest -->|validates| RiskService[RiskService]
-    SystemTest -->|validates| ExecutionService[ExecutionService]
-    SystemTest -->|validates| SettlementService[SettlementService]
-    SystemTest -->|validates| NotificationService[NotificationService]
-    SystemTest -->|validates| SagaOrchestrator[SagaOrchestrator]
+    SystemTest[system-test Module] -->|DockerComposeContainer| ComposeStack[docker-compose.full.yml]
+    ComposeStack -->|contains| Kafka[Kafka]
+    ComposeStack -->|contains| OrderService[OrderService]
+    ComposeStack -->|contains| RiskService[RiskService]
+    ComposeStack -->|contains| ExecutionService[ExecutionService]
+    ComposeStack -->|contains| SettlementService[SettlementService]
+    ComposeStack -->|contains| NotificationService[NotificationService]
+    ComposeStack -->|contains| SagaOrchestrator[SagaOrchestrator]
+    SystemTest -->|mapped port - REST| OrderService
+    SystemTest -->|mapped port - Kafka| Kafka
 ```
 
 ### Key Flows
@@ -57,17 +71,19 @@ The system test verifies the complete order lifecycle:
 
 ```mermaid
 sequenceDiagram
-    participant OrderService as OrderService
-    participant Kafka as Kafka (Testcontainers)
-    participant SagaOrchestrator as SagaOrchestrator
-    participant RiskService as RiskService
-    participant ExecutionService as ExecutionService
-    participant SettlementService as SettlementService
-    participant NotificationService as NotificationService
+    participant Test as SystemTest (JVM)
+    participant OrderService as OrderService (Docker)
+    participant Kafka as Kafka (Docker)
+    participant SagaOrchestrator as SagaOrchestrator (Docker)
+    participant RiskService as RiskService (Docker)
+    participant ExecutionService as ExecutionService (Docker)
+    participant SettlementService as SettlementService (Docker)
+    participant NotificationService as NotificationService (Docker)
 
-    Note over OrderService: Test starts services automatically
+    Note over Test: DockerComposeContainer starts all services
 
-    OrderService->>Kafka: POST /orders (happy path)
+    Test->>OrderService: POST /orders (via mapped port)
+    OrderService->>Kafka: OrderPlaced
     Kafka->>SagaOrchestrator: OrderPlaced
     SagaOrchestrator->>SagaOrchestrator: persist RISK_REQUESTED
     SagaOrchestrator->>Kafka: RiskCheckRequested
@@ -85,16 +101,17 @@ sequenceDiagram
     SagaOrchestrator->>Kafka: NotificationRequested
     Kafka->>NotificationService: NotificationRequested
     NotificationService->>Kafka: TraderNotified
-    Note over OrderService: Validate all states and data consistency
+    Test->>OrderService: GET /orders/{id} (assert final status)
+    Test->>SagaOrchestrator: GET /sagas/{orderId} (assert SETTLED)
 ```
 
 ### Test Architecture
 
 Each test class is independent:
-- Uses `TestInstance.Lifecycle.PER_CLASS` for Testcontainers reuse
-- Auto-starts Kafka container at class level
-- Auto-stops Kafka container after all tests
-- Thread-safe for parallel execution
+- Uses `TestInstance.Lifecycle.PER_CLASS` — one `DockerComposeContainer` per test class, started in `@BeforeAll`, stopped in `@AfterAll`
+- Test *methods* within a class run sequentially, sharing the same compose stack; each method uses unique order IDs to avoid state collision
+- Test *classes* run in parallel (parallelism=4 in JUnit config) — each class gets its own isolated stack
+- Thread-safe: no shared mutable state between test classes
 
 ## Data Model
 
@@ -153,10 +170,9 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.springframework.kafka:spring-kafka-test")
-    testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
-    testImplementation("org.testcontainers:testcontainers:1.20.0")
-    testImplementation("org.testcontainers:kafka:1.20.0")
+    testImplementation("org.springframework.kafka:spring-kafka-test")  // KafkaTestUtils for producing/consuming in tests
+    testImplementation("org.awaitility:awaitility-kotlin")              // version managed by Spring Boot BOM
+    testImplementation("org.testcontainers:testcontainers")             // version managed by Spring Boot BOM; includes DockerComposeContainer
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -174,9 +190,24 @@ tasks.test {
 ```yaml
 spring:
   kafka:
-    bootstrap-servers: localhost:9999
+    bootstrap-servers: localhost:9999  # placeholder; overridden at runtime
     listener:
       auto-startup: false
+```
+
+The placeholder `localhost:9999` is overridden in `SystemTestBase` via `@DynamicPropertySource` once the `DockerComposeContainer` is running:
+
+```kotlin
+companion object {
+    @JvmStatic
+    @DynamicPropertySource
+    fun kafkaProperties(registry: DynamicPropertyRegistry) {
+        registry.add("spring.kafka.bootstrap-servers") {
+            composeContainer.getServiceHost("kafka", 9092) + ":" +
+            composeContainer.getServicePort("kafka", 9092)
+        }
+    }
+}
 ```
 
 ## Acceptance Criteria
@@ -184,6 +215,7 @@ spring:
 - [ ] `./gradlew :system-test:build` — module compiles
 - [ ] `./gradlew :system-test:test` — all tests run and pass (with Docker)
 - [ ] Docker check at test startup with clear error message when Docker not available
+- [ ] All 6 services start via `DockerComposeContainer` and the happy path test completes end-to-end
 - [ ] All 8 test scenarios implemented and passing
 - [ ] GitHub Action workflow configured
 - [ ] User documentation created at `docs/system-test-guide.md`

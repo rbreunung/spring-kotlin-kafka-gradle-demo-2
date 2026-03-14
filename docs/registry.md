@@ -26,6 +26,8 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | FEAT-006 | FEAT | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
 | PLAN-006 | PLAN | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
 | FEAT-007 | FEAT | System Test Module — End-to-End E2E Tests with Testcontainers | in-progress |
+| PLAN-007 | PLAN | System Test Module — End-to-End E2E Tests with Testcontainers | in-progress |
+| ADR-002 | ADR | Testcontainers DockerCompose for E2E system tests | accepted |
 | RETRO-003 | RETRO | Feature spec session — FEAT-003 through FEAT-006 | complete |
 | RETRO-004 | RETRO | FEAT-003 implementation retrospective | complete |
 | RETRO-005 | RETRO | FEAT-004 implementation retrospective | complete |
