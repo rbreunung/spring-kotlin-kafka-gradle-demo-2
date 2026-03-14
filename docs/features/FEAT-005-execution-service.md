@@ -1,6 +1,6 @@
 # FEAT-005: Execution Service — Kafka Integration and Trade Simulation
 
-Status: draft
+Status: ready
 Date: 2026-03-13
 Author: Claude
 
@@ -53,6 +53,26 @@ ExecutionEventPublisher
         │
         ▼
 executions topic  →  TradeExecuted(trade)
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant SO as SagaOrchestrator
+    participant ER as execution-requests topic
+    participant EL as ExecutionKafkaListener
+    participant ES as ExecutionService
+    participant EP as ExecutionEventPublisher
+    participant ET as executions topic
+
+    SO->>ER: ExecutionRequested(order)
+    ER->>EL: poll
+    EL->>ES: execute(order)
+    ES->>ES: generate Trade<br/>(id=UUID, orderId=order.id,<br/>executedPrice=basePrice×[0.98,1.02],<br/>executedAt=Instant.now())
+    ES->>EP: publish(TradeExecuted(trade))
+    EP->>ET: TradeExecuted(trade)
+    Note over ET: consumed by SagaOrchestrator<br/>→ saga advances to EXECUTED
 ```
 
 ### Kafka
