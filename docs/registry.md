@@ -25,6 +25,7 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | PLAN-005 | PLAN | Execution Service — Kafka Integration and Trade Simulation | complete |
 | FEAT-006 | FEAT | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
 | PLAN-006 | PLAN | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
+| FEAT-007 | FEAT | System Test Module — End-to-End E2E Tests with Testcontainers | in-progress |
 | RETRO-003 | RETRO | Feature spec session — FEAT-003 through FEAT-006 | complete |
 | RETRO-004 | RETRO | FEAT-003 implementation retrospective | complete |
 | RETRO-005 | RETRO | FEAT-004 implementation retrospective | complete |
