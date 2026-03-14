@@ -1,6 +1,6 @@
 # FEAT-005: Execution Service — Kafka Integration and Trade Simulation
 
-Status: draft
+Status: complete
 Date: 2026-03-13
 Author: Claude
 
@@ -16,10 +16,10 @@ The ExecutionService is deliberately simple — no persistence, no resilience pa
 
 ## Goals
 
-- [ ] Kafka consumer on `execution-requests` topic: consume `ExecutionRequested(order: Order)`
-- [ ] Simulate trade execution: generate a `Trade` with `executedPrice = basePrice × (1.0 + randomFactor)` where `randomFactor ∈ [-0.02, +0.02]`; base price configurable via `execution.base-price: 100.00`
-- [ ] Kafka producer on `executions` topic: publish `TradeExecuted(trade: Trade)`
-- [ ] Integration tests with embedded Kafka covering the full consumer-to-producer flow
+- [x] Kafka consumer on `execution-requests` topic: consume `ExecutionRequested(order: Order)`
+- [x] Simulate trade execution: generate a `Trade` with `executedPrice = basePrice × (1.0 + randomFactor)` where `randomFactor ∈ [-0.02, +0.02]`; base price configurable via `execution.base-price: 100.00`
+- [x] Kafka producer on `executions` topic: publish `TradeExecuted(trade: Trade)`
+- [x] Integration tests with embedded Kafka covering the full consumer-to-producer flow
 
 ## Non-Goals
 
@@ -53,6 +53,26 @@ ExecutionEventPublisher
         │
         ▼
 executions topic  →  TradeExecuted(trade)
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant SO as SagaOrchestrator
+    participant ER as execution-requests topic
+    participant EL as ExecutionKafkaListener
+    participant ES as ExecutionService
+    participant EP as ExecutionEventPublisher
+    participant ET as executions topic
+
+    SO->>ER: ExecutionRequested(order)
+    ER->>EL: poll
+    EL->>ES: execute(order)
+    ES->>ES: generate Trade<br/>(id=UUID, orderId=order.id,<br/>executedPrice=basePrice×[0.98,1.02],<br/>executedAt=Instant.now())
+    ES->>EP: publish(TradeExecuted(trade))
+    EP->>ET: TradeExecuted(trade)
+    Note over ET: consumed by SagaOrchestrator<br/>→ saga advances to EXECUTED
 ```
 
 ### Kafka
@@ -137,12 +157,12 @@ execution:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :execution:test` — all tests pass
-- [ ] Consuming `ExecutionRequested` with any order → `TradeExecuted` published to `executions` topic with matching `orderId`
-- [ ] `TradeExecuted.trade.executedPrice` is within `[basePrice × 0.98, basePrice × 1.02]` (±2% of configured base price)
-- [ ] `TradeExecuted.trade.id` is a valid non-null UUID
-- [ ] `TradeExecuted.trade.orderId` matches `ExecutionRequested.order.id`
-- [ ] Kafka poison message (malformed JSON) → logged and skipped; no exception propagated; no `TradeExecuted` published
+- [x] `./gradlew :execution:test` — all tests pass
+- [x] Consuming `ExecutionRequested` with any order → `TradeExecuted` published to `executions` topic with matching `orderId`
+- [x] `TradeExecuted.trade.executedPrice` is within `[basePrice × 0.98, basePrice × 1.02]` (±2% of configured base price)
+- [x] `TradeExecuted.trade.id` is a valid non-null UUID
+- [x] `TradeExecuted.trade.orderId` matches `ExecutionRequested.order.id`
+- [x] Kafka poison message (malformed JSON) → logged and skipped; no exception propagated; no `TradeExecuted` published
 
 ## Files to Create / Modify
 
@@ -156,7 +176,8 @@ execution:
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
+- **`KafkaConfig.kt` added** — The default `JsonSerializer` in Spring Kafka 3.3.x does not register `JavaTimeModule` reliably with Jackson 2.19.x (which enables `REQUIRE_HANDLERS_FOR_JAVA8_TIMES` by default). Since `Trade.executedAt` is `Instant`, a custom `KafkaTemplate` bean is required to wire in a properly configured `ObjectMapper` with `JavaTimeModule`. This pattern will be needed by any future service that publishes events containing `Instant` fields.
+- **`mockito-kotlin:5.4.0` added as test dependency** — Kotlin's null-safety intrinsic checks at call sites break Mockito's `ArgumentCaptor.capture()` and `any()` matchers when method parameters are non-null Kotlin types. `mockito-kotlin` handles this correctly. Added explicitly at version `5.4.0` (not in Spring Boot BOM).
 
 ## Related Docs
 
