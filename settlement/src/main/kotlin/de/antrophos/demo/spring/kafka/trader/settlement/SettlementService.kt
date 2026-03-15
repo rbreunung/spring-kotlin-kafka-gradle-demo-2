@@ -8,6 +8,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Position
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
+import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -21,11 +22,18 @@ class SettlementService(
     @Value("\${settlement.simulate-failure-probability:0.0}") private val failureProbability: Double
 ) {
 
+    @Retry(name = "settlementOperation", fallbackMethod = "settleFallback")
     fun settle(trade: Trade, order: Order): Position {
         simulateFailure(trade)
         val position = updatePosition(trade, order)
         eventPublisher.publishPositionSettled(trade.id, position)
         return position
+    }
+
+    @Suppress("unused")
+    private fun settleFallback(trade: Trade, order: Order, ex: Exception): Position {
+        eventPublisher.publishSettlementFailed(trade.id, ex.message ?: "unknown error")
+        throw ex
     }
 
     fun updatePosition(trade: Trade, order: Order): Position {

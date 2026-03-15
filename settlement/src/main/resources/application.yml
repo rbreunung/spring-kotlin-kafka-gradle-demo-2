@@ -26,3 +26,11 @@ spring:
 
 settlement:
   simulate-failure-probability: 0.0
+
+resilience4j:
+  retry:
+    instances:
+      settlementOperation:
+        max-attempts: 3
+        wait-duration: 100ms
+        exponential-backoff-multiplier: 2
