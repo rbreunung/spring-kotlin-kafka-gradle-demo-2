@@ -8,8 +8,8 @@ Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 5
-Completed Slices: [1, 2, 3, 4]
+Current Slice: 6
+Completed Slices: [1, 2, 3, 4, 5]
 Last Updated: 2026-03-15
 
 ## Implementation Review
@@ -132,7 +132,7 @@ Gaps: —
 3. Consume from `settlements`; assert at least 1 `SettlementFailed("bulkhead-full")` arrives
 4. Assert other settlements succeed (`PositionSettled`)
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
