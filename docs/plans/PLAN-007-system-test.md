@@ -8,8 +8,8 @@ Feature: [FEAT-007](../features/FEAT-007-system-test.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 2
-Completed Slices: [1]
+Current Slice: 3
+Completed Slices: [1, 2]
 Last Updated: 2026-03-15
 
 ## Implementation Review
@@ -24,7 +24,7 @@ Reviewed: —
 | `./gradlew :system-test:build` — module compiles | Slice 1 | ✅ |
 | `./gradlew :system-test:test` — all tests run and pass | Slice 1 | ✅ |
 | Docker check at test startup | SystemTestBase | ✅ |
-| All 6 services start via DockerComposeContainer and happy path completes E2E | HappyPathSagaFlowTest | pending |
+| All 6 services start via DockerComposeContainer and happy path completes E2E | HappyPathSagaFlowTest | ✅ |
 | All 8 test scenarios implemented | — | pending |
 | GitHub Action workflow configured | — | pending |
 | User documentation created | docs/system-test-guide.md | pending |
@@ -75,7 +75,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Place an order via `POST /orders`, verify saga state transitions through all steps (RISK_REQUESTED → RISK_APPROVED → EXECUTION_REQUESTED → EXECUTION_COMPLETE → SETTLEMENT_REQUESTED → SETTLED), and verify trader notification.
 
-**Status:** [ ] pending
+**Status:** [x] complete
 
 ---
 
