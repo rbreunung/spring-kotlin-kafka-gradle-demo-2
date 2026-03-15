@@ -8,8 +8,8 @@ Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 6
-Completed Slices: [1, 2, 3, 4, 5]
+Current Slice: —
+Completed Slices: [1, 2, 3, 4, 5, 6]
 Last Updated: 2026-03-15
 
 ## Implementation Review
@@ -149,4 +149,4 @@ Gaps: —
 2. Consume from `dlq.settlements`; assert the message lands there
 3. Assert the main `settlements` topic receives nothing
 
-**Status:** [ ] todo
+**Status:** [x] complete
