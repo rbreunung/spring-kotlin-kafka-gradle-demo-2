@@ -85,11 +85,15 @@ class HappyPathSagaFlowTest : SystemTestBase() {
         await.atMost(timeout, TimeUnit.SECONDS)
             .pollInterval(Duration.ofSeconds(2))
             .until {
-                val response = restTemplate.getForEntity(
-                    "${sagaServiceBaseUrl()}/sagas/$orderId",
-                    SagaStateResponse::class.java
-                )
-                response.statusCode.is2xxSuccessful && response.body?.step == "SETTLED"
+                try {
+                    val response = restTemplate.getForEntity(
+                        "${sagaServiceBaseUrl()}/sagas/$orderId",
+                        SagaStateResponse::class.java
+                    )
+                    response.statusCode.is2xxSuccessful && response.body?.step == "SETTLED"
+                } catch (_: org.springframework.web.client.HttpClientErrorException) {
+                    false
+                }
             }
 
         return restTemplate.getForEntity(
