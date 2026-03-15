@@ -7,15 +7,18 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.DockerComposeContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.containers.wait.strategy.Wait
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 import java.time.Duration
 
 abstract class SystemTestBase {
 
     companion object {
         @JvmStatic
-        private val composeFile = File("docker-compose.full.yml")
+        private val projectRoot = File(System.getProperty("user.dir")).parentFile
+        @JvmStatic
+        private val composeFile = File(projectRoot, "docker-compose.full.yml")
 
         @JvmStatic
         private val composeContainer = DockerComposeContainer(composeFile)
@@ -78,26 +81,30 @@ abstract class SystemTestBase {
                 .withLocalCompose(true)
                 .start()
 
-            awaitBusHealthy()
+            awaitServicesReady()
         }
 
-        private fun awaitBusHealthy() {
-            await.atMost(Duration.ofSeconds(60))
+        private fun awaitServicesReady() {
+            await.atMost(Duration.ofSeconds(300))
+                .pollInterval(Duration.ofSeconds(2))
                 .until {
-                    try {
-                        val kafkaHost = composeContainer.getServiceHost("kafka", 9092)
-                        val kafkaPort = composeContainer.getServicePort("kafka", 9092)
-                        val kafkaUrl = "$kafkaHost:$kafkaPort"
-
-                        val process = ProcessBuilder("docker", "exec", "kafka", "kafka-broker-api-versions.sh", "--bootstrap-server", kafkaUrl)
-                            .redirectErrorStream(true)
-                            .start()
-                        val exitCode = process.waitFor()
-                        exitCode == 0
-                    } catch (e: Exception) {
-                        false
-                    }
+                    isHttpReady(orderServiceBaseUrl() + "/orders") &&
+                    isHttpReady(sagaServiceBaseUrl() + "/sagas")
                 }
+        }
+
+        private fun isHttpReady(urlStr: String): Boolean {
+            return try {
+                val conn = URL(urlStr).openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+                conn.connectTimeout = 1000
+                conn.readTimeout = 1000
+                val status = conn.responseCode
+                conn.disconnect()
+                status < 500
+            } catch (e: Exception) {
+                false
+            }
         }
 
         @DynamicPropertySource
@@ -107,5 +114,11 @@ abstract class SystemTestBase {
             val kafkaPort = composeContainer.getServicePort("kafka", 9092)
             registry.add("spring.kafka.bootstrap-servers") { "$kafkaHost:$kafkaPort" }
         }
+
+        @JvmStatic
+        fun orderServiceBaseUrl(): String = "http://localhost:8080"
+
+        @JvmStatic
+        fun sagaServiceBaseUrl(): String = "http://localhost:8085"
     }
 }
