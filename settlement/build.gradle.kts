@@ -28,13 +28,17 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
+    implementation("io.github.resilience4j:resilience4j-bulkhead")
     runtimeOnly("com.h2database:h2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.awaitility:awaitility-kotlin")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

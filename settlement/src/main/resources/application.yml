@@ -34,3 +34,8 @@ resilience4j:
         max-attempts: 3
         wait-duration: 100ms
         exponential-backoff-multiplier: 2
+  bulkhead:
+    instances:
+      settlementOperation:
+        max-concurrent-calls: 5
+        max-wait-duration: 100ms

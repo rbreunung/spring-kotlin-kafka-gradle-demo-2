@@ -8,6 +8,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Position
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
+import io.github.resilience4j.bulkhead.annotation.Bulkhead
 import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -19,15 +20,24 @@ import java.time.Instant
 class SettlementService(
     private val positionRepository: PositionRepository,
     private val eventPublisher: SettlementEventPublisher,
-    @Value("\${settlement.simulate-failure-probability:0.0}") private val failureProbability: Double
+    @Value("\${settlement.simulate-failure-probability:0.0}") private val failureProbability: Double,
+    @Value("\${settlement.artificial-delay-ms:0}") private val artificialDelayMs: Long
 ) {
 
+    @Bulkhead(name = "settlementOperation", fallbackMethod = "settleBulkheadFallback")
     @Retry(name = "settlementOperation", fallbackMethod = "settleFallback")
     fun settle(trade: Trade, order: Order): Position {
+        if (artificialDelayMs > 0) Thread.sleep(artificialDelayMs)
         simulateFailure(trade)
         val position = updatePosition(trade, order)
         eventPublisher.publishPositionSettled(trade.id, position)
         return position
+    }
+
+    @Suppress("unused")
+    private fun settleBulkheadFallback(trade: Trade, order: Order, ex: Exception): Position {
+        eventPublisher.publishSettlementFailed(trade.id, "bulkhead-full")
+        throw ex
     }
 
     @Suppress("unused")
