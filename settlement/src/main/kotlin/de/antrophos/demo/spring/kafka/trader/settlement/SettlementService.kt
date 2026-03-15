@@ -2,6 +2,7 @@ package de.antrophos.demo.spring.kafka.trader.settlement
 
 import de.antrophos.demo.spring.kafka.trader.settlement.domain.PositionEntity
 import de.antrophos.demo.spring.kafka.trader.settlement.exception.SettlementException
+import de.antrophos.demo.spring.kafka.trader.settlement.kafka.SettlementEventPublisher
 import de.antrophos.demo.spring.kafka.trader.settlement.repository.PositionRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Position
@@ -16,12 +17,15 @@ import java.time.Instant
 @Service
 class SettlementService(
     private val positionRepository: PositionRepository,
+    private val eventPublisher: SettlementEventPublisher,
     @Value("\${settlement.simulate-failure-probability:0.0}") private val failureProbability: Double
 ) {
 
     fun settle(trade: Trade, order: Order): Position {
         simulateFailure(trade)
-        return updatePosition(trade, order)
+        val position = updatePosition(trade, order)
+        eventPublisher.publishPositionSettled(trade.id, position)
+        return position
     }
 
     fun updatePosition(trade: Trade, order: Order): Position {

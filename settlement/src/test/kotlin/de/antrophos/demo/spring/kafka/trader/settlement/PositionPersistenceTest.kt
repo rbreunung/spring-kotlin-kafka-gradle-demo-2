@@ -1,6 +1,7 @@
 package de.antrophos.demo.spring.kafka.trader.settlement
 
 import de.antrophos.demo.spring.kafka.trader.settlement.domain.PositionEntity
+import de.antrophos.demo.spring.kafka.trader.settlement.kafka.SettlementEventPublisher
 import de.antrophos.demo.spring.kafka.trader.settlement.repository.PositionRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import java.math.BigDecimal
 import java.time.Instant
@@ -18,7 +20,11 @@ import java.util.UUID
 
 @DataJpaTest
 @Import(SettlementService::class)
+@Suppress("UnusedPrivateProperty")
 class PositionPersistenceTest {
+
+    @MockBean
+    private lateinit var eventPublisher: SettlementEventPublisher
 
     @Autowired
     lateinit var settlementService: SettlementService
