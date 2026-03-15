@@ -8,8 +8,8 @@ Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 4
-Completed Slices: [1, 2, 3]
+Current Slice: 5
+Completed Slices: [1, 2, 3, 4]
 Last Updated: 2026-03-15
 
 ## Implementation Review
@@ -114,7 +114,7 @@ Gaps: —
 5. Assert position in DB not updated
 6. Assert logs show 3 attempt entries (via log capture or attempt counter)
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
