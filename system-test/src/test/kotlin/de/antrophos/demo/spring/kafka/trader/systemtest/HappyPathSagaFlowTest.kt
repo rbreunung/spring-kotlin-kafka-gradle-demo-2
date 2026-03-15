@@ -81,7 +81,7 @@ class HappyPathSagaFlowTest : SystemTestBase() {
         return if (response.statusCode.is2xxSuccessful) response.body else null
     }
 
-    private fun awaitSagaCompletion(orderId: UUID, timeout: Long = 60): SagaStateResponse {
+    private fun awaitSagaCompletion(orderId: UUID, timeout: Long = 120): SagaStateResponse {
         await.atMost(timeout, TimeUnit.SECONDS)
             .pollInterval(Duration.ofSeconds(2))
             .until {

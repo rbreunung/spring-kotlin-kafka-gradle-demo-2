@@ -1,5 +1,8 @@
 package de.antrophos.demo.spring.kafka.trader.systemtest
 
+import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.clients.admin.AdminClientConfig
+import org.apache.kafka.common.ConsumerGroupState
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -80,6 +83,7 @@ abstract class SystemTestBase {
                 .withLocalCompose(true)
                 .start()
             awaitServicesReady()
+            awaitKafkaConsumerGroupsReady()
         }
 
         private fun awaitServicesReady() {
@@ -92,6 +96,27 @@ abstract class SystemTestBase {
                     isHttpReady(url).also { ready ->
                         if (!ready) org.slf4j.LoggerFactory.getLogger("SystemTestBase")
                             .info("Waiting for $name at $url ...")
+                    }
+                }
+            }
+        }
+
+        private fun awaitKafkaConsumerGroupsReady() {
+            val log = org.slf4j.LoggerFactory.getLogger("SystemTestBase")
+            val requiredGroups = listOf("settlement-service", "saga-orchestrator", "order-service")
+            val adminProps = mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092")
+            AdminClient.create(adminProps).use { admin ->
+                await.atMost(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2)).until {
+                    try {
+                        val descriptions = admin.describeConsumerGroups(requiredGroups).all().get()
+                        requiredGroups.all { group ->
+                            val state = descriptions[group]?.state()
+                            val ready = state == ConsumerGroupState.STABLE
+                            if (!ready) log.info("Waiting for consumer group '$group' (state=$state) ...")
+                            ready
+                        }
+                    } catch (_: Exception) {
+                        false
                     }
                 }
             }
