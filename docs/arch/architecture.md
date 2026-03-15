@@ -77,7 +77,7 @@ enum class Side { BUY, SELL }
 | `RiskRejected(orderId, reason)` | RiskService | SagaOrchestrator, OrderService |
 | `ExecutionRequested(order)` | SagaOrchestrator | ExecutionService (future) |
 | `TradeExecuted(trade)` | ExecutionService | SagaOrchestrator, OrderService, SettlementService |
-| `SettlementRequested(trade)` | SagaOrchestrator | SettlementService (future) |
+| `SettlementRequested(trade, order)` | SagaOrchestrator | SettlementService |
 | `PositionSettled(tradeId, position)` | SettlementService | SagaOrchestrator, OrderService |
 | `SettlementFailed(tradeId, reason)` | SettlementService | SagaOrchestrator, OrderService |
 | `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |

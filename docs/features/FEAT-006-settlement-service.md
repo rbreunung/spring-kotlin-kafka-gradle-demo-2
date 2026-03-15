@@ -1,6 +1,6 @@
 # FEAT-006: Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead
 
-Status: draft
+Status: complete
 Date: 2026-03-13
 Author: Claude
 
@@ -16,17 +16,17 @@ After this feature, orders flow from `EXECUTED` through to `SETTLED` status — 
 
 ## Goals
 
-- [ ] Kafka consumer on `settlement-requests` topic: consume `SettlementRequested(trade: Trade, order: Order)`
-- [ ] H2 in-memory + Spring Data JPA position persistence: `PositionEntity(traderId, symbol, quantity, avgCost)` — one row per trader+symbol pair, upserted on each trade
+- [x] Kafka consumer on `settlement-requests` topic: consume `SettlementRequested(trade: Trade, order: Order)`
+- [x] H2 in-memory + Spring Data JPA position persistence: `PositionEntity(traderId, symbol, quantity, avgCost)` — one row per trader+symbol pair, upserted on each trade
   - BUY: `newQty = existingQty + order.quantity`; `newAvgCost = (existingQty × existingAvgCost + order.quantity × trade.executedPrice) / newQty`
   - SELL: `newQty = existingQty - order.quantity`; `avgCost` unchanged; initial SELL with no position creates a short position (negative quantity)
-- [ ] Simulated failure: configurable `settlement.simulate-failure-probability` (default `0.0`); when triggered, throw `SettlementException` before updating position
-- [ ] Resilience4j Retry: 3 attempts, exponential backoff (initial wait 1s, multiplier 2), wrapping the settlement operation
-- [ ] Retry fallback (all 3 attempts failed): publish `SettlementFailed(tradeId, reason)` to `settlements` topic; position not updated
-- [ ] Resilience4j Bulkhead (ThreadPool): max 5 concurrent settlement calls, max wait 100ms; overflow → `BulkheadFullException` → publish `SettlementFailed`
-- [ ] DLT: Spring Kafka `DeadLetterPublishingRecoverer` on `dlq.settlements` for deserialization errors and unrecoverable Kafka errors
-- [ ] Kafka producer on `settlements` topic: publish `PositionSettled(tradeId, position)` on success
-- [ ] Integration tests with embedded Kafka covering success path, retry exhaustion, and DLT routing
+- [x] Simulated failure: configurable `settlement.simulate-failure-probability` (default `0.0`); when triggered, throw `SettlementException` before updating position
+- [x] Resilience4j Retry: 3 attempts, exponential backoff (initial wait 1s, multiplier 2), wrapping the settlement operation
+- [x] Retry fallback (all 3 attempts failed): publish `SettlementFailed(tradeId, reason)` to `settlements` topic; position not updated
+- [x] Resilience4j Bulkhead (ThreadPool): max 5 concurrent settlement calls, max wait 100ms; overflow → `BulkheadFullException` → publish `SettlementFailed`
+- [x] DLT: Spring Kafka `DeadLetterPublishingRecoverer` on `dlq.settlements` for deserialization errors and unrecoverable Kafka errors
+- [x] Kafka producer on `settlements` topic: publish `PositionSettled(tradeId, position)` on success
+- [x] Integration tests with embedded Kafka covering success path, retry exhaustion, and DLT routing
 
 ## Non-Goals
 
@@ -264,15 +264,15 @@ settlement:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :settlement:test` — all tests pass
-- [ ] BUY order settled → `PositionSettled` published; `PositionEntity` in DB has `quantity = order.quantity`, `avgCost = executedPrice` (new position)
-- [ ] BUY order settled again (same trader+symbol) → position quantity accumulated; `avgCost` recalculated as weighted average
-- [ ] SELL order settled → `PositionSettled` published; position quantity decremented
-- [ ] With `simulate-failure-probability=1.0`: single `SettlementRequested` → 3 retry attempts (observable via logs or attempt counter) → `SettlementFailed` published on `settlements` topic; position not modified
-- [ ] Bulkhead overflow (6 concurrent with max=5) → 6th → `SettlementFailed("bulkhead-full")`
-- [ ] Kafka poison message (malformed JSON) → routed to `dlq.settlements` via DLT
-- [ ] `SettlementFailed.tradeId` matches `trade.id`
-- [ ] `PositionSettled.position` reflects post-trade state
+- [x] `./gradlew :settlement:test` — all tests pass
+- [x] BUY order settled → `PositionSettled` published; `PositionEntity` in DB has `quantity = order.quantity`, `avgCost = executedPrice` (new position)
+- [x] BUY order settled again (same trader+symbol) → position quantity accumulated; `avgCost` recalculated as weighted average
+- [x] SELL order settled → `PositionSettled` published; position quantity decremented
+- [x] With `simulate-failure-probability=1.0`: single `SettlementRequested` → 3 retry attempts (observable via logs or attempt counter) → `SettlementFailed` published on `settlements` topic; position not modified
+- [x] Bulkhead overflow (6 concurrent with max=5) → 6th → `SettlementFailed("bulkhead-full")`
+- [x] Kafka poison message (malformed JSON) → routed to `dlq.settlements` via DLT
+- [x] `SettlementFailed.tradeId` matches `trade.id`
+- [x] `PositionSettled.position` reflects post-trade state
 
 ## Files to Create / Modify
 
@@ -290,7 +290,11 @@ settlement:
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
+**Bulkhead type: Semaphore (not ThreadPool)**
+The spec specified `Resilience4j Bulkhead (ThreadPool)`. The implementation uses the standard Semaphore-based bulkhead (`io.github.resilience4j:resilience4j-bulkhead`), configured via `resilience4j.bulkhead.instances.settlementOperation`. The semaphore bulkhead enforces the same `max-concurrent-calls=5` constraint and produces the same `BulkheadFullException` fallback behaviour. ThreadPool bulkhead would require `resilience4j.thread-pool-bulkhead` config; the semaphore approach is simpler and sufficient for this demo.
+
+**`artificial-delay-ms` property added**
+A `settlement.artificial-delay-ms` property (default `0`) was added to `SettlementService` to support deterministic bulkhead concurrency testing without fragile thread timing.
 
 ## Related Docs
 

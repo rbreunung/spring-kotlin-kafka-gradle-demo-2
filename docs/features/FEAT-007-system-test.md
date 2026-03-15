@@ -1,6 +1,6 @@
 # FEAT-007: System Test Module — End-to-End E2E Tests with Testcontainers
 
-Status: draft
+Status: complete
 Date: 2026-03-14
 Author: Claude
 
@@ -20,12 +20,12 @@ The system test module is **only meaningful with Docker** — without Docker, th
 
 ## Goals
 
-- [ ] Create new Gradle module `:system-test` for E2E tests
-- [ ] Implement Docker availability check at test startup
-- [ ] Create 8 comprehensive test scenarios covering all use cases
-- [ ] Integrate with GitHub Actions for CI/CD
-- [ ] Provide user and agent documentation
-- [ ] Make system tests part of `feature-impl` and `bugfix` verification workflows
+- [x] Create new Gradle module `:system-test` for E2E tests
+- [x] Implement Docker availability check at test startup
+- [x] Create 8 comprehensive test scenarios covering all use cases
+- [x] Integrate with GitHub Actions for CI/CD
+- [x] Provide user and agent documentation
+- [x] Make system tests part of `feature-impl` and `bugfix` verification workflows
 
 ## Non-Goals
 
@@ -212,19 +212,29 @@ companion object {
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :system-test:build` — module compiles
-- [ ] `./gradlew :system-test:test` — all tests run and pass (with Docker)
-- [ ] Docker check at test startup with clear error message when Docker not available
-- [ ] All 6 services start via `DockerComposeContainer` and the happy path test completes end-to-end
-- [ ] All 8 test scenarios implemented and passing
-- [ ] GitHub Action workflow configured
-- [ ] User documentation created at `docs/system-test-guide.md`
-- [ ] System tests run as part of `feature-impl` workflow verification
-- [ ] System tests run as part of `bugfix` workflow verification
+- [x] `./gradlew :system-test:build` — module compiles
+- [x] `./gradlew :system-test:test` — all tests run and pass (with Docker)
+- [x] Docker check at test startup with clear error message when Docker not available
+- [x] All 6 services start via `DockerComposeContainer` and the happy path test completes end-to-end
+- [x] All 8 test scenarios implemented and passing
+- [x] GitHub Action workflow configured
+- [x] User documentation created at `docs/system-test-guide.md`
+- [x] System tests run as part of `feature-impl` workflow verification
+- [x] System tests run as part of `bugfix` workflow verification
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
+**Fixed ports instead of `withExposedService()` mapped ports**
+The spec described using `withExposedService()` to get dynamically mapped ports for Kafka and services, with `@DynamicPropertySource` to inject the Kafka bootstrap address. In practice, `withExposedService()` is incompatible with Docker Compose V2: it triggers Testcontainers' socat ambassador proxy which uses Docker Compose V1 container naming (`project_service_1` with underscores), while Docker Compose V2 uses dashes (`project-service-1`), causing a `ContainerLaunchException`. The implementation uses fixed localhost ports instead: order-service on 8080, saga-orchestrator on 8085, Kafka on 9092 (as mapped in `docker-compose.full.yml`). No `@DynamicPropertySource` is needed since test classes have no Spring context.
+
+**Shared compose stack (singleton companion object)**
+The spec described one `DockerComposeContainer` per test class (started/stopped in `@BeforeAll`/`@AfterAll`). The implementation uses a Kotlin companion object singleton in `SystemTestBase`, so all test classes share one compose stack per JVM process. This avoids port conflicts and speeds up the full test suite significantly. Test isolation is achieved via unique order IDs.
+
+**No Spring context in test classes**
+Test classes are plain JUnit 5 with `RestTemplate` for HTTP and Kafka producers/consumers configured directly. No `@SpringBootTest` is used.
+
+**Kafka consumer group readiness check**
+`SystemTestBase.awaitKafkaConsumerGroupsReady()` was added to poll the Kafka `AdminClient` until `settlement-service`, `saga-orchestrator`, and `order-service` consumer groups reach `STABLE` state before any test runs. This prevents flaky failures caused by slow Kafka consumer startup (particularly settlement-service, which has no HTTP endpoint to poll for readiness).
 
 ## Related Docs
 

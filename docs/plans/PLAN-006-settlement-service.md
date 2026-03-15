@@ -4,14 +4,6 @@ Status: complete
 Date: 2026-03-13
 Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
 
-## Progress
-
-> Agent: update after each completed slice. Remove entire section when all slices done.
-
-Current Slice: —
-Completed Slices: [1, 2, 3, 4, 5, 6]
-Last Updated: 2026-03-15
-
 ## Implementation Review
 
 > Agent: fill this section during the final review step of feature-impl.

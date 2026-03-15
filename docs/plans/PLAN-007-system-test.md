@@ -4,14 +4,6 @@ Status: complete
 Date: 2026-03-14
 Feature: [FEAT-007](../features/FEAT-007-system-test.md)
 
-## Progress
-
-> Agent: update after each completed slice. Remove entire section when all slices done.
-
-Current Slice: —
-Completed Slices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-Last Updated: 2026-03-15
-
 ## Implementation Review
 
 > Agent: fill this section during the final review step of feature-impl.

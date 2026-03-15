@@ -17,7 +17,9 @@ Key constraint: Docker is required in any chosen approach (either for Kafka alon
 
 ## Decision
 
-Use Testcontainers `DockerComposeContainer` wrapping the existing `docker-compose.full.yml` to start the complete service stack for each E2E test class. Test code interacts with services via dynamically mapped ports — REST calls to `order-service` and Kafka produce/consume via `KafkaTestUtils`.
+Use Testcontainers `DockerComposeContainer` wrapping the existing `docker-compose.full.yml` to start the complete service stack. Test code interacts with services via **fixed localhost ports** (order-service: 8080, saga-orchestrator: 8085, Kafka: 9092) as mapped in `docker-compose.full.yml`.
+
+> **Implementation note:** `withExposedService()` was NOT used. Docker Compose V2 uses dashes in container names (`project-service-1`) while Testcontainers' ambassador proxy assumes V1 underscore naming (`project_service_1`), causing a `ContainerLaunchException`. Fixed ports are simpler and reliable given that `docker-compose.full.yml` already specifies fixed host port bindings.
 
 ## Consequences
 
@@ -34,8 +36,8 @@ Use Testcontainers `DockerComposeContainer` wrapping the existing `docker-compos
 - CI cold-start (no cache) will be significantly slower than unit/integration test runs
 
 **Neutral:**
-- Each test class gets its own compose stack; test classes may run in parallel with `parallelism=4`
-- Test methods within a class share one stack and use unique order IDs to avoid state collision
+- All test classes share one compose stack (singleton companion object in `SystemTestBase`); JUnit parallel execution (`parallelism=4`) runs test classes concurrently against the same stack
+- Test methods use unique order IDs to avoid state collision
 - GitHub Actions CI must have Docker available (standard for GitHub-hosted runners)
 
 ## Alternatives Considered

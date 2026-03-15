@@ -23,10 +23,10 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | PLAN-004 | PLAN | Saga Orchestrator — Saga State Machine and Kafka Routing | complete |
 | FEAT-005 | FEAT | Execution Service — Kafka Integration and Trade Simulation | complete |
 | PLAN-005 | PLAN | Execution Service — Kafka Integration and Trade Simulation | complete |
-| FEAT-006 | FEAT | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
-| PLAN-006 | PLAN | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | draft |
-| FEAT-007 | FEAT | System Test Module — End-to-End E2E Tests with Testcontainers | in-progress |
-| PLAN-007 | PLAN | System Test Module — End-to-End E2E Tests with Testcontainers | in-progress |
+| FEAT-006 | FEAT | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | complete |
+| PLAN-006 | PLAN | Settlement Service — Position Persistence and Resilience4j Retry and Bulkhead | complete |
+| FEAT-007 | FEAT | System Test Module — End-to-End E2E Tests with Testcontainers | complete |
+| PLAN-007 | PLAN | System Test Module — End-to-End E2E Tests with Testcontainers | complete |
 | ADR-002 | ADR | Testcontainers DockerCompose for E2E system tests | accepted |
 | RETRO-003 | RETRO | Feature spec session — FEAT-003 through FEAT-006 | complete |
 | RETRO-004 | RETRO | FEAT-003 implementation retrospective | complete |
