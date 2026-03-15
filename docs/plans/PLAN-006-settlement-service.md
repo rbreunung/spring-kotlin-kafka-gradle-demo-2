@@ -8,9 +8,9 @@ Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 1
-Completed Slices: []
-Last Updated: 2026-03-13
+Current Slice: 2
+Completed Slices: [1]
+Last Updated: 2026-03-15
 
 ## Implementation Review
 
@@ -64,7 +64,7 @@ Gaps: —
 - SELL 30 shares → position: qty=120, avgCost=106.67 (unchanged)
 - SELL with no existing position → short position: qty=-30
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
