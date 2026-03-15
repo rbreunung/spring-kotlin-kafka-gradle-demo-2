@@ -30,6 +30,12 @@ jobs:
           key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
+      - name: Create docker-compose shim (Docker Compose V2 only on ubuntu-latest)
+        run: |
+          printf '#!/bin/bash\nexec docker compose "$@"\n' | sudo tee /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose version
+
       - name: Run system tests
         run: ./gradlew :system-test:test
         env:
