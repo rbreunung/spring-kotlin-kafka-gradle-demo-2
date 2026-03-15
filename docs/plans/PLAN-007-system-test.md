@@ -8,9 +8,9 @@ Feature: [FEAT-007](../features/FEAT-007-system-test.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 1
-Completed Slices: []
-Last Updated: 2026-03-14
+Current Slice: 2
+Completed Slices: [1]
+Last Updated: 2026-03-15
 
 ## Implementation Review
 
@@ -21,9 +21,9 @@ Reviewed: —
 
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| `./gradlew :system-test:build` — module compiles | — | pending |
-| `./gradlew :system-test:test` — all tests run and pass | — | pending |
-| Docker check at test startup | SystemTestBase | pending |
+| `./gradlew :system-test:build` — module compiles | Slice 1 | ✅ |
+| `./gradlew :system-test:test` — all tests run and pass | Slice 1 | ✅ |
+| Docker check at test startup | SystemTestBase | ✅ |
 | All 6 services start via DockerComposeContainer and happy path completes E2E | HappyPathSagaFlowTest | pending |
 | All 8 test scenarios implemented | — | pending |
 | GitHub Action workflow configured | — | pending |
@@ -63,7 +63,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Verify that the system-test module compiles, that `./gradlew :system-test:test` aborts with a clear error when Docker is not available, and that when Docker is available the compose stack starts and all services are healthy.
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
@@ -75,7 +75,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Place an order via `POST /orders`, verify saga state transitions through all steps (RISK_REQUESTED → RISK_APPROVED → EXECUTION_REQUESTED → EXECUTION_COMPLETE → SETTLEMENT_REQUESTED → SETTLED), and verify trader notification.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -87,7 +87,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Place an order, verify it reaches RISK_REQUESTED state, then cancel it via `POST /orders/{id}/cancel`, verify saga state is removed.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -99,7 +99,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Place an order, verify it reaches RISK_REQUESTED state, manually trigger RiskRejected via Kafka, verify saga terminates at RISK_REJECTED terminal state.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -111,7 +111,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Place an order, verify happy path, trigger SettlementFailed via Kafka, verify saga terminates at SETTLEMENT_FAILED, verify DLQ contains the failed message.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -123,7 +123,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Place multiple concurrent orders, verify each saga progresses independently without interference.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -135,7 +135,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Trigger RiskService circuit breaker to open, trigger SettlementService retry exhaustion, verify behavior per Resilience4j configuration.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -147,7 +147,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** After happy path completion, verify `GET /orders/{id}` returns correct status, `GET /sagas/{orderId}` shows correct step, and SettlementService position data is consistent.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -159,7 +159,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Send malformed JSON to settlements topic, verify DLQ receives it, verify no service crashes, verify message is not re-delivered.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -171,7 +171,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Read and verify documentation covers prerequisites, execution methods, troubleshooting, and integration with workflows.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -183,7 +183,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Verify workflow runs `./gradlew :system-test:test` on PR and merge, handles Docker availability gracefully.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
 
 ---
 
@@ -195,4 +195,4 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Verify that `feature-impl` and `bugfix` workflows document running system tests as part of verification.
 
-**Status:** [ ] todo
+**Status:** [ ] pending
