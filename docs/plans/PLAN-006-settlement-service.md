@@ -8,8 +8,8 @@ Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
 
 > Agent: update after each completed slice. Remove entire section when all slices done.
 
-Current Slice: 3
-Completed Slices: [1, 2]
+Current Slice: 4
+Completed Slices: [1, 2, 3]
 Last Updated: 2026-03-15
 
 ## Implementation Review
@@ -94,7 +94,7 @@ Gaps: —
 
 **Test description:** `@EmbeddedKafka` integration test — publish `SettlementRequested` for a BUY order; consume from `settlements`; assert `PositionSettled` arrives with `tradeId == trade.id` and `position.quantity == order.quantity`.
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
