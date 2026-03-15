@@ -1,6 +1,6 @@
 # PLAN-006: Settlement Service — Implementation Plan
 
-Status: draft
+Status: complete
 Date: 2026-03-13
 Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
 
@@ -16,19 +16,19 @@ Last Updated: 2026-03-15
 
 > Agent: fill this section during the final review step of feature-impl.
 
-Status: pending
-Reviewed: —
+Status: complete
+Reviewed: 2026-03-15
 
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| BUY settled → `PositionSettled` + position created | — | pending |
-| Accumulated BUY → avgCost recalculated | — | pending |
-| SELL settled → quantity decremented | — | pending |
-| 3 retries exhausted → `SettlementFailed` | — | pending |
-| Bulkhead overflow → `SettlementFailed("bulkhead-full")` | — | pending |
-| Poison message → `dlq.settlements` | — | pending |
+| BUY settled → `PositionSettled` + position created | `SettlementEventPublisherTest` + `PositionPersistenceTest` | ✅ |
+| Accumulated BUY → avgCost recalculated | `PositionPersistenceTest.BUY 100 at 100 then BUY 50 at 120` | ✅ |
+| SELL settled → quantity decremented | `PositionPersistenceTest.SELL 30 from position of 150` | ✅ |
+| 3 retries exhausted → `SettlementFailed` | `RetryFallbackTest` | ✅ |
+| Bulkhead overflow → `SettlementFailed("bulkhead-full")` | `BulkheadFallbackTest` | ✅ |
+| Poison message → `dlq.settlements` | `DeadLetterTopicTest` | ✅ |
 
-Gaps: —
+Gaps: none
 
 ---
 
