@@ -53,13 +53,11 @@ Load these into context before working on any task (if not already loaded):
 ## Bash Command Style
 
 When running build, test, or git commands:
-- **Do not pipe or redirect output** — avoid `|`, `2>&1`, `&&` chains in a single Bash call
+- **Do not pipe or redirect output** — avoid `|`, `2>&1`, `&&`. Claude Code's permission system matches only the start of the command string. `./gradlew :order:test | tail -40` still starts with `./gradlew` and matches — but `cd order && ./gradlew test` starts with `cd`, which has no matching rule and triggers an approval prompt. Keep every command clean and self-contained.
 - **No multiline bash strings** — avoid heredocs (`<<'EOF'`) and multiline `$()` expressions; they trigger interactive approval prompts and block autonomous execution. Use a single-line `-m "type: msg"` for commit messages.
 - Run gradle and git as simple commands: `./gradlew :order:test`, not `./gradlew :order:test 2>&1 | tail -40`
 - If you need multiple sequential operations, use separate Bash tool calls
 - Output is automatically truncated — manual tail/grep is unnecessary
-
-This keeps commands simple enough to match pre-approved wildcard rules and avoids repeated approval prompts.
 - **Final verification uses a clean build.** Use `./gradlew :module:clean :module:test`
   (not just `:module:test`) for the final verification step — prevents false passes from Gradle's task cache.
 - **No writes to `/tmp`.** `/tmp` is outside the workspace and triggers permission prompts.
@@ -88,3 +86,4 @@ Apply these at all times — for workflow tasks and ad-hoc requests:
 - Commit format: `feat(FEAT-NNN): description` / `fix(BUG-NNN): description` / `chore: description`
 - Commit after each passing test iteration — do not accumulate uncommitted work
 - At workflow end: offer to create a PR with a generated title and description
+- See `docs/workflows/git-for-agents.md` for allowed and prohibited git command patterns.
