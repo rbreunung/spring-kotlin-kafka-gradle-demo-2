@@ -81,6 +81,7 @@ class SagaOrchestrator(
         val orderId = event.trade.orderId
         val entity = findOrWarn(orderId, "onTradeExecuted") ?: return
         if (isTerminalOrWarn(entity, "onTradeExecuted")) return
+        val order = objectMapper.readValue<Order>(entity.orderJson)
         val complete = repository.save(
             entity.copy(
                 step = SagaStep.EXECUTION_COMPLETE.name,
@@ -89,7 +90,7 @@ class SagaOrchestrator(
             )
         )
         repository.save(complete.copy(step = SagaStep.SETTLEMENT_REQUESTED.name, updatedAt = Instant.now()))
-        publisher.publishSettlementRequested(event.trade)
+        publisher.publishSettlementRequested(event.trade, order)
         log.info("Trade executed for orderId={}, tradeId={}, transitioning EXECUTION_COMPLETE → SETTLEMENT_REQUESTED", orderId, event.trade.id)
     }
 

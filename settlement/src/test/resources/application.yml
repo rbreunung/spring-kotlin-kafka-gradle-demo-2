@@ -1,0 +1,8 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9999
+    listener:
+      auto-startup: false
+
+settlement:
+  simulate-failure-probability: 0.0

@@ -1,7 +1,6 @@
 services:
   kafka:
     image: apache/kafka:3.9.0
-    container_name: kafka
     ports:
       - "9092:9092"
     environment:
@@ -83,6 +82,8 @@ services:
     build:
       context: .
       dockerfile: saga-orchestrator/Dockerfile
+    ports:
+      - "8085:8085"
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
     depends_on:

@@ -1,34 +1,26 @@
 # PLAN-006: Settlement Service — Implementation Plan
 
-Status: draft
+Status: complete
 Date: 2026-03-13
 Feature: [FEAT-006](../features/FEAT-006-settlement-service.md)
-
-## Progress
-
-> Agent: update after each completed slice. Remove entire section when all slices done.
-
-Current Slice: 1
-Completed Slices: []
-Last Updated: 2026-03-13
 
 ## Implementation Review
 
 > Agent: fill this section during the final review step of feature-impl.
 
-Status: pending
-Reviewed: —
+Status: complete
+Reviewed: 2026-03-15
 
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| BUY settled → `PositionSettled` + position created | — | pending |
-| Accumulated BUY → avgCost recalculated | — | pending |
-| SELL settled → quantity decremented | — | pending |
-| 3 retries exhausted → `SettlementFailed` | — | pending |
-| Bulkhead overflow → `SettlementFailed("bulkhead-full")` | — | pending |
-| Poison message → `dlq.settlements` | — | pending |
+| BUY settled → `PositionSettled` + position created | `SettlementEventPublisherTest` + `PositionPersistenceTest` | ✅ |
+| Accumulated BUY → avgCost recalculated | `PositionPersistenceTest.BUY 100 at 100 then BUY 50 at 120` | ✅ |
+| SELL settled → quantity decremented | `PositionPersistenceTest.SELL 30 from position of 150` | ✅ |
+| 3 retries exhausted → `SettlementFailed` | `RetryFallbackTest` | ✅ |
+| Bulkhead overflow → `SettlementFailed("bulkhead-full")` | `BulkheadFallbackTest` | ✅ |
+| Poison message → `dlq.settlements` | `DeadLetterTopicTest` | ✅ |
 
-Gaps: —
+Gaps: none
 
 ---
 
@@ -64,7 +56,7 @@ Gaps: —
 - SELL 30 shares → position: qty=120, avgCost=106.67 (unchanged)
 - SELL with no existing position → short position: qty=-30
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
@@ -79,7 +71,7 @@ Gaps: —
 
 **Test description:** `@EmbeddedKafka` integration test — publish one `SettlementRequested`; verify `SettlementService.settle()` is called. Poison message: publish malformed JSON; verify `ErrorHandlingDeserializer` handles it (no uncaught exception).
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
@@ -94,7 +86,7 @@ Gaps: —
 
 **Test description:** `@EmbeddedKafka` integration test — publish `SettlementRequested` for a BUY order; consume from `settlements`; assert `PositionSettled` arrives with `tradeId == trade.id` and `position.quantity == order.quantity`.
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
@@ -114,7 +106,7 @@ Gaps: —
 5. Assert position in DB not updated
 6. Assert logs show 3 attempt entries (via log capture or attempt counter)
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
@@ -132,7 +124,7 @@ Gaps: —
 3. Consume from `settlements`; assert at least 1 `SettlementFailed("bulkhead-full")` arrives
 4. Assert other settlements succeed (`PositionSettled`)
 
-**Status:** [ ] todo
+**Status:** [x] complete
 
 ---
 
@@ -149,4 +141,4 @@ Gaps: —
 2. Consume from `dlq.settlements`; assert the message lands there
 3. Assert the main `settlements` topic receives nothing
 
-**Status:** [ ] todo
+**Status:** [x] complete

@@ -31,6 +31,7 @@ flowchart LR
 | `ExecutionService` | Simulates trade execution on exchange; publishes `TradeExecuted` |
 | `SettlementService` | Updates positions; transactional Kafka producer; Resilience4j retry + bulkhead |
 | `NotificationService` | Sends trader notification (log stub) |
+| `SystemTest` | E2E test module using Testcontainers with real Kafka for end-to-end verification of all use cases |
 
 ## Kafka Topics
 
@@ -76,7 +77,7 @@ enum class Side { BUY, SELL }
 | `RiskRejected(orderId, reason)` | RiskService | SagaOrchestrator, OrderService |
 | `ExecutionRequested(order)` | SagaOrchestrator | ExecutionService (future) |
 | `TradeExecuted(trade)` | ExecutionService | SagaOrchestrator, OrderService, SettlementService |
-| `SettlementRequested(trade)` | SagaOrchestrator | SettlementService (future) |
+| `SettlementRequested(trade, order)` | SagaOrchestrator | SettlementService |
 | `PositionSettled(tradeId, position)` | SettlementService | SagaOrchestrator, OrderService |
 | `SettlementFailed(tradeId, reason)` | SettlementService | SagaOrchestrator, OrderService |
 | `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |
@@ -92,6 +93,7 @@ enum class Side { BUY, SELL }
 :settlement        — Spring Boot app: Kafka consumer/producer
 :notification      — Spring Boot app: Kafka consumer/producer
 :saga-orchestrator — Spring Boot app: Kafka consumer/producer (orchestrates saga)
+:system-test       — Test module: E2E tests using Testcontainers (requires Docker)
 ```
 
 Module dependency rule: all service modules depend on `:shared` only; no cross-service compile dependencies.
@@ -167,6 +169,7 @@ sequenceDiagram
 | ID | Decision | Status |
 |---|---|---|
 | [ADR-001](adr/ADR-001-saga-state-as-recovery-anchor.md) | Saga state entity is the authoritative recovery anchor for future compensation logic | accepted |
+| [ADR-002](adr/ADR-002-testcontainers-dockercompose-for-e2e-tests.md) | Testcontainers `DockerComposeContainer` wrapping `docker-compose.full.yml` for E2E system tests | accepted |
 
 ## Technology Decisions
 

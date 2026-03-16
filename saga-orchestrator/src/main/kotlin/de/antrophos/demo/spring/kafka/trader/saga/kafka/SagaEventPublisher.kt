@@ -21,8 +21,8 @@ class SagaEventPublisher(private val kafkaTemplate: KafkaTemplate<String, Any>) 
         kafkaTemplate.send("execution-requests", order.id.toString(), ExecutionRequested(order))
     }
 
-    fun publishSettlementRequested(trade: Trade) {
-        kafkaTemplate.send("settlement-requests", trade.orderId.toString(), SettlementRequested(trade))
+    fun publishSettlementRequested(trade: Trade, order: Order) {
+        kafkaTemplate.send("settlement-requests", trade.orderId.toString(), SettlementRequested(trade, order))
     }
 
     fun publishNotificationRequested(traderId: String, orderId: UUID, message: String) {
