@@ -40,3 +40,4 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | FEAT-009 | FEAT | Observability — Micrometer Metrics and Distributed Tracing | draft |
 | FEAT-010 | FEAT | Notification Service — WebSocket Push for Real-Time Order Status | draft |
 | FEAT-011 | FEAT | Cancel In-Flight Orders — User-Initiated Saga Rollback | draft |
+| RETRO-009 | RETRO | FEAT-008 feature spec retrospective | complete |
