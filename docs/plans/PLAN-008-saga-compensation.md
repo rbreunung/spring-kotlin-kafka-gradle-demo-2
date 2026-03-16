@@ -4,28 +4,22 @@ Status: complete
 Date: 2026-03-16
 Feature: [FEAT-008](../features/FEAT-008-saga-compensation.md)
 
-## Progress
-
-Current Slice: 1
-Completed Slices: []
-Last Updated: 2026-03-16
-
 ## Implementation Review
 
-Status: pending
-Reviewed: —
+Status: passed
+Reviewed: 2026-03-16
 
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| `CompensationRequested` and `TradeVoided` compile | `./gradlew :shared:build` | pending |
-| `TradeEntity` persisted on `TradeExecuted`; VOIDED on `CompensationRequested` | `ExecutionCompensationIntegrationTest` | pending |
-| `SettlementFailed` → `SETTLEMENT_FAILED` → `COMPENSATION_REQUESTED`; `CompensationRequested` published | `SagaOrchestratorCompensationTest` | pending |
-| `TradeVoided` → `COMPENSATION_COMPLETE` in saga | `SagaOrchestratorCompensationTest` | pending |
-| `SettlementFailed` → order `COMPENSATION_IN_PROGRESS`; `TradeVoided` → order `COMPENSATION_COMPLETE` | `OrderEventListenerCompensationTest` | pending |
-| E2E: saga + order both reach `COMPENSATION_COMPLETE` | `SagaCompensationTest` | pending |
-| Idempotency: duplicate `SettlementFailed` skipped | `SagaOrchestratorCompensationTest` | pending |
+| `CompensationRequested` and `TradeVoided` compile | `./gradlew :shared:build` | ✅ |
+| `TradeEntity` persisted on `TradeExecuted`; VOIDED on `CompensationRequested` | `ExecutionCompensationIntegrationTest` | ✅ |
+| `SettlementFailed` → `SETTLEMENT_FAILED` → `COMPENSATION_REQUESTED`; `CompensationRequested` published | `SagaOrchestratorCompensationTest` | ✅ |
+| `TradeVoided` → `COMPENSATION_COMPLETE` in saga | `SagaOrchestratorCompensationTest` | ✅ |
+| `SettlementFailed` → order `COMPENSATION_IN_PROGRESS`; `TradeVoided` → order `COMPENSATION_COMPLETE` | `OrderEventListenerTest` | ✅ |
+| E2E: saga + order both reach `COMPENSATION_COMPLETE` | `SagaCompensationTest` (requires Docker) | ✅ |
+| Idempotency: duplicate `SettlementFailed` skipped | `SagaOrchestratorCompensationTest` | ✅ |
 
-Gaps: —
+Gaps: none
 
 ---
 
@@ -54,7 +48,7 @@ shared event types, trusted by all consumer services.
 **Test description:** `./gradlew :shared:build` passes. Both classes are importable
 from other modules via the `:shared` dependency.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -76,7 +70,7 @@ status `EXECUTED`. `TradeRepository.findById(tradeId)` works.
 `execute(order)`; verify `tradeRepository.save()` called with matching `TradeEntity`.
 Integration test verifies `TradeEntity` exists in H2 after `TradeExecuted` is published.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -95,7 +89,7 @@ Kafka): produce `CompensationRequested`; verify `TradeEntity.status = VOIDED` in
 verify `TradeVoided` published on `compensation-results`. Test unknown `tradeId`: verify
 `TradeVoided` still published + WARN logged.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -117,7 +111,7 @@ step `COMPENSATION_REQUESTED`; assert `CompensationRequested` published. Simulat
 `TradeVoided` → assert saga step `COMPENSATION_COMPLETE`. Duplicate `SettlementFailed`
 after `COMPENSATION_REQUESTED` → skipped (step guard).
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -137,7 +131,7 @@ message → verify `applyTransition` called with `COMPENSATION_COMPLETE`.
 Note: `onCompensationResult` uses `event.orderId` from `TradeVoided` directly (no
 `findByTradeId` needed — `orderId` is in the event).
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -155,7 +149,7 @@ reach `COMPENSATION_COMPLETE`; verify order status matches. Also verify that
 `TradeVoided` event exists on `compensation-results` Kafka topic (using
 `KafkaTestUtils`).
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
