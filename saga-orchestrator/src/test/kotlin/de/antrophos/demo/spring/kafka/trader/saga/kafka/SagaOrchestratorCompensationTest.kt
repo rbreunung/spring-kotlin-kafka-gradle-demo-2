@@ -6,13 +6,9 @@ import de.antrophos.demo.spring.kafka.trader.saga.domain.SagaStep
 import de.antrophos.demo.spring.kafka.trader.saga.repository.SagaStateRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
-import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
 import de.antrophos.demo.spring.kafka.trader.shared.events.CompensationRequested
-import de.antrophos.demo.spring.kafka.trader.shared.events.NotificationRequested
-import de.antrophos.demo.spring.kafka.trader.shared.events.PositionSettled
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
-import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementRequested
-import de.antrophos.demo.spring.kafka.trader.shared.events.TradeExecuted
+import de.antrophos.demo.spring.kafka.trader.shared.events.TradeVoided
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -31,7 +27,6 @@ import org.springframework.kafka.test.utils.ContainerTestUtils
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
-import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -42,7 +37,8 @@ import kotlin.test.assertTrue
 @SpringBootTest
 @EmbeddedKafka(
     partitions = 1,
-    topics = ["executions", "settlements", "settlement-requests", "notifications", "compensation-requests", "compensation-results"]
+    topics = ["orders", "risk-results", "executions", "settlements", "settlement-requests", "notifications",
+        "compensation-requests", "compensation-results"]
 )
 @TestPropertySource(properties = [
     "spring.kafka.bootstrap-servers=\${spring.embedded.kafka.brokers}",
@@ -50,7 +46,7 @@ import kotlin.test.assertTrue
 ])
 @DirtiesContext
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SagaDownstreamIntegrationTest {
+class SagaOrchestratorCompensationTest {
 
     @Autowired lateinit var kafkaTemplate: KafkaTemplate<String, Any>
     @Autowired lateinit var embeddedKafka: EmbeddedKafkaBroker
@@ -58,8 +54,6 @@ class SagaDownstreamIntegrationTest {
     @Autowired lateinit var sagaStateRepository: SagaStateRepository
     @Autowired lateinit var objectMapper: ObjectMapper
 
-    private lateinit var settlementRequestsConsumer: Consumer<String, String>
-    private lateinit var notificationsConsumer: Consumer<String, String>
     private lateinit var compensationRequestsConsumer: Consumer<String, String>
 
     @BeforeAll
@@ -67,11 +61,7 @@ class SagaDownstreamIntegrationTest {
         listenerRegistry.listenerContainers.forEach { container ->
             ContainerTestUtils.waitForAssignment(container, 1)
         }
-        settlementRequestsConsumer = rawConsumer("test-slice4-settlement")
-            .also { it.subscribe(listOf("settlement-requests")) }
-        notificationsConsumer = rawConsumer("test-slice4-notification")
-            .also { it.subscribe(listOf("notifications")) }
-        compensationRequestsConsumer = rawConsumer("test-slice4-compensation")
+        compensationRequestsConsumer = rawConsumer("test-comp-requests")
             .also { it.subscribe(listOf("compensation-requests")) }
     }
 
@@ -95,61 +85,8 @@ class SagaDownstreamIntegrationTest {
         )
     }
 
-    private fun aTrade(orderId: UUID, tradeId: UUID = UUID.randomUUID()) =
-        Trade(id = tradeId, orderId = orderId, executedPrice = BigDecimal("150.00"), executedAt = Instant.now())
-
     @Test
-    fun `TradeExecuted transitions to SETTLEMENT_REQUESTED and publishes SettlementRequested`() {
-        val orderId = UUID.randomUUID()
-        val tradeId = UUID.randomUUID()
-        seedSagaState(orderId, SagaStep.EXECUTION_REQUESTED)
-        val trade = aTrade(orderId, tradeId)
-
-        kafkaTemplate.send("executions", orderId.toString(), TradeExecuted(trade))
-
-        await.atMost(Duration.ofSeconds(10)).untilAsserted {
-            val entity = sagaStateRepository.findById(orderId).orElse(null)
-            assertNotNull(entity)
-            assertEquals(SagaStep.SETTLEMENT_REQUESTED.name, entity.step)
-            assertEquals(tradeId, entity.tradeId)
-        }
-
-        val collected = mutableListOf<SettlementRequested>()
-        await.atMost(Duration.ofSeconds(10)).untilAsserted {
-            settlementRequestsConsumer.poll(Duration.ofMillis(200)).forEach { record ->
-                runCatching { objectMapper.readValue(record.value(), SettlementRequested::class.java) }
-                    .onSuccess { collected.add(it) }
-            }
-            assertTrue(collected.any { it.trade.id == tradeId }, "Expected SettlementRequested for tradeId $tradeId")
-        }
-    }
-
-    @Test
-    fun `PositionSettled transitions to SETTLED and publishes NotificationRequested`() {
-        val orderId = UUID.randomUUID()
-        val tradeId = UUID.randomUUID()
-        seedSagaState(orderId, SagaStep.SETTLEMENT_REQUESTED, tradeId = tradeId)
-
-        kafkaTemplate.send("settlements", tradeId.toString(), PositionSettled(tradeId, de.antrophos.demo.spring.kafka.trader.shared.domain.Position("T1", "AAPL", 100, BigDecimal("150.00"))))
-
-        await.atMost(Duration.ofSeconds(10)).untilAsserted {
-            val entity = sagaStateRepository.findById(orderId).orElse(null)
-            assertNotNull(entity)
-            assertEquals(SagaStep.SETTLED.name, entity.step)
-        }
-
-        val collected = mutableListOf<NotificationRequested>()
-        await.atMost(Duration.ofSeconds(10)).untilAsserted {
-            notificationsConsumer.poll(Duration.ofMillis(200)).forEach { record ->
-                runCatching { objectMapper.readValue(record.value(), NotificationRequested::class.java) }
-                    .onSuccess { collected.add(it) }
-            }
-            assertTrue(collected.any { it.orderId == orderId }, "Expected NotificationRequested for orderId $orderId")
-        }
-    }
-
-    @Test
-    fun `SettlementFailed transitions through SETTLEMENT_FAILED to COMPENSATION_REQUESTED and publishes CompensationRequested`() {
+    fun `SettlementFailed transitions to COMPENSATION_REQUESTED and publishes CompensationRequested`() {
         val orderId = UUID.randomUUID()
         val tradeId = UUID.randomUUID()
         seedSagaState(orderId, SagaStep.SETTLEMENT_REQUESTED, tradeId = tradeId)
@@ -168,7 +105,37 @@ class SagaDownstreamIntegrationTest {
                 runCatching { objectMapper.readValue(record.value(), CompensationRequested::class.java) }
                     .onSuccess { collected.add(it) }
             }
-            assertTrue(collected.any { it.orderId == orderId && it.tradeId == tradeId }, "Expected CompensationRequested for orderId $orderId")
+            assertTrue(collected.any { it.orderId == orderId && it.tradeId == tradeId },
+                "Expected CompensationRequested for orderId=$orderId tradeId=$tradeId")
         }
+    }
+
+    @Test
+    fun `TradeVoided transitions COMPENSATION_REQUESTED to COMPENSATION_COMPLETE`() {
+        val orderId = UUID.randomUUID()
+        val tradeId = UUID.randomUUID()
+        seedSagaState(orderId, SagaStep.COMPENSATION_REQUESTED, tradeId = tradeId)
+
+        kafkaTemplate.send("compensation-results", tradeId.toString(), TradeVoided(tradeId, orderId))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val entity = sagaStateRepository.findById(orderId).orElse(null)
+            assertNotNull(entity)
+            assertEquals(SagaStep.COMPENSATION_COMPLETE.name, entity.step)
+        }
+    }
+
+    @Test
+    fun `duplicate SettlementFailed after COMPENSATION_REQUESTED is skipped`() {
+        val orderId = UUID.randomUUID()
+        val tradeId = UUID.randomUUID()
+        seedSagaState(orderId, SagaStep.COMPENSATION_REQUESTED, tradeId = tradeId)
+
+        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, "Insufficient funds"))
+
+        // Wait a moment then confirm state is still COMPENSATION_REQUESTED (not changed)
+        Thread.sleep(2000)
+        val entity = sagaStateRepository.findById(orderId).orElseThrow()
+        assertEquals(SagaStep.COMPENSATION_REQUESTED.name, entity.step)
     }
 }

@@ -1,6 +1,8 @@
 package de.antrophos.demo.spring.kafka.trader.execution
 
+import de.antrophos.demo.spring.kafka.trader.execution.domain.TradeEntity
 import de.antrophos.demo.spring.kafka.trader.execution.kafka.ExecutionEventPublisher
+import de.antrophos.demo.spring.kafka.trader.execution.repository.TradeRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
@@ -17,8 +19,9 @@ import java.util.UUID
 class ExecutionServiceTest {
 
     private val publisher = mock<ExecutionEventPublisher>()
+    private val tradeRepository = mock<TradeRepository>()
     private val basePrice = BigDecimal("100.00")
-    private val service = ExecutionService(publisher, basePrice)
+    private val service = ExecutionService(publisher, tradeRepository, basePrice)
 
     private val order = Order(
         id = UUID.randomUUID(),
@@ -53,6 +56,17 @@ class ExecutionServiceTest {
         val captor = argumentCaptor<Trade>()
         verify(publisher).publishTradeExecuted(captor.capture())
         assertNotNull(captor.firstValue.executedAt)
+    }
+
+    @Test
+    fun `execute persists TradeEntity with matching orderId and EXECUTED status`() {
+        service.execute(order)
+
+        val captor = argumentCaptor<TradeEntity>()
+        verify(tradeRepository).save(captor.capture())
+        assertEquals(order.id, captor.firstValue.orderId)
+        assertNotNull(captor.firstValue.id)
+        assertEquals("EXECUTED", captor.firstValue.status)
     }
 
     @Test

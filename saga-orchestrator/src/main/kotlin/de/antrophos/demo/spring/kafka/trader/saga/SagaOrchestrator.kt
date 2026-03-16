@@ -7,6 +7,7 @@ import de.antrophos.demo.spring.kafka.trader.saga.domain.SagaStep
 import de.antrophos.demo.spring.kafka.trader.saga.kafka.SagaEventPublisher
 import de.antrophos.demo.spring.kafka.trader.saga.repository.SagaStateRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
+import de.antrophos.demo.spring.kafka.trader.shared.events.CompensationRequested
 import de.antrophos.demo.spring.kafka.trader.shared.events.OrderCancelled
 import de.antrophos.demo.spring.kafka.trader.shared.events.OrderPlaced
 import de.antrophos.demo.spring.kafka.trader.shared.events.PositionSettled
@@ -14,6 +15,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
 import de.antrophos.demo.spring.kafka.trader.shared.events.TradeExecuted
+import de.antrophos.demo.spring.kafka.trader.shared.events.TradeVoided
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -114,8 +116,32 @@ class SagaOrchestrator(
         val orderId = resolveOrderIdByTradeId(event.tradeId, "onSettlementFailed") ?: return
         val entity = findOrWarn(orderId, "onSettlementFailed") ?: return
         if (isTerminalOrWarn(entity, "onSettlementFailed")) return
-        repository.save(entity.copy(step = SagaStep.SETTLEMENT_FAILED.name, updatedAt = Instant.now()))
-        log.warn("Settlement failed for orderId={}, reason={}", orderId, event.reason)
+        if (entity.step != SagaStep.SETTLEMENT_REQUESTED.name) {
+            log.warn("onSettlementFailed: expected SETTLEMENT_REQUESTED, got {}, skipping", entity.step)
+            return
+        }
+        val tradeId = entity.tradeId
+        if (tradeId == null) {
+            log.error("onSettlementFailed: tradeId is null for orderId={}, cannot compensate", orderId)
+            return
+        }
+        val afterFailed = repository.save(entity.copy(step = SagaStep.SETTLEMENT_FAILED.name, updatedAt = Instant.now()))
+        repository.save(afterFailed.copy(step = SagaStep.COMPENSATION_REQUESTED.name, updatedAt = Instant.now()))
+        publisher.publishCompensationRequested(orderId, tradeId, event.reason)
+        log.warn("Settlement failed for orderId={}, reason={}, compensation requested", orderId, event.reason)
+    }
+
+    @Transactional
+    fun onTradeVoided(event: TradeVoided) {
+        val orderId = resolveOrderIdByTradeId(event.tradeId, "onTradeVoided") ?: return
+        val entity = findOrWarn(orderId, "onTradeVoided") ?: return
+        if (isTerminalOrWarn(entity, "onTradeVoided")) return
+        if (entity.step != SagaStep.COMPENSATION_REQUESTED.name) {
+            log.warn("onTradeVoided: expected COMPENSATION_REQUESTED, got {}, skipping", entity.step)
+            return
+        }
+        repository.save(entity.copy(step = SagaStep.COMPENSATION_COMPLETE.name, updatedAt = Instant.now()))
+        log.info("Trade voided for orderId={}, compensation complete", orderId)
     }
 
     // --- helpers ---

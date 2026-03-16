@@ -38,7 +38,7 @@ import java.util.UUID
 @SpringBootTest
 @EmbeddedKafka(
     partitions = 1,
-    topics = ["execution-requests", "executions"]
+    topics = ["execution-requests", "executions", "compensation-requests", "compensation-results"]
 )
 @TestPropertySource(properties = [
     "spring.kafka.bootstrap-servers=\${spring.embedded.kafka.brokers}",
