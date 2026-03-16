@@ -83,6 +83,8 @@ For each agreed improvement, make the change:
 | Feature spec | Edit `docs/features/FEAT-NNN-*.md` |
 | Document template | Edit `docs/templates/[template].md` |
 
+**Important:** When editing a workflow skill (`.claude/skills/`), always update the corresponding `docs/workflows/` file to match — both files must stay in sync. They serve different agents but must contain identical workflow logic.
+
 Commit each logical group of changes:
 ```
 chore: [brief description of improvement] — retro review finding

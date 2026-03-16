@@ -7,7 +7,8 @@ flowchart TD
     C --> D[Architecture brainstorm]
     D --> E[Scope clarification]
     E --> F[Consistency check]
-    F --> G[Write feature spec]
+    F --> F2[Concurrent event analysis]
+    F2 --> G[Write feature spec]
     G --> H[Update arch doc]
     H --> I[Write impl plan]
     I --> J[Commit]
@@ -65,7 +66,7 @@ Ask the user design questions **one at a time**. Explore:
 - Are there integration points with external systems?
 - Any performance, security, or scalability constraints?
 
-**If the feature involves infrastructure (Kafka, Docker, databases), present infrastructure options *before* module/service design.**
+**If the feature involves infrastructure (messaging, containers, databases), present infrastructure options *before* module/service design.**
 
 If multiple approaches are viable, present 2–3 options with trade-offs. Agree on the approach before writing the spec.
 
@@ -88,9 +89,33 @@ Review the docs loaded in STEP 3:
 
 **ADR constraint check** — read `docs/arch/architecture.md` "Key Design Decisions" table. For each linked ADR:
 - Is this feature's design consistent with the ADR's decision and constraints?
-- If the feature touches the same area (e.g., saga state persistence, resilience patterns), the ADR's constraints are binding — note them in the spec explicitly so they are not re-litigated during implementation.
+- If the feature touches the same area (e.g., state persistence, resilience patterns), the ADR's constraints are binding — note them in the spec explicitly so they are not re-litigated during implementation.
+
+**Event field consistency check** — for every event introduced or modified by this feature:
+- Verify the field list is identical in every section where it appears: Data Model, API Surface / Interface table, sequence diagrams, Publisher/Consumer tables.
+- Mismatches are a blocker — resolve with the user before writing the spec.
+- For features that introduce new message topics or queues: verify all new names follow the established naming pattern in the messaging topics table in `docs/arch/architecture.md`. Confirm names with the user before writing the spec.
 
 Make any necessary updates to existing docs now (keep changes minimal).
+
+### STEP 6b: Concurrent Event Analysis
+
+**Apply this step whenever the feature touches a state machine** (saga steps, order status, entity lifecycle, or any component that guards duplicate/out-of-order events). Skip only if the feature has no stateful transitions.
+
+For each stateful transition introduced or modified by this feature:
+
+1. **List all events or actions that could arrive concurrently** — e.g., two copies of the same event, an older event arriving after a newer one, a user action racing an async event.
+2. **For each concurrent scenario, name the guard** that prevents inconsistency — e.g., `isTerminalOrWarn()`, `applyTransition()` fromStatus check, idempotency key, database unique constraint.
+3. **Present the analysis to the user as a table:**
+
+| Transition | Concurrent scenario | Guard |
+|---|---|---|
+| `A → B` | Duplicate trigger event arrives twice | Idempotency guard drops the duplicate |
+| `A → B` | Competing event arrives while first in-flight | State pre-condition check rejects invalid transition |
+
+4. **Discuss any scenario that has no guard** — agree on whether it needs one or is acceptable to leave unguarded (and document the decision).
+
+Do not proceed to STEP 7 until all concurrent scenarios are either guarded or explicitly accepted as out-of-scope.
 
 ### STEP 7: Write Feature Spec
 
@@ -129,6 +154,8 @@ If this feature introduces a **significant architectural decision** (a choice th
 ### STEP 10: Commit
 
 Remove the `## Progress` section from `docs/features/FEAT_ID-*.md` — the spec is complete.
+
+**Registry stub check** — before staging, scan `docs/registry.md` for any FEAT entries added during this session with status `draft`. For each one, verify a corresponding `docs/features/FEAT-NNN-*.md` file exists. If any is missing, create a stub now (title, status: draft, context & motivation, open design questions) before committing. A registry entry without a file is a dead link.
 
 Stage all new and changed files:
 ```

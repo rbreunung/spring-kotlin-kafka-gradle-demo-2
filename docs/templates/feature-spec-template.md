@@ -41,9 +41,13 @@ graph TD
 ### Key Flows
 
 > Required: include a sequence diagram for every feature that involves inter-service communication,
-> Kafka events, or multi-step data flow. This makes the expected data flow explicit and prevents
+> events, or multi-step data flow. This makes the expected data flow explicit and prevents
 > implementation gaps (e.g., missing intermediate state saves, undocumented entity fields needed
 > to republish earlier event data).
+>
+> Use `rect` groupings to color-code flow phases per the convention in
+> `docs/arch/architecture.md` § Diagram Color Conventions:
+> blue = happy path, orange = compensation/rollback, grey = terminal failure.
 
 ```mermaid
 sequenceDiagram

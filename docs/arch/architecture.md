@@ -115,6 +115,18 @@ Version management:
 - `docker-compose.yml` — Kafka only (daily dev; services run on JVM)
 - `docker-compose.full.yml` — Kafka + all 6 services (demo/CI; each service built from `Dockerfile`)
 
+## Diagram Color Conventions
+
+All sequence diagrams in this project use `rect` groupings to distinguish flow paths at a glance:
+
+| Color | Meaning | Mermaid `rect` |
+|---|---|---|
+| Blue | Happy path — normal successful flow | `rect rgb(219, 234, 254)` |
+| Orange | Compensation / rollback — triggered on failure | `rect rgb(253, 215, 170)` |
+| Grey | Terminal failure — no recovery path | `rect rgb(229, 231, 235)` |
+
+Apply this convention in all new sequence diagrams. Label each `rect` with a `Note` describing the phase.
+
 ## Key Flows
 
 ### Full Order Lifecycle (Happy Path)
@@ -129,43 +141,88 @@ sequenceDiagram
     participant SettlementService
     participant NotificationService
 
-    Trader->>OrderService: POST /orders
-    OrderService->>OrderService: persist Order (PENDING)
-    OrderService-->>Kafka: OrderPlaced
+    rect rgb(219, 234, 254)
+        Note over Trader,OrderService: Order Intake
+        Trader->>OrderService: POST /orders
+        OrderService->>OrderService: persist Order (PENDING)
+        OrderService-->>Kafka: OrderPlaced
+    end
 
-    Kafka-->>SagaOrchestrator: OrderPlaced
-    SagaOrchestrator->>SagaOrchestrator: persist RISK_REQUESTED
-    SagaOrchestrator-->>Kafka: RiskCheckRequested
+    rect rgb(219, 234, 254)
+        Note over SagaOrchestrator,RiskService: Risk Check
+        Kafka-->>SagaOrchestrator: OrderPlaced
+        SagaOrchestrator->>SagaOrchestrator: persist RISK_REQUESTED
+        SagaOrchestrator-->>Kafka: RiskCheckRequested
 
-    Kafka-->>RiskService: RiskCheckRequested
-    RiskService->>RiskService: evaluate risk (external call via CB)
-    RiskService-->>Kafka: RiskApproved
+        Kafka-->>RiskService: RiskCheckRequested
+        RiskService->>RiskService: evaluate risk (external call via CB)
+        RiskService-->>Kafka: RiskApproved
 
-    Kafka-->>SagaOrchestrator: RiskApproved
-    SagaOrchestrator->>SagaOrchestrator: persist RISK_APPROVED → EXECUTION_REQUESTED
-    SagaOrchestrator-->>Kafka: ExecutionRequested
-    Kafka-->>OrderService: RiskApproved → update order status
+        Kafka-->>SagaOrchestrator: RiskApproved
+        SagaOrchestrator->>SagaOrchestrator: persist RISK_APPROVED → EXECUTION_REQUESTED
+        SagaOrchestrator-->>Kafka: ExecutionRequested
+        Kafka-->>OrderService: RiskApproved → update order status
+    end
 
-    Kafka-->>ExecutionService: ExecutionRequested
-    ExecutionService->>ExecutionService: simulate trade fill
-    ExecutionService-->>Kafka: TradeExecuted
+    rect rgb(219, 234, 254)
+        Note over SagaOrchestrator,ExecutionService: Execution
+        Kafka-->>ExecutionService: ExecutionRequested
+        ExecutionService->>ExecutionService: simulate trade fill
+        ExecutionService-->>Kafka: TradeExecuted
 
-    Kafka-->>SagaOrchestrator: TradeExecuted
-    SagaOrchestrator->>SagaOrchestrator: persist EXECUTION_COMPLETE → SETTLEMENT_REQUESTED
-    SagaOrchestrator-->>Kafka: SettlementRequested
-    Kafka-->>OrderService: TradeExecuted → update order status
+        Kafka-->>SagaOrchestrator: TradeExecuted
+        SagaOrchestrator->>SagaOrchestrator: persist EXECUTION_COMPLETE → SETTLEMENT_REQUESTED
+        SagaOrchestrator-->>Kafka: SettlementRequested
+        Kafka-->>OrderService: TradeExecuted → update order status
+    end
 
-    Kafka-->>SettlementService: SettlementRequested
-    SettlementService->>SettlementService: update position (retry + bulkhead)
-    SettlementService-->>Kafka: PositionSettled
+    rect rgb(219, 234, 254)
+        Note over SagaOrchestrator,SettlementService: Settlement
+        Kafka-->>SettlementService: SettlementRequested
+        SettlementService->>SettlementService: update position (retry + bulkhead)
+        SettlementService-->>Kafka: PositionSettled
 
-    Kafka-->>SagaOrchestrator: PositionSettled
-    SagaOrchestrator->>SagaOrchestrator: persist SETTLED
-    SagaOrchestrator-->>Kafka: NotificationRequested
-    Kafka-->>OrderService: PositionSettled → update order status
+        Kafka-->>SagaOrchestrator: PositionSettled
+        SagaOrchestrator->>SagaOrchestrator: persist SETTLED
+        SagaOrchestrator-->>Kafka: NotificationRequested
+        Kafka-->>OrderService: PositionSettled → update order status
+    end
 
-    Kafka-->>NotificationService: NotificationRequested
-    NotificationService-->>Kafka: TraderNotified
+    rect rgb(219, 234, 254)
+        Note over SagaOrchestrator,NotificationService: Notification
+        Kafka-->>NotificationService: NotificationRequested
+        NotificationService-->>Kafka: TraderNotified
+    end
+```
+
+### Settlement Failure — Compensation Path (FEAT-008)
+
+```mermaid
+sequenceDiagram
+    participant SagaOrchestrator
+    participant ExecutionService
+    participant OrderService
+
+    rect rgb(229, 231, 235)
+        Note over SagaOrchestrator: Settlement Failure (audit step)
+        Kafka-->>SagaOrchestrator: SettlementFailed
+        SagaOrchestrator->>SagaOrchestrator: persist SETTLEMENT_FAILED
+    end
+
+    rect rgb(253, 215, 170)
+        Note over SagaOrchestrator,ExecutionService: Compensation — Void Trade
+        SagaOrchestrator->>SagaOrchestrator: persist COMPENSATION_REQUESTED
+        SagaOrchestrator-->>Kafka: CompensationRequested
+        Kafka-->>OrderService: SettlementFailed → COMPENSATION_IN_PROGRESS
+
+        Kafka-->>ExecutionService: CompensationRequested
+        ExecutionService->>ExecutionService: mark TradeEntity VOIDED
+        ExecutionService-->>Kafka: TradeVoided
+
+        Kafka-->>SagaOrchestrator: TradeVoided
+        SagaOrchestrator->>SagaOrchestrator: persist COMPENSATION_COMPLETE (terminal)
+        Kafka-->>OrderService: TradeVoided → COMPENSATION_COMPLETE (terminal)
+    end
 ```
 
 ## Key Design Decisions
@@ -174,6 +231,16 @@ sequenceDiagram
 |---|---|---|
 | [ADR-001](adr/ADR-001-saga-state-as-recovery-anchor.md) | Saga state entity is the authoritative recovery anchor for future compensation logic | accepted |
 | [ADR-002](adr/ADR-002-testcontainers-dockercompose-for-e2e-tests.md) | Testcontainers `DockerComposeContainer` wrapping `docker-compose.full.yml` for E2E system tests | accepted |
+
+## Testing Conventions
+
+### Kafka Integration Tests — ObjectMapper
+
+**Rule:** Always inject `@Autowired lateinit var objectMapper: ObjectMapper` in integration tests that deserialize Kafka messages. Never construct a standalone `ObjectMapper` manually.
+
+**Why:** Spring Kafka's `JsonSerializer` does not register `JavaTimeModule` by default with Jackson 2.19.x. Events containing `java.time.Instant` fields (e.g. `Trade.executedAt`) serialize correctly via the Spring-managed `ObjectMapper` but fail silently when deserialized by a manually constructed one — producing a timeout rather than a clear error.
+
+**Reference implementation:** `execution/src/main/kotlin/.../execution/KafkaConfig.kt` — custom `KafkaTemplate` bean with a properly configured `ObjectMapper`. Any module publishing events with `Instant` fields must follow this pattern.
 
 ## Technology Decisions
 

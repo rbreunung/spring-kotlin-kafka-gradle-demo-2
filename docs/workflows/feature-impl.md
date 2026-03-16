@@ -56,7 +56,7 @@ Read each vertical slice in the plan. For each one, verify:
 If any slice is ambiguous: ask the user to clarify. Update the plan doc with the clarification.
 Do not start coding until every upcoming slice is unambiguous.
 
-**Data-flow traceability check** — for every Kafka event (or other message) the feature publishes:
+**Data-flow traceability check** — for every event or message the feature publishes:
 1. List every field in the event's data class.
 2. For each field, trace where it comes from at the moment of publishing: received in the triggering event, stored in a persistent entity, or derivable from local state.
 3. If any field cannot be traced to an available source → the spec has a gap. Raise it with the user and update the spec before writing any code. Do not defer this to mid-implementation.
@@ -83,6 +83,8 @@ Write the test **before** any implementation code. The test must:
 - Target exactly what the slice describes
 - Be the minimum test that proves the slice behavior
 - Follow existing test conventions and file structure in the project
+
+> Before writing any test, check the **Testing Conventions** section in `docs/arch/architecture.md` for project-specific best practices.
 
 **Run the test. It must FAIL.** If it passes immediately without implementation, the test does not verify the right thing — revise it.
 

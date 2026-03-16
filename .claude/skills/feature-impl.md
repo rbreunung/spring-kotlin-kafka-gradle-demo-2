@@ -61,6 +61,15 @@ Read each vertical slice in the plan. For each one, verify:
 If any slice is ambiguous: ask the user to clarify. Update the plan doc with the clarification.
 Do not start coding until every upcoming slice is unambiguous.
 
+**Data-flow traceability check** — for every event or message the feature publishes:
+1. List every field in the event's data class.
+2. For each field, trace where it comes from at the moment of publishing: received in the triggering event, stored in a persistent entity, or derivable from local state.
+3. If any field cannot be traced to an available source → the spec has a gap. Raise it with the user and update the spec before writing any code. Do not defer this to mid-implementation.
+
+**Cross-section consistency check** — for every event defined in the spec:
+- Verify the field list is identical in every place it appears (Data Model, Publisher table, Consumer table, sequence diagram).
+- Any mismatch is a blocker. Resolve it with the user and update all sections before starting.
+
 ### STEP 3: Branch Setup
 
 Check if branch `feat/FEAT-NNN-*` exists:
@@ -79,6 +88,8 @@ Write the test **before** any implementation code. The test must:
 - Target exactly what the slice describes
 - Be the minimum test that proves the slice behavior
 - Follow existing test conventions and file structure in the project
+
+> Before writing any test, check the **Testing Conventions** section in `docs/arch/architecture.md` for project-specific best practices.
 
 **Run the test. It must FAIL.** If it passes immediately without implementation, the test does not verify the right thing — revise it.
 
@@ -146,6 +157,8 @@ Reviewed: [date]
 Gaps: [none / description]
 ```
 
+**Important:** Do NOT recreate `PLAN-NNN` — update the existing file only. Fill in the Implementation Review table, set `Status: complete` in both the feature doc and plan doc, tick all `[ ]` goal and acceptance checkboxes, then remove the `## Progress` section.
+
 Commit: `chore(FEAT-NNN): implementation review — [passed / N gaps found]`
 
 **If gaps are found:** return to STEP 4 for the affected slices. Re-run the review after fixing.
@@ -157,6 +170,16 @@ Remove the `## Progress` section from `docs/plans/PLAN-NNN-*.md` — implementat
 If the implementation revealed differences from the spec's architecture (e.g., a component was split, a different pattern was used):
 - Update `docs/arch/architecture.md` (Component Map or Data Model)
 - Add an `## Implementation Notes` section to the feature spec noting the deviation
+
+**ADR feedback loop** — for every deviation or decision recorded in `## Implementation Notes`, ask:
+> "Does this represent an architectural constraint or convention that should apply to all future features?"
+
+If yes:
+1. Allocate ADR-NNN from `docs/registry.md` and write `docs/arch/adr/ADR-NNN-kebab-title.md`
+2. Add a row to the `architecture.md` "Key Design Decisions" table linking to the ADR
+3. Note in a comment in the ADR which workflow step future spec authors should read it at (e.g., "feature-spec.md STEP 6 — Consistency Check")
+
+This closes the feedback loop: implementation decisions become ADRs, ADRs are reachable from the architecture doc, and the spec workflow reads the architecture doc before writing any new spec.
 
 Commit any changes made in this step:
 ```
