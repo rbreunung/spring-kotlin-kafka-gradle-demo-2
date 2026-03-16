@@ -35,3 +35,8 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | RETRO-007 | RETRO | FEAT-006 implementation retrospective | complete |
 | RETRO-008 | RETRO | FEAT-007 implementation retrospective | complete |
 | ADR-001 | ADR | Saga state entity as the authoritative recovery anchor | accepted |
+| FEAT-008 | FEAT | Saga Compensation — Rollback on Settlement Failure | complete |
+| PLAN-008 | PLAN | Saga Compensation — Rollback on Settlement Failure | complete |
+| FEAT-009 | FEAT | Observability — Micrometer Metrics and Distributed Tracing | draft |
+| FEAT-010 | FEAT | Notification Service — WebSocket Push for Real-Time Order Status | draft |
+| FEAT-011 | FEAT | Cancel In-Flight Orders — User-Initiated Saga Rollback | draft |
