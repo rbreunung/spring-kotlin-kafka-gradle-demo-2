@@ -54,6 +54,7 @@ Load these into context before working on any task (if not already loaded):
 
 When running build, test, or git commands:
 - **Do not pipe or redirect output** — avoid `|`, `2>&1`, `&&` chains in a single Bash call
+- **No multiline bash strings** — avoid heredocs (`<<'EOF'`) and multiline `$()` expressions; they trigger interactive approval prompts and block autonomous execution. Use a single-line `-m "type: msg"` for commit messages.
 - Run gradle and git as simple commands: `./gradlew :order:test`, not `./gradlew :order:test 2>&1 | tail -40`
 - If you need multiple sequential operations, use separate Bash tool calls
 - Output is automatically truncated — manual tail/grep is unnecessary

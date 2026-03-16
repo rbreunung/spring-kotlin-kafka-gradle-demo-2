@@ -37,6 +37,8 @@ Gaps: —
 
 Each slice = one testable piece of behavior. Implement and test before moving to next.
 
+> Slice sizing rule: each slice should touch no more than 2–3 files and have exactly one clearly stated test. If a slice needs more, split it. Smaller slices keep agents focused and reduce the risk of lost context or overwritten state.
+
 ### Slice 1: [Name]
 
 **What it delivers:** [One sentence — what behavior this slice enables]

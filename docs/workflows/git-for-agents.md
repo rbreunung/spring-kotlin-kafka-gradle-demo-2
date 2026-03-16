@@ -38,6 +38,8 @@ git rebase main                    # only if branch not yet pushed to origin
 | `git -C /other/path` | Changes working dir; fragile | Stay in project root |
 | `git show otherbranch:file` | Reads from another branch | `git merge main`, then read normally |
 | `git log \| grep \| awk` | Pipelines cause interaction | Use `--format` flags directly |
+| `git commit -m "$(cat <<'EOF'...)"` | Multiline heredoc triggers approval prompts | Use `-m "type(scope): msg"` — single line only |
+| `cd /path && git add ...` | Prefix changes command start — breaks auto-approval pattern matching (`git add:*` won't match `cd:*`) | Run git commands directly from project root — shell working directory persists between Bash tool calls |
 | `git push --force` | Destructive | Requires explicit user confirmation |
 | `git reset --hard` | Destructive | Requires explicit user confirmation |
 | `git merge feature main` | Merges to main | Never — leave to user |

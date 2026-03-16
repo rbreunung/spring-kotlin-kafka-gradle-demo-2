@@ -70,6 +70,8 @@ Ask the user design questions **one at a time**. Explore:
 
 If multiple approaches are viable, present 2–3 options with trade-offs. Agree on the approach before writing the spec.
 
+**Never silently apply an established pattern** — when a design choice follows a prior feature, name the pattern and its origin: *"Following [pattern] from [FEAT-NNN], I'd use [X] here — does this look right?"* Always confirm before moving on.
+
 ### STEP 5: Scope Clarification
 
 Continue Q&A to nail down (one question at a time):

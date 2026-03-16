@@ -99,6 +99,8 @@ Write the minimum code to make the test pass. Follow:
 - Architecture defined in `docs/arch/architecture.md`
 - YAGNI — only what the test requires; no speculative code
 
+> **Read before write:** before creating or modifying any configuration file, read the current version first. List all existing properties that must be preserved and confirm they appear in the new version before saving.
+
 #### 4d. Run Tests
 Run the full available test suite (or the affected module's tests if the full suite is slow). All tests must be green. If red:
 - Fix the implementation (not the test, unless the test has a genuine error)
