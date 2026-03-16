@@ -26,7 +26,7 @@ flowchart LR
 | Service | Role |
 |---|---|
 | `OrderService` | Accepts REST order submissions (port 8080); persists orders in H2 (Spring Data JPA); publishes `OrderPlaced` / `OrderCancelled`; consumes `RiskApproved`, `RiskRejected`, `TradeExecuted`, `PositionSettled`, `SettlementFailed` to update order status |
-| `SagaOrchestrator` | Stateful orchestrator (port 8085); H2 + JPA saga state; drives saga steps; REST observability (`GET /sagas`); compensation deferred |
+| `SagaOrchestrator` | Stateful orchestrator (port 8085); H2 + JPA saga state; drives saga steps; REST observability (`GET /sagas`); drives compensation on `SettlementFailed` |
 | `RiskService` | Kafka-only; consumes `RiskCheckRequested`; quantity-based approval rule; Resilience4j CB wrapping simulated external call |
 | `ExecutionService` | Simulates trade execution on exchange; publishes `TradeExecuted` |
 | `SettlementService` | Updates positions; transactional Kafka producer; Resilience4j retry + bulkhead |
@@ -45,6 +45,8 @@ flowchart LR
 | `settlement-requests` | SagaOrchestrator | SettlementService | Settlement requests (`SettlementRequested`) |
 | `settlements` | SettlementService | SagaOrchestrator, OrderService | Settlement outcomes (`PositionSettled`, `SettlementFailed`) |
 | `notifications` | SagaOrchestrator | NotificationService | Trader alerts (`NotificationRequested`) |
+| `compensation-requests` | SagaOrchestrator | ExecutionService | Compensation trigger (`CompensationRequested`) |
+| `compensation-results` | ExecutionService | SagaOrchestrator, OrderService | Compensation outcome (`TradeVoided`) |
 | `dlq.settlements` | Spring Kafka DLT | Manual review consumer | Poison-pill + retry exhaustion |
 
 ## Resilience4j Usage
@@ -80,6 +82,8 @@ enum class Side { BUY, SELL }
 | `SettlementRequested(trade, order)` | SagaOrchestrator | SettlementService |
 | `PositionSettled(tradeId, position)` | SettlementService | SagaOrchestrator, OrderService |
 | `SettlementFailed(tradeId, reason)` | SettlementService | SagaOrchestrator, OrderService |
+| `CompensationRequested(orderId, tradeId, reason)` | SagaOrchestrator | ExecutionService |
+| `TradeVoided(tradeId, orderId)` | ExecutionService | SagaOrchestrator, OrderService |
 | `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |
 | `TraderNotified(traderId, orderId, message)` | NotificationService | — |
 
