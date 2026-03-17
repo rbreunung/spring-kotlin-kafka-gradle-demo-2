@@ -1,6 +1,8 @@
 package de.antrophos.demo.spring.kafka.trader.execution
 
+import de.antrophos.demo.spring.kafka.trader.execution.domain.TradeEntity
 import de.antrophos.demo.spring.kafka.trader.execution.kafka.ExecutionEventPublisher
+import de.antrophos.demo.spring.kafka.trader.execution.repository.TradeRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
 import org.springframework.beans.factory.annotation.Value
@@ -14,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom
 @Service
 class ExecutionService(
     private val publisher: ExecutionEventPublisher,
+    private val tradeRepository: TradeRepository,
     @Value("\${execution.base-price}") private val basePrice: BigDecimal
 ) {
 
@@ -27,6 +30,14 @@ class ExecutionService(
             orderId = order.id,
             executedPrice = executedPrice,
             executedAt = Instant.now()
+        )
+        tradeRepository.save(
+            TradeEntity(
+                id = trade.id,
+                orderId = trade.orderId,
+                executedPrice = trade.executedPrice,
+                executedAt = trade.executedAt
+            )
         )
         publisher.publishTradeExecuted(trade)
     }

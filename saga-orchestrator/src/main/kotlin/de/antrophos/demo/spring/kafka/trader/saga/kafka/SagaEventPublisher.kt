@@ -2,6 +2,7 @@ package de.antrophos.demo.spring.kafka.trader.saga.kafka
 
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
+import de.antrophos.demo.spring.kafka.trader.shared.events.CompensationRequested
 import de.antrophos.demo.spring.kafka.trader.shared.events.ExecutionRequested
 import de.antrophos.demo.spring.kafka.trader.shared.events.NotificationRequested
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskCheckRequested
@@ -27,5 +28,9 @@ class SagaEventPublisher(private val kafkaTemplate: KafkaTemplate<String, Any>) 
 
     fun publishNotificationRequested(traderId: String, orderId: UUID, message: String) {
         kafkaTemplate.send("notifications", orderId.toString(), NotificationRequested(traderId, orderId, message))
+    }
+
+    fun publishCompensationRequested(orderId: UUID, tradeId: UUID, reason: String) {
+        kafkaTemplate.send("compensation-requests", orderId.toString(), CompensationRequested(orderId, tradeId, reason))
     }
 }

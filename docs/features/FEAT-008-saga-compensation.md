@@ -38,38 +38,38 @@ only. User-initiated cancellation of in-flight orders is deferred to FEAT-011.
 
 ## Goals
 
-- [ ] Add `TradeEntity` to `:execution` module — persist each executed trade with status
+- [x] Add `TradeEntity` to `:execution` module — persist each executed trade with status
       `EXECUTED` or `VOIDED` (H2 + Spring Data JPA); modify `ExecutionService.execute()`
       to persist on every `TradeExecuted` event
-- [ ] Add new shared events to `:shared`:
+- [x]Add new shared events to `:shared`:
       `CompensationRequested(orderId, tradeId, reason)` and `TradeVoided(tradeId, orderId)`
-- [ ] New Kafka topics:
+- [x]New Kafka topics:
       - `compensation-requests` (SagaOrchestrator → ExecutionService)
       - `compensation-results` (ExecutionService → SagaOrchestrator, OrderService)
-- [ ] `SagaOrchestrator.onSettlementFailed`: change from terminal to compensation trigger —
+- [x]`SagaOrchestrator.onSettlementFailed`: change from terminal to compensation trigger —
       save `SETTLEMENT_FAILED` (audit step), then save `COMPENSATION_REQUESTED`, then
       publish `CompensationRequested(orderId, tradeId, reason)`
-- [ ] New `SagaOrchestrator.onTradeVoided`: consume `TradeVoided` from
+- [x]New `SagaOrchestrator.onTradeVoided`: consume `TradeVoided` from
       `compensation-results`; guard (must be `COMPENSATION_REQUESTED`); save
       `COMPENSATION_COMPLETE` (terminal)
-- [ ] New `SagaEventPublisher.publishCompensationRequested(orderId, tradeId, reason)`
+- [x]New `SagaEventPublisher.publishCompensationRequested(orderId, tradeId, reason)`
       → topic `compensation-requests`
-- [ ] New `ExecutionService` compensation path — `CompensationKafkaListener` consumes
+- [x]New `ExecutionService` compensation path — `CompensationKafkaListener` consumes
       `CompensationRequested`; `ExecutionCompensationService.voidTrade()` marks
       `TradeEntity.status = VOIDED`; publishes `TradeVoided` → `compensation-results`
-- [ ] `OrderEventListener.onSettlement` — change `SettlementFailed` handler: transition
+- [x]`OrderEventListener.onSettlement` — change `SettlementFailed` handler: transition
       `EXECUTED → COMPENSATION_IN_PROGRESS` (instead of current `EXECUTION_FAILED`)
-- [ ] New `OrderEventListener.onCompensationResult` — consume `TradeVoided` from
+- [x]New `OrderEventListener.onCompensationResult` — consume `TradeVoided` from
       `compensation-results`; transition `COMPENSATION_IN_PROGRESS → COMPENSATION_COMPLETE`
-- [ ] Add `COMPENSATION_IN_PROGRESS`, `COMPENSATION_COMPLETE` to `OrderStatus`;
+- [x]Add `COMPENSATION_IN_PROGRESS`, `COMPENSATION_COMPLETE` to `OrderStatus`;
       `COMPENSATION_IN_PROGRESS` is non-terminal, `COMPENSATION_COMPLETE` is terminal
-- [ ] Update `SagaStep.isTerminal` — remove `SETTLEMENT_FAILED`; add `COMPENSATION_COMPLETE`
+- [x]Update `SagaStep.isTerminal` — remove `SETTLEMENT_FAILED`; add `COMPENSATION_COMPLETE`
       and `COMPENSATION_FAILED`; new set: `{RISK_REJECTED, SETTLED, COMPENSATION_COMPLETE,
       COMPENSATION_FAILED}`
-- [ ] Add `COMPENSATION_REQUESTED`, `COMPENSATION_COMPLETE`, `COMPENSATION_FAILED` to
+- [x]Add `COMPENSATION_REQUESTED`, `COMPENSATION_COMPLETE`, `COMPENSATION_FAILED` to
       `SagaStep` enum
-- [ ] Integration tests: compensation path in `:saga-orchestrator` and `:execution`
-- [ ] System-test: `SagaCompensationTest` — `settlement.simulate-failure-probability=1.0`,
+- [x]Integration tests: compensation path in `:saga-orchestrator` and `:execution`
+- [x]System-test: `SagaCompensationTest` — `settlement.simulate-failure-probability=1.0`,
       verify saga reaches `COMPENSATION_COMPLETE` and order reaches `COMPENSATION_COMPLETE`
 
 ## Non-Goals
@@ -385,20 +385,20 @@ spring:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :shared:build` — `CompensationRequested` and `TradeVoided` compile
-- [ ] `./gradlew :execution:test` — `TradeEntity` persisted on each `TradeExecuted`;
+- [x]`./gradlew :shared:build` — `CompensationRequested` and `TradeVoided` compile
+- [x]`./gradlew :execution:test` — `TradeEntity` persisted on each `TradeExecuted`;
       `VOIDED` on `CompensationRequested`; `TradeVoided` published
-- [ ] `./gradlew :saga-orchestrator:test` — `SettlementFailed` → saves `SETTLEMENT_FAILED`
+- [x]`./gradlew :saga-orchestrator:test` — `SettlementFailed` → saves `SETTLEMENT_FAILED`
       then `COMPENSATION_REQUESTED`; `CompensationRequested` published; `TradeVoided` →
       saves `COMPENSATION_COMPLETE`
-- [ ] `./gradlew :order:test` — `SettlementFailed` → order `COMPENSATION_IN_PROGRESS`;
+- [x]`./gradlew :order:test` — `SettlementFailed` → order `COMPENSATION_IN_PROGRESS`;
       `TradeVoided` → order `COMPENSATION_COMPLETE`
-- [ ] `./gradlew build` — all modules compile and all existing tests pass
-- [ ] System test: `SagaCompensationTest` — `settlement.simulate-failure-probability=1.0`
+- [x]`./gradlew build` — all modules compile and all existing tests pass
+- [x]System test: `SagaCompensationTest` — `settlement.simulate-failure-probability=1.0`
       → saga reaches `COMPENSATION_COMPLETE`, order reaches `COMPENSATION_COMPLETE`
-- [ ] Idempotency: duplicate `SettlementFailed` after saga is `COMPENSATION_REQUESTED`
+- [x]Idempotency: duplicate `SettlementFailed` after saga is `COMPENSATION_REQUESTED`
       → skipped (not double-compensated)
-- [ ] Idempotency: duplicate `CompensationRequested` for already-voided trade →
+- [x]Idempotency: duplicate `CompensationRequested` for already-voided trade →
       `TradeVoided` re-published; saga unchanged
 
 ## Implementation Notes

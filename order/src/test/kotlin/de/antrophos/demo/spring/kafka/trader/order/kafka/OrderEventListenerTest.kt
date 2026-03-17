@@ -11,6 +11,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
 import de.antrophos.demo.spring.kafka.trader.shared.events.TradeExecuted
+import de.antrophos.demo.spring.kafka.trader.shared.events.TradeVoided
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -32,7 +33,7 @@ import kotlin.test.assertEquals
 @SpringBootTest
 @EmbeddedKafka(
     partitions = 1,
-    topics = ["orders", "risk-results", "executions", "settlements"]
+    topics = ["orders", "risk-results", "executions", "settlements", "compensation-results"]
 )
 @TestPropertySource(properties = [
     "spring.kafka.bootstrap-servers=\${spring.embedded.kafka.brokers}",
@@ -121,14 +122,26 @@ class OrderEventListenerTest {
     }
 
     @Test
-    fun `SettlementFailed transitions EXECUTED to EXECUTION_FAILED via tradeId lookup`() {
+    fun `SettlementFailed transitions EXECUTED to COMPENSATION_IN_PROGRESS via tradeId lookup`() {
         val tradeId = UUID.randomUUID()
         val order = savedOrder(tradeId = tradeId, status = OrderStatus.EXECUTED.name)
         kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, "Insufficient funds"))
 
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val updated = orderRepository.findById(order.id).orElseThrow()
-            assertEquals(OrderStatus.EXECUTION_FAILED.name, updated.status)
+            assertEquals(OrderStatus.COMPENSATION_IN_PROGRESS.name, updated.status)
+        }
+    }
+
+    @Test
+    fun `TradeVoided transitions COMPENSATION_IN_PROGRESS to COMPENSATION_COMPLETE`() {
+        val tradeId = UUID.randomUUID()
+        val order = savedOrder(tradeId = tradeId, status = OrderStatus.COMPENSATION_IN_PROGRESS.name)
+        kafkaTemplate.send("compensation-results", tradeId.toString(), TradeVoided(tradeId, order.id))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val updated = orderRepository.findById(order.id).orElseThrow()
+            assertEquals(OrderStatus.COMPENSATION_COMPLETE.name, updated.status)
         }
     }
 

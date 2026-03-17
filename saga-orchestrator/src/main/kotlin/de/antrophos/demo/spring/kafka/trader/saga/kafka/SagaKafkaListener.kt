@@ -8,6 +8,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
 import de.antrophos.demo.spring.kafka.trader.shared.events.TradeExecuted
+import de.antrophos.demo.spring.kafka.trader.shared.events.TradeVoided
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -48,5 +49,10 @@ class SagaKafkaListener(private val orchestrator: SagaOrchestrator) {
             is SettlementFailed -> orchestrator.onSettlementFailed(event)
             else -> log.warn("onSettlement: unexpected event type {}", event?.javaClass?.simpleName)
         }
+    }
+
+    @KafkaListener(topics = ["compensation-results"], groupId = "saga-orchestrator")
+    fun onCompensationResult(event: TradeVoided) {
+        orchestrator.onTradeVoided(event)
     }
 }

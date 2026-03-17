@@ -8,6 +8,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
 import de.antrophos.demo.spring.kafka.trader.shared.events.TradeExecuted
+import de.antrophos.demo.spring.kafka.trader.shared.events.TradeVoided
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -58,9 +59,14 @@ class OrderEventListener(
                     log.warn("onSettlement: no order found for tradeId {}, skipping", event.tradeId)
                     return
                 }
-                commandService.applyTransition(entity.id, OrderStatus.EXECUTION_FAILED, fromStatus = OrderStatus.EXECUTED)
+                commandService.applyTransition(entity.id, OrderStatus.COMPENSATION_IN_PROGRESS, fromStatus = OrderStatus.EXECUTED)
             }
             else -> log.warn("onSettlement: unexpected event type {}", event?.javaClass?.simpleName)
         }
+    }
+
+    @KafkaListener(topics = ["compensation-results"], groupId = "order-service")
+    fun onCompensationResult(event: TradeVoided) {
+        commandService.applyTransition(event.orderId, OrderStatus.COMPENSATION_COMPLETE, fromStatus = OrderStatus.COMPENSATION_IN_PROGRESS)
     }
 }
