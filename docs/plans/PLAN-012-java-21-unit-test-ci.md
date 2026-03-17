@@ -1,24 +1,24 @@
 # PLAN-012: Java 21 Upgrade, Unit Test CI, and System Test Reliability — Implementation Plan
  
-Status: complete
+Status: draft
 Date: 2026-03-17
 Feature: [FEAT-012](../features/FEAT-012-java-21-unit-test-ci.md)
  
 ## Implementation Review
  
-Status: complete
-Reviewed: 2026-03-17
+Status: pending
+Reviewed: —
  
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| All 8 `build.gradle.kts` declare Java 21 | Gradle build | complete |
-| All 6 Dockerfiles use eclipse-temurin:21 | Docker build | complete |
-| `system-test.yml` sets `java-version: '21'` | CI workflow file | complete |
-| `unit-test.yml` runs per-module unit tests | CI workflow file | complete |
-| `SystemTestBase` waits for all 5 consumer groups | `SagaCompensationTest` (system test) | complete |
-| No `@MockBean`/`@SpyBean` warnings in test compilation | Kotlin compiler output clean | complete |
+| All 8 `build.gradle.kts` declare Java 21 | Gradle build | pending |
+| All 6 Dockerfiles use eclipse-temurin:21 | Docker build | pending |
+| `system-test.yml` sets `java-version: '21'` | CI workflow file | pending |
+| `unit-test.yml` runs per-module unit tests | CI workflow file | pending |
+| `SystemTestBase` waits for all 5 consumer groups | `SagaCompensationTest` (system test) | pending |
+| No `@MockBean`/`@SpyBean` warnings in test compilation | Kotlin compiler output clean | pending |
  
-Gaps: none
+Gaps: —
  
 ---
  
@@ -44,7 +44,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** `./gradlew build -x :system-test:test` passes with a Java 21 JDK.
  
-**Status:** [x] done
+**Status:** [ ] todo
  
 ---
  
@@ -62,7 +62,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** `docker build` succeeds for any service module and the resulting image starts correctly.
  
-**Status:** [x] done
+**Status:** [ ] todo
  
 ---
  
@@ -75,7 +75,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** GitHub Actions `System Tests` workflow completes without JDK version mismatch warnings.
  
-**Status:** [x] done
+**Status:** [ ] todo
  
 ---
  
@@ -88,7 +88,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** GitHub Actions `Unit Tests` workflow appears on PRs and passes for all 7 non-system-test modules.
  
-**Status:** [x] done
+**Status:** [ ] todo
  
 ---
  
@@ -101,7 +101,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** `SagaCompensationTest` passes consistently; `awaitKafkaConsumerGroupsReady` blocks until `order-service`, `risk-service`, `execution-service`, `settlement-service`, and `saga-orchestrator` are all in `STABLE` state.
 
-**Status:** [x] done
+**Status:** [ ] todo
 
 ---
 
