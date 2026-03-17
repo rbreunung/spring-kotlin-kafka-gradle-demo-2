@@ -13,7 +13,7 @@ import org.junit.jupiter.api.TestInstance
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.EmbeddedKafkaBroker
@@ -46,7 +46,7 @@ class ExecutionKafkaListenerTest {
     @Autowired
     private lateinit var embeddedKafka: EmbeddedKafkaBroker
 
-    @SpyBean
+    @MockitoSpyBean
     private lateinit var executionService: ExecutionService
 
     @BeforeAll

@@ -24,8 +24,8 @@ Gaps: —
  
 ## Progress
 
-Current Slice: 6
-Completed Slices: [1, 2, 3, 4, 5]
+Current Slice: —
+Completed Slices: [1, 2, 3, 4, 5, 6]
 Last Updated: 2026-03-17
 
 ---
@@ -125,4 +125,4 @@ None — all questions resolved during feature spec session.
 
 **Test description:** `./gradlew clean build -x :system-test:test --warning-mode=all` produces no `@MockBean`/`@SpyBean` deprecation warnings.
 
-**Status:** [ ] todo
+**Status:** [x] done

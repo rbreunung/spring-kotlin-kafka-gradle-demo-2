@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.context.annotation.Import
 import java.math.BigDecimal
 import java.time.Instant
@@ -23,7 +23,7 @@ import java.util.UUID
 @Suppress("UnusedPrivateProperty")
 class PositionPersistenceTest {
 
-    @MockBean
+    @MockitoBean
     private lateinit var eventPublisher: SettlementEventPublisher
 
     @Autowired
