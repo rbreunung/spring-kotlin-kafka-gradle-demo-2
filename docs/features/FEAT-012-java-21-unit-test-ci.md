@@ -30,6 +30,7 @@ could be still catching up when the test began injecting events.
 - [x] Update the GitHub Actions `system-test.yml` workflow to JDK 21
 - [x] Add a new `unit-test.yml` GitHub Actions workflow that runs per-module unit tests on every push/PR
 - [x] Fix `SagaCompensationTest` intermittent timeout by adding `risk-service` and `execution-service` to the Kafka consumer group readiness check
+- [x] Replace deprecated `@MockBean`/`@SpyBean` with `@MockitoBean`/`@MockitoSpyBean` in 4 test files (Spring Boot 3.4 deprecation)
  
 ## Non-Goals
  
@@ -37,6 +38,9 @@ could be still catching up when the test began injecting events.
   runtime version bump only; Kotlin source remains unchanged
 - Changing the system test environment infrastructure (Docker Compose, Testcontainers approach) —
   alternative approaches are documented below for future consideration
+- Addressing the `StartParameter.isConfigurationCacheRequested` Gradle deprecation warning — this
+  is called by plugin internals (Kotlin/Spring Boot Gradle plugin), not by project build scripts,
+  and is not fixable by us. It targets Gradle 10.0 removal and is not a Gradle 9 blocker.
  
 ## Architecture
  
@@ -109,12 +113,13 @@ eliminates Gradle compilation and image build time from the test startup path.
 - [x] `unit-test.yml` exists and runs `./gradlew test -x :system-test:test` on push/PR
 - [x] `SystemTestBase.awaitKafkaConsumerGroupsReady()` waits for all 5 consumer groups
 - [x] `SagaCompensationTest` passes without intermittent timeout
+- [x] No `@MockBean`/`@SpyBean` deprecation warnings in `execution` and `settlement` test compilation
  
 ## Implementation Notes
  
-All changes were mechanical (version number replacements). No source logic was modified other than
-the consumer group list in `SystemTestBase`. Kotlin 1.9.25 supports Java 21 as a compilation target;
-no Kotlin version bump was required.
+All changes are mechanical. Version number replacements for Java 21 and annotation swaps for the
+`@MockBean`/`@SpyBean` deprecation. No business logic touched. Kotlin 1.9.25 supports Java 21 as a
+compilation target; no Kotlin version bump required.
  
 ## Related Docs
  

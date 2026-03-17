@@ -16,6 +16,7 @@ Reviewed: 2026-03-17
 | `system-test.yml` sets `java-version: '21'` | CI workflow file | complete |
 | `unit-test.yml` runs per-module unit tests | CI workflow file | complete |
 | `SystemTestBase` waits for all 5 consumer groups | `SagaCompensationTest` (system test) | complete |
+| No `@MockBean`/`@SpyBean` warnings in test compilation | Kotlin compiler output clean | complete |
  
 Gaps: none
  
@@ -99,5 +100,21 @@ None — all questions resolved during feature spec session.
 - `system-test/src/test/kotlin/.../SystemTestBase.kt` — add `risk-service` and `execution-service` to `requiredGroups`
  
 **Test description:** `SagaCompensationTest` passes consistently; `awaitKafkaConsumerGroupsReady` blocks until `order-service`, `risk-service`, `execution-service`, `settlement-service`, and `saga-orchestrator` are all in `STABLE` state.
- 
+
 **Status:** [x] done
+
+---
+
+### Slice 6: Replace Deprecated @MockBean / @SpyBean
+
+**What it delivers:** Test compilation produces no `@MockBean`/`@SpyBean` deprecation warnings; project follows the Spring Boot 3.4+ annotation convention going forward.
+
+**Files to touch:**
+- `execution/src/test/.../ExecutionKafkaListenerTest.kt` — `@SpyBean` → `@MockitoSpyBean`, update import
+- `settlement/src/test/.../BulkheadFallbackTest.kt` — `@SpyBean` → `@MockitoSpyBean`, update import
+- `settlement/src/test/.../SettlementKafkaListenerTest.kt` — `@SpyBean` → `@MockitoSpyBean`, update import
+- `settlement/src/test/.../PositionPersistenceTest.kt` — `@MockBean` → `@MockitoBean`, update import
+
+**Test description:** `./gradlew clean build -x :system-test:test --warning-mode=all` produces no `@MockBean`/`@SpyBean` deprecation warnings.
+
+**Status:** [ ] todo
