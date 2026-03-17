@@ -46,3 +46,4 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | FEAT-012 | FEAT | Java 21 Upgrade, Unit Test CI, and System Test Reliability | complete |
 | PLAN-012 | PLAN | Java 21 Upgrade, Unit Test CI, and System Test Reliability | complete |
 | RETRO-011 | RETRO | FEAT-012 feature spec retrospective | complete |
+| RETRO-012 | RETRO | FEAT-012 implementation retrospective | complete |
