@@ -22,6 +22,14 @@ Gaps: —
  
 ---
  
+## Progress
+
+Current Slice: 6
+Completed Slices: [1, 2, 3, 4, 5]
+Last Updated: 2026-03-17
+
+---
+
 ## Open Questions
  
 None — all questions resolved during feature spec session.
@@ -44,7 +52,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** `./gradlew build -x :system-test:test` passes with a Java 21 JDK.
  
-**Status:** [ ] todo
+**Status:** [x] done
  
 ---
  
@@ -62,7 +70,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** `docker build` succeeds for any service module and the resulting image starts correctly.
  
-**Status:** [ ] todo
+**Status:** [x] done
  
 ---
  
@@ -75,7 +83,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** GitHub Actions `System Tests` workflow completes without JDK version mismatch warnings.
  
-**Status:** [ ] todo
+**Status:** [x] done
  
 ---
  
@@ -88,7 +96,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** GitHub Actions `Unit Tests` workflow appears on PRs and passes for all 7 non-system-test modules.
  
-**Status:** [ ] todo
+**Status:** [x] done
  
 ---
  
@@ -101,7 +109,7 @@ None — all questions resolved during feature spec session.
  
 **Test description:** `SagaCompensationTest` passes consistently; `awaitKafkaConsumerGroupsReady` blocks until `order-service`, `risk-service`, `execution-service`, `settlement-service`, and `saga-orchestrator` are all in `STABLE` state.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
