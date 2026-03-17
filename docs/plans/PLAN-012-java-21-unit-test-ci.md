@@ -1,24 +1,24 @@
 # PLAN-012: Java 21 Upgrade, Unit Test CI, and System Test Reliability — Implementation Plan
  
-Status: draft
+Status: complete
 Date: 2026-03-17
 Feature: [FEAT-012](../features/FEAT-012-java-21-unit-test-ci.md)
- 
+
 ## Implementation Review
- 
-Status: pending
-Reviewed: —
- 
+
+Status: passed
+Reviewed: 2026-03-17
+
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| All 8 `build.gradle.kts` declare Java 21 | Gradle build | pending |
-| All 6 Dockerfiles use eclipse-temurin:21 | Docker build | pending |
-| `system-test.yml` sets `java-version: '21'` | CI workflow file | pending |
-| `unit-test.yml` runs per-module unit tests | CI workflow file | pending |
-| `SystemTestBase` waits for all 5 consumer groups | `SagaCompensationTest` (system test) | pending |
-| No `@MockBean`/`@SpyBean` warnings in test compilation | Kotlin compiler output clean | pending |
- 
-Gaps: —
+| All 8 `build.gradle.kts` declare Java 21 | Gradle build | passed |
+| All 6 Dockerfiles use eclipse-temurin:21 | Docker build | passed |
+| `system-test.yml` sets `java-version: '21'` | CI workflow file | passed |
+| `unit-test.yml` runs per-module unit tests | CI workflow file | passed |
+| `SystemTestBase` waits for all 5 consumer groups | `SagaCompensationTest` (system test) | passed |
+| No `@MockBean`/`@SpyBean` warnings in test compilation | Kotlin compiler output clean | passed |
+
+Gaps: none
  
 ---
  

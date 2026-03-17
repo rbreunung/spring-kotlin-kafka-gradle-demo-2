@@ -25,12 +25,12 @@ could be still catching up when the test began injecting events.
  
 ## Goals
  
-- [ ] Bump Java toolchain from 17 to 21 in all 8 Gradle modules
-- [ ] Bump all 6 service Dockerfiles from `eclipse-temurin:17` to `eclipse-temurin:21`
-- [ ] Update the GitHub Actions `system-test.yml` workflow to JDK 21
-- [ ] Add a new `unit-test.yml` GitHub Actions workflow that runs per-module unit tests on every push/PR
-- [ ] Fix `SagaCompensationTest` intermittent timeout by adding `risk-service` and `execution-service` to the Kafka consumer group readiness check
-- [ ] Replace deprecated `@MockBean`/`@SpyBean` with `@MockitoBean`/`@MockitoSpyBean` in 4 test files (Spring Boot 3.4 deprecation)
+- [x] Bump Java toolchain from 17 to 21 in all 8 Gradle modules
+- [x] Bump all 6 service Dockerfiles from `eclipse-temurin:17` to `eclipse-temurin:21`
+- [x] Update the GitHub Actions `system-test.yml` workflow to JDK 21
+- [x] Add a new `unit-test.yml` GitHub Actions workflow that runs per-module unit tests on every push/PR
+- [x] Fix `SagaCompensationTest` intermittent timeout by adding `risk-service` and `execution-service` to the Kafka consumer group readiness check
+- [x] Replace deprecated `@MockBean`/`@SpyBean` with `@MockitoBean`/`@MockitoSpyBean` in 4 test files (Spring Boot 3.4 deprecation)
  
 ## Non-Goals
  
@@ -106,14 +106,14 @@ eliminates Gradle compilation and image build time from the test startup path.
  
 ## Acceptance Criteria
  
-- [ ] `./gradlew build -x :system-test:test` compiles and passes all unit tests on Java 21
-- [ ] All 8 `build.gradle.kts` files declare `JavaLanguageVersion.of(21)`
-- [ ] All 6 Dockerfiles use `eclipse-temurin:21-jdk-alpine` and `eclipse-temurin:21-jre-alpine`
-- [ ] `system-test.yml` sets `java-version: '21'`
-- [ ] `unit-test.yml` exists and runs `./gradlew test -x :system-test:test` on push/PR
-- [ ] `SystemTestBase.awaitKafkaConsumerGroupsReady()` waits for all 5 consumer groups
-- [ ] `SagaCompensationTest` passes without intermittent timeout
-- [ ] No `@MockBean`/`@SpyBean` deprecation warnings in `execution` and `settlement` test compilation
+- [x] `./gradlew build -x :system-test:test` compiles and passes all unit tests on Java 21
+- [x] All 8 `build.gradle.kts` files declare `JavaLanguageVersion.of(21)`
+- [x] All 6 Dockerfiles use `eclipse-temurin:21-jdk-alpine` and `eclipse-temurin:21-jre-alpine`
+- [x] `system-test.yml` sets `java-version: '21'`
+- [x] `unit-test.yml` exists and runs `./gradlew test -x :system-test:test` on push/PR
+- [x] `SystemTestBase.awaitKafkaConsumerGroupsReady()` waits for all 5 consumer groups
+- [x] `SagaCompensationTest` passes without intermittent timeout
+- [x] No `@MockBean`/`@SpyBean` deprecation warnings in `execution` and `settlement` test compilation
  
 ## Implementation Notes
  
