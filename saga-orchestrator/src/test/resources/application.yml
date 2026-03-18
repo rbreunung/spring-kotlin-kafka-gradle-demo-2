@@ -18,3 +18,7 @@ spring:
         spring.json.use.type.headers: true
     listener:
       auto-startup: false
+
+management:
+  tracing:
+    enabled: false

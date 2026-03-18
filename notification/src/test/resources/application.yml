@@ -1,14 +1,11 @@
 spring:
-  main:
-    web-application-type: none
   kafka:
     bootstrap-servers: localhost:9999
-    listener:
+    consumer:
       auto-startup: false
-
-settlement:
-  simulate-failure-probability: 0.0
-
+      auto-offset-reset: earliest
+  main:
+    web-application-type: none
 management:
   tracing:
     enabled: false
