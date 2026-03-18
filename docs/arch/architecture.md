@@ -19,6 +19,12 @@ flowchart LR
     SettlementService -->|failed messages| DLQ[dlq.settlements]
     SagaOrchestrator -->|NotificationRequested| NotificationService
     NotificationService -->|TraderNotified| Kafka
+    OrderService -->|spans| Zipkin
+    SagaOrchestrator -->|spans| Zipkin
+    RiskService -->|spans| Zipkin
+    ExecutionService -->|spans| Zipkin
+    SettlementService -->|spans| Zipkin
+    NotificationService -->|spans| Zipkin
 ```
 
 ## Services
