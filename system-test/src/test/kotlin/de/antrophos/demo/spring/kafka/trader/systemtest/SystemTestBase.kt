@@ -10,7 +10,7 @@ import org.testcontainers.containers.DockerComposeContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import java.io.File
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 import java.time.Duration
 
 abstract class SystemTestBase {
@@ -129,7 +129,7 @@ abstract class SystemTestBase {
         }
 
         private fun isHttpReady(url: String): Boolean = try {
-            val conn = URL(url).openConnection() as HttpURLConnection
+            val conn = URI.create(url).toURL().openConnection() as HttpURLConnection
             conn.connectTimeout = 1000
             conn.readTimeout = 1000
             conn.connect()

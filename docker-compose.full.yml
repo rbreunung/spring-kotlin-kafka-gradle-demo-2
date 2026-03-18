@@ -64,6 +64,9 @@ services:
       dockerfile: settlement/Dockerfile
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      # Keeps the settlement window open long enough for SagaCompensationTest to inject
+      # SettlementFailed before PositionSettled arrives (1-second poll interval needs margin).
+      SETTLEMENT_ARTIFICIAL_DELAY_MS: "3000"
     depends_on:
       kafka:
         condition: service_healthy

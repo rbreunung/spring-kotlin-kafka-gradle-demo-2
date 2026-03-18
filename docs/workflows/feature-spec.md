@@ -157,6 +157,8 @@ If this feature introduces a **significant architectural decision** (a choice th
 
 Remove the `## Progress` section from `docs/features/FEAT_ID-*.md` — the spec is complete.
 
+**Update registry status** — set both `FEAT-NNN` and `PLAN-NNN` to `complete` in `docs/registry.md`. The registry tracks document completeness: `complete` means the spec and plan documents are finalized and committed. Implementation progress is tracked inside `PLAN-NNN` via slice checkboxes and `## Progress`.
+
 **Registry stub check** — before staging, scan `docs/registry.md` for any FEAT entries added during this session with status `draft`. For each one, verify a corresponding `docs/features/FEAT-NNN-*.md` file exists. If any is missing, create a stub now (title, status: draft, context & motivation, open design questions) before committing. A registry entry without a file is a dead link.
 
 Stage all new and changed files:

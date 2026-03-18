@@ -101,6 +101,10 @@ class SagaOrchestrator(
         val orderId = resolveOrderIdByTradeId(event.tradeId, "onPositionSettled") ?: return
         val entity = findOrWarn(orderId, "onPositionSettled") ?: return
         if (isTerminalOrWarn(entity, "onPositionSettled")) return
+        if (entity.step != SagaStep.SETTLEMENT_REQUESTED.name) {
+            log.warn("onPositionSettled: expected SETTLEMENT_REQUESTED, got {}, skipping", entity.step)
+            return
+        }
         val order = objectMapper.readValue<Order>(entity.orderJson)
         repository.save(entity.copy(step = SagaStep.SETTLED.name, updatedAt = Instant.now()))
         publisher.publishNotificationRequested(
