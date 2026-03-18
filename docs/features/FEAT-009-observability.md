@@ -237,6 +237,19 @@ management:
 
 > Agent: fill this section during feature-impl if implementation differs from spec.
 
+### Pre-existing changes on this branch (from BUG-001)
+
+The following changes were made to files this feature also plans to modify. They must be preserved:
+
+- **`docker-compose.full.yml`** — `SETTLEMENT_ARTIFICIAL_DELAY_MS: "3000"` is present on the
+  `settlement-service` environment block. This is required for `SagaCompensationTest` reliability
+  (BUG-001 fix). When adding Zipkin and `MANAGEMENT_ZIPKIN_TRACING_ENDPOINT` env vars to all
+  services, do not remove this entry.
+
+- **`saga-orchestrator/.../SagaOrchestrator.kt`** — `onPositionSettled` received a step guard
+  (`entity.step != SETTLEMENT_REQUESTED → skip`) as a correctness fix (BUG-001). No action needed;
+  note for context.
+
 ## Files to Create / Modify
 
 | Path | Action |

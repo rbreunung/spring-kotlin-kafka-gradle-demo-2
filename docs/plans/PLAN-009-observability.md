@@ -1,6 +1,6 @@
 # PLAN-009: Observability — Micrometer Metrics and Distributed Tracing — Implementation Plan
 
-Status: draft
+Status: complete
 Date: 2026-03-18
 Feature: [FEAT-009](../features/FEAT-009-observability.md)
 

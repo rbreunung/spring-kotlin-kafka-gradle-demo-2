@@ -7,6 +7,24 @@ Types: `FEAT`, `BUG`, `PLAN`, `ADR`, `RETRO`, `RETRO-REVIEW`
 
 Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001 belongs to FEAT-001).
 
+## Status Definitions
+
+The registry status tracks **document completeness**, not implementation progress. Implementation state is tracked inside the documents (slice checkboxes, `## Progress` section, internal `Status:` field).
+
+| Type | Status | Meaning |
+|---|---|---|
+| FEAT | `draft` | Feature identified; spec not yet started |
+| FEAT | `in-progress` | Spec phase is actively being written |
+| FEAT | `complete` | Spec and plan documents are finalized (committed); implementation progress tracked inside PLAN-NNN |
+| PLAN | `draft` | Plan document not yet written |
+| PLAN | `complete` | Plan document is finalized and ready to execute |
+| BUG | `in-progress` | Fix in progress |
+| BUG | `resolved` | Fix shipped |
+| ADR | `accepted` | Decision accepted |
+| RETRO / RETRO-REVIEW | `complete` | Document written and committed |
+
+**Key rule:** Both FEAT-NNN and PLAN-NNN registry status become `complete` at the end of the `feature-spec` workflow — when the spec and plan documents are committed. They do not change again when implementation finishes (the PLAN doc's internal state tracks that).
+
 | ID | Type | Title | Status |
 |---|---|---|---|
 | FEAT-000 | FEAT | Project initialization | complete |
@@ -37,8 +55,8 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | ADR-001 | ADR | Saga state entity as the authoritative recovery anchor | accepted |
 | FEAT-008 | FEAT | Saga Compensation — Rollback on Settlement Failure | complete |
 | PLAN-008 | PLAN | Saga Compensation — Rollback on Settlement Failure | complete |
-| FEAT-009 | FEAT | Observability — Micrometer Metrics and Distributed Tracing | in-progress |
-| PLAN-009 | PLAN | Observability — Micrometer Metrics and Distributed Tracing | draft |
+| FEAT-009 | FEAT | Observability — Micrometer Metrics and Distributed Tracing | complete |
+| PLAN-009 | PLAN | Observability — Micrometer Metrics and Distributed Tracing | complete |
 | FEAT-010 | FEAT | Notification Service — WebSocket Push for Real-Time Order Status | draft |
 | FEAT-011 | FEAT | Cancel In-Flight Orders — User-Initiated Saga Rollback | draft |
 | RETRO-009 | RETRO | FEAT-008 feature spec retrospective | complete |

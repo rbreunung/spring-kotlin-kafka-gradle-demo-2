@@ -42,6 +42,12 @@ Duration: ~1 session
 
 **Actionable Change:** Add to the implementation checklist in `docs/workflows/feature-impl.md` — every step guard added to a saga handler must have a corresponding negative test (seed in wrong step, send event, assert step unchanged). This is the same pattern as `duplicate SettlementFailed after COMPENSATION_REQUESTED is skipped`.
 
+### 5. [Category: Documentation]
+
+**Description:** The registry had no formal definition of what each status value means for each document type. This caused PLAN-009 to be left as `draft` after the spec phase was complete, and FEAT-009 to remain `in-progress` in the registry when the spec document was fully finalized. The rule — that both FEAT-NNN and PLAN-NNN registry status become `complete` once the spec is committed — existed in the user's mental model but was not written down anywhere.
+
+**Actionable Change:** Add a Status Definitions table to `docs/registry.md` and add an explicit "Update registry status" instruction to `feature-spec.md` STEP 10, stating that both FEAT-NNN and PLAN-NNN are set to `complete` when the spec documents are committed. *(Applied in this session.)*
+
 ### 4. [Category: Workflow Compliance]
 
 **Description:** The bug-fix workflow (`docs/workflows/bug-fix.md`) requires allocating a BUG-NNN ID, creating `docs/bugs/BUG-NNN-*.md`, and adding a registry entry as the very first step of Phase 2 — before any investigation or code change. In this session, the fix was fully implemented, code-reviewed, and retrospected before any of these artefacts were created. The omission was only caught when the workflow was reviewed after the fact.
