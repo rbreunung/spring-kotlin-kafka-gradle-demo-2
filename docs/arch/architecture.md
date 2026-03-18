@@ -27,10 +27,10 @@ flowchart LR
 |---|---|
 | `OrderService` | Accepts REST order submissions (port 8080); persists orders in H2 (Spring Data JPA); publishes `OrderPlaced` / `OrderCancelled`; consumes `RiskApproved`, `RiskRejected`, `TradeExecuted`, `PositionSettled`, `SettlementFailed` to update order status |
 | `SagaOrchestrator` | Stateful orchestrator (port 8085); H2 + JPA saga state; drives saga steps; REST observability (`GET /sagas`); drives compensation on `SettlementFailed` |
-| `RiskService` | Kafka-only; consumes `RiskCheckRequested`; quantity-based approval rule; Resilience4j CB wrapping simulated external call |
-| `ExecutionService` | Simulates trade execution on exchange; publishes `TradeExecuted` |
-| `SettlementService` | Updates positions; transactional Kafka producer; Resilience4j retry + bulkhead |
-| `NotificationService` | Sends trader notification (log stub) |
+| `RiskService` | Kafka consumer/producer (port 8081); consumes `RiskCheckRequested`; quantity-based approval rule; Resilience4j CB wrapping simulated external call |
+| `ExecutionService` | Kafka consumer/producer (port 8082); simulates trade execution on exchange; publishes `TradeExecuted` |
+| `SettlementService` | Kafka consumer/producer (port 8083); updates positions; transactional Kafka producer; Resilience4j retry + bulkhead |
+| `NotificationService` | Kafka consumer/producer (port 8084); sends trader notification (log stub) |
 | `SystemTest` | E2E test module using Testcontainers with real Kafka for end-to-end verification of all use cases |
 
 ## Kafka Topics
@@ -111,9 +111,10 @@ Version management:
 | Component | Image | Port | Notes |
 |---|---|---|---|
 | Kafka | `apache/kafka:3.9` (KRaft) | 9092 | No Zookeeper needed |
+| Zipkin | `openzipkin/zipkin:3` | 9411 | Distributed trace UI; added in FEAT-009 |
 
-- `docker-compose.yml` — Kafka only (daily dev; services run on JVM)
-- `docker-compose.full.yml` — Kafka + all 6 services (demo/CI; each service built from `Dockerfile`)
+- `docker-compose.yml` — Kafka + Zipkin (daily dev; services run on JVM)
+- `docker-compose.full.yml` — Kafka + Zipkin + all 6 services (demo/CI; each service built from `Dockerfile`)
 
 ## Diagram Color Conventions
 

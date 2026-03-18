@@ -1,6 +1,6 @@
 # FEAT-009: Observability — Micrometer Metrics and Distributed Tracing
 
-Status: draft
+Status: in-progress
 Date: 2026-03-16
 Author: Claude
 
@@ -25,6 +25,9 @@ health at a glance.
 
 ## Goals
 
+- [ ] Add `spring-boot-starter-web` to the 4 Kafka-only service modules (risk,
+      execution, settlement, notification) so the embedded HTTP server starts and
+      actuator endpoints are reachable over HTTP
 - [ ] Add `spring-boot-starter-actuator` + `micrometer-registry-prometheus` to
       all 6 service modules (order, risk, execution, settlement, notification,
       saga-orchestrator)
@@ -79,7 +82,14 @@ flags to opt in.
 ### Component Additions (per service)
 
 ```
-build.gradle.kts:
+build.gradle.kts (order, saga-orchestrator):
+  + spring-boot-starter-actuator
+  + micrometer-registry-prometheus
+  + micrometer-tracing-bridge-brave
+  + zipkin-reporter-brave
+
+build.gradle.kts (risk, execution, settlement, notification — Kafka-only services):
+  + spring-boot-starter-web          ← required to expose actuator over HTTP
   + spring-boot-starter-actuator
   + micrometer-registry-prometheus
   + micrometer-tracing-bridge-brave
@@ -113,6 +123,10 @@ Added to both `docker-compose.yml` and `docker-compose.full.yml`.
 | Service | Port | Notes |
 |---|---|---|
 | OrderService | 8080 | existing |
+| RiskService | 8081 | new — `server.port` added; requires `spring-boot-starter-web` |
+| ExecutionService | 8082 | new — `server.port` added; requires `spring-boot-starter-web` |
+| SettlementService | 8083 | new — `server.port` added; requires `spring-boot-starter-web` |
+| NotificationService | 8084 | new — `server.port` added; requires `spring-boot-starter-web` |
 | SagaOrchestrator | 8085 | existing |
 | Zipkin UI | 9411 | new |
 | All services | `/actuator/prometheus` | new scrape endpoint (same port as each service) |
@@ -155,9 +169,22 @@ implementation("io.micrometer:micrometer-tracing-bridge-brave")
 implementation("io.zipkin.reporter2:zipkin-reporter-brave")
 ```
 
+**Additionally, for Kafka-only services** (risk, execution, settlement, notification):
+
+```kotlin
+implementation("org.springframework.boot:spring-boot-starter-web")
+```
+
 (Versions managed via Spring BOM — no explicit versions needed in submodules.)
 
 ### All 6 service `src/main/resources/application.yml` additions
+
+For risk, execution, settlement, and notification only — add server port:
+
+```yaml
+server:
+  port: <8081|8082|8083|8084>   # risk=8081, execution=8082, settlement=8083, notification=8084
+```
 
 ```yaml
 spring:
