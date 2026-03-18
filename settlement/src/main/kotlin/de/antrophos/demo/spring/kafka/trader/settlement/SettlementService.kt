@@ -45,7 +45,7 @@ class SettlementService(
     }
 
     @Suppress("unused")
-    private fun settleFallback(trade: Trade, order: Order, ex: Exception): Position {
+    internal fun settleFallback(trade: Trade, order: Order, ex: Exception): Position {
         eventPublisher.publishSettlementFailed(trade.id, ex.message ?: "unknown error")
         meterRegistry.counter("settlement.attempts.total", "outcome", "failure").increment()
         throw ex
