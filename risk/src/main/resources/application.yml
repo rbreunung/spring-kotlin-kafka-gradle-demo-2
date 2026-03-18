@@ -1,8 +1,6 @@
 spring:
   application:
     name: risk-service
-  main:
-    web-application-type: none
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -14,6 +12,13 @@ spring:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "de.antrophos.demo.spring.kafka.trader.shared.events,de.antrophos.demo.spring.kafka.trader.shared.domain"
         spring.json.use.type.headers: true
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
+
+server:
+  port: 8081
 
 risk:
   simulate-failure-probability: 0.0
@@ -28,3 +33,12 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         permittedNumberOfCallsInHalfOpenState: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  tracing:
+    sampling:
+      probability: "1.0"
