@@ -6,7 +6,9 @@ import de.antrophos.demo.spring.kafka.trader.saga.domain.SagaStep
 import de.antrophos.demo.spring.kafka.trader.saga.repository.SagaStateRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
+import de.antrophos.demo.spring.kafka.trader.shared.domain.Position
 import de.antrophos.demo.spring.kafka.trader.shared.events.CompensationRequested
+import de.antrophos.demo.spring.kafka.trader.shared.events.PositionSettled
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
 import de.antrophos.demo.spring.kafka.trader.shared.events.TradeVoided
 import org.apache.kafka.clients.consumer.Consumer
@@ -123,6 +125,21 @@ class SagaOrchestratorCompensationTest {
             assertNotNull(entity)
             assertEquals(SagaStep.COMPENSATION_COMPLETE.name, entity.step)
         }
+    }
+
+    @Test
+    fun `late PositionSettled on COMPENSATION_REQUESTED is skipped`() {
+        val orderId = UUID.randomUUID()
+        val tradeId = UUID.randomUUID()
+        seedSagaState(orderId, SagaStep.COMPENSATION_REQUESTED, tradeId = tradeId)
+
+        val position = Position(traderId = "T1", symbol = "AAPL", quantity = 100, avgCost = java.math.BigDecimal("100.00"))
+        kafkaTemplate.send("settlements", tradeId.toString(), PositionSettled(tradeId, position))
+
+        // Wait then confirm state is still COMPENSATION_REQUESTED (guard prevents override to SETTLED)
+        Thread.sleep(2000)
+        val entity = sagaStateRepository.findById(orderId).orElseThrow()
+        assertEquals(SagaStep.COMPENSATION_REQUESTED.name, entity.step)
     }
 
     @Test

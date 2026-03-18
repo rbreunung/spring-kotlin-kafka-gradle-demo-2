@@ -49,3 +49,4 @@ Note: `PLAN-NNN` shares the same number as its parent `FEAT-NNN` (e.g., PLAN-001
 | RETRO-011 | RETRO | FEAT-012 feature spec retrospective | complete |
 | RETRO-012 | RETRO | FEAT-012 implementation retrospective | complete |
 | RETRO-013 | RETRO | FEAT-009 feature spec retrospective | complete |
+| RETRO-014 | RETRO | Bug-fix: SagaCompensationTest race condition | complete |
