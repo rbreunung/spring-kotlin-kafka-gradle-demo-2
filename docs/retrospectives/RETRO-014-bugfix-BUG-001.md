@@ -1,8 +1,8 @@
-# RETRO-014: bug-fix — SagaCompensationTest race condition
+# RETRO-014: bug-fix — BUG-001 SagaCompensationTest race condition
 
 Date: 2026-03-18
 Workflow: bug-fix (systematic-debugging)
-Related: FEAT-008, FEAT-009, branch feat/FEAT-009-observability
+Related: BUG-001, FEAT-008, FEAT-009, branch feat/FEAT-009-observability
 Duration: ~1 session
 
 ---
@@ -41,3 +41,9 @@ Duration: ~1 session
 **Description:** The missing unit test for `onPositionSettled`'s step guard was only caught by the code reviewer, not by the original implementation. A guard without a negative test is incomplete coverage.
 
 **Actionable Change:** Add to the implementation checklist in `docs/workflows/feature-impl.md` — every step guard added to a saga handler must have a corresponding negative test (seed in wrong step, send event, assert step unchanged). This is the same pattern as `duplicate SettlementFailed after COMPENSATION_REQUESTED is skipped`.
+
+### 4. [Category: Workflow Compliance]
+
+**Description:** The bug-fix workflow (`docs/workflows/bug-fix.md`) requires allocating a BUG-NNN ID, creating `docs/bugs/BUG-NNN-*.md`, and adding a registry entry as the very first step of Phase 2 — before any investigation or code change. In this session, the fix was fully implemented, code-reviewed, and retrospected before any of these artefacts were created. The omission was only caught when the workflow was reviewed after the fact.
+
+**Actionable Change:** Add a compliance guard to `docs/workflows/bug-fix.md` at Phase 2, Step 1: before any investigation or code change, the agent must confirm that both the `docs/bugs/BUG-NNN-*.md` document exists and the registry entry is present with status `in-progress`. If either is missing, halt and create them first. This mirrors the pattern in `feature-spec.md` which requires allocating FEAT-NNN before doing anything else.
