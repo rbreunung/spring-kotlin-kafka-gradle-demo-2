@@ -69,3 +69,4 @@ The registry status tracks **document completeness**, not implementation progres
 | RETRO-013 | RETRO | FEAT-009 feature spec retrospective | complete |
 | BUG-001 | BUG | SagaCompensationTest race condition and URL deprecation | resolved |
 | RETRO-014 | RETRO | Bug-fix: BUG-001 SagaCompensationTest race condition | complete |
+| RETRO-015 | RETRO | FEAT-009 implementation retrospective | complete |
