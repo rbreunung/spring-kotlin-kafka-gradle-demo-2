@@ -3,24 +3,33 @@
 Status: complete
 Date: 2026-03-17
 Feature: [FEAT-012](../features/FEAT-012-java-21-unit-test-ci.md)
- 
+
 ## Implementation Review
- 
-Status: complete
+
+Status: passed
 Reviewed: 2026-03-17
- 
+
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| All 8 `build.gradle.kts` declare Java 21 | Gradle build | complete |
-| All 6 Dockerfiles use eclipse-temurin:21 | Docker build | complete |
-| `system-test.yml` sets `java-version: '21'` | CI workflow file | complete |
-| `unit-test.yml` runs per-module unit tests | CI workflow file | complete |
-| `SystemTestBase` waits for all 5 consumer groups | `SagaCompensationTest` (system test) | complete |
- 
+| All 8 `build.gradle.kts` declare Java 21 | Gradle build | passed |
+| All 6 Dockerfiles use eclipse-temurin:21 | Docker build | passed |
+| `system-test.yml` sets `java-version: '21'` | CI workflow file | passed |
+| `unit-test.yml` runs per-module unit tests | CI workflow file | passed |
+| `SystemTestBase` waits for all 5 consumer groups | `SagaCompensationTest` (system test) | passed |
+| No `@MockBean`/`@SpyBean` warnings in test compilation | Kotlin compiler output clean | passed |
+
 Gaps: none
  
 ---
  
+## Progress
+
+Current Slice: —
+Completed Slices: [1, 2, 3, 4, 5, 6]
+Last Updated: 2026-03-17
+
+---
+
 ## Open Questions
  
 None — all questions resolved during feature spec session.
@@ -99,5 +108,21 @@ None — all questions resolved during feature spec session.
 - `system-test/src/test/kotlin/.../SystemTestBase.kt` — add `risk-service` and `execution-service` to `requiredGroups`
  
 **Test description:** `SagaCompensationTest` passes consistently; `awaitKafkaConsumerGroupsReady` blocks until `order-service`, `risk-service`, `execution-service`, `settlement-service`, and `saga-orchestrator` are all in `STABLE` state.
- 
+
+**Status:** [x] done
+
+---
+
+### Slice 6: Replace Deprecated @MockBean / @SpyBean
+
+**What it delivers:** Test compilation produces no `@MockBean`/`@SpyBean` deprecation warnings; project follows the Spring Boot 3.4+ annotation convention going forward.
+
+**Files to touch:**
+- `execution/src/test/.../ExecutionKafkaListenerTest.kt` — `@SpyBean` → `@MockitoSpyBean`, update import
+- `settlement/src/test/.../BulkheadFallbackTest.kt` — `@SpyBean` → `@MockitoSpyBean`, update import
+- `settlement/src/test/.../SettlementKafkaListenerTest.kt` — `@SpyBean` → `@MockitoSpyBean`, update import
+- `settlement/src/test/.../PositionPersistenceTest.kt` — `@MockBean` → `@MockitoBean`, update import
+
+**Test description:** `./gradlew clean build -x :system-test:test --warning-mode=all` produces no `@MockBean`/`@SpyBean` deprecation warnings.
+
 **Status:** [x] done

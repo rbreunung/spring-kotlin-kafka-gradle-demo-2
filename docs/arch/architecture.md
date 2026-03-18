@@ -242,6 +242,12 @@ sequenceDiagram
 
 **Reference implementation:** `execution/src/main/kotlin/.../execution/KafkaConfig.kt` — custom `KafkaTemplate` bean with a properly configured `ObjectMapper`. Any module publishing events with `Instant` fields must follow this pattern.
 
+### Spring Test Annotations — MockitoBean / MockitoSpyBean
+
+**Rule:** Use `@MockitoBean` and `@MockitoSpyBean` from `org.springframework.test.context.bean.override.mockito` instead of `@MockBean`/`@SpyBean` from `org.springframework.boot.test.mock.mockito` (deprecated since Spring Boot 3.4).
+
+**Why:** `@MockBean`/`@SpyBean` were moved to the Spring Framework test module in Spring Boot 3.4 and the Boot-specific variants deprecated. Using the replacement annotations keeps compilation warning-free and aligns with the upstream direction.
+
 ## Technology Decisions
 
 | Decision | Choice | Reason |

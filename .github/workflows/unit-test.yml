@@ -1,4 +1,4 @@
-name: System Tests
+name: Unit Tests
 
 on:
   pull_request:
@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  system-test:
+  unit-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -30,21 +30,13 @@ jobs:
           key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
-      - name: Create docker-compose shim (Docker Compose V2 only on ubuntu-latest)
-        run: |
-          printf '#!/bin/bash\nexec docker compose "$@"\n' | sudo tee /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose version
-
-      - name: Run system tests
-        run: ./gradlew :system-test:test
-        env:
-          DOCKER_BUILDKIT: 1
+      - name: Run unit tests
+        run: ./gradlew test -x :system-test:test
 
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: system-test-reports
-          path: system-test/build/reports/tests/test/
+          name: unit-test-reports
+          path: "**/build/reports/tests/test/"
           retention-days: 7

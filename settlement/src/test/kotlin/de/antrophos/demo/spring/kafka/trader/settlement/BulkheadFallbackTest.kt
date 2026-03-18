@@ -13,7 +13,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
@@ -58,7 +58,7 @@ class BulkheadFallbackTest {
     @Autowired
     private lateinit var bulkheadRegistry: BulkheadRegistry
 
-    @SpyBean
+    @MockitoSpyBean
     private lateinit var eventPublisher: SettlementEventPublisher
 
     @org.junit.jupiter.api.BeforeAll

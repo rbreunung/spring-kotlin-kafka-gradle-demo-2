@@ -103,7 +103,13 @@ abstract class SystemTestBase {
 
         private fun awaitKafkaConsumerGroupsReady() {
             val log = org.slf4j.LoggerFactory.getLogger("SystemTestBase")
-            val requiredGroups = listOf("settlement-service", "saga-orchestrator", "order-service")
+            val requiredGroups = listOf(
+                    "order-service",
+                    "risk-service",
+                    "execution-service",
+                    "settlement-service",
+                    "saga-orchestrator"
+                )
             val adminProps = mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092")
             AdminClient.create(adminProps).use { admin ->
                 await.atMost(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2)).until {
