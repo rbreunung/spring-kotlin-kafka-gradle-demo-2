@@ -65,4 +65,18 @@ class SettlementServiceTest {
         assertThat(counter).isNotNull
         assertThat(counter!!.count()).isEqualTo(1.0)
     }
+
+    @Test
+    fun `settleBulkheadFallback increments settlement attempts total with outcome failure`() {
+        val registry = SimpleMeterRegistry()
+        val service = SettlementService(positionRepository, eventPublisher, 0.0, 0L, registry)
+
+        assertThrows<RuntimeException> {
+            service.settleBulkheadFallback(testTrade, testOrder, RuntimeException("bulkhead-full"))
+        }
+
+        val counter = registry.find("settlement.attempts.total").tag("outcome", "failure").counter()
+        assertThat(counter).isNotNull
+        assertThat(counter!!.count()).isEqualTo(1.0)
+    }
 }
