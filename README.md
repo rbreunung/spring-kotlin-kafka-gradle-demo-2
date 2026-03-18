@@ -84,6 +84,41 @@ Tests use Spring Kafka's embedded broker — no external Kafka required.
 
 ---
 
+## Observability
+
+The platform exposes metrics and distributed traces for all six services.
+
+### Prometheus endpoints
+
+| Service | URL |
+|---|---|
+| order-service | http://localhost:8080/actuator/prometheus |
+| risk-service | http://localhost:8081/actuator/prometheus |
+| execution-service | http://localhost:8082/actuator/prometheus |
+| settlement-service | http://localhost:8083/actuator/prometheus |
+| notification-service | http://localhost:8084/actuator/prometheus |
+| saga-orchestrator | http://localhost:8085/actuator/prometheus |
+
+### Zipkin distributed tracing
+
+Start the full stack to enable tracing:
+
+```bash
+docker compose -f docker-compose.full.yml up --build
+```
+
+Zipkin UI: http://localhost:9411
+
+### Custom business metrics
+
+| Metric | Type | Description |
+|---|---|---|
+| `orders_placed_total` | Counter | Number of orders successfully placed |
+| `saga_duration_seconds` | Timer | End-to-end saga duration, tagged by `outcome` |
+| `settlement_attempts_total` | Counter | Settlement attempts, tagged by `outcome` (success/failure) |
+
+---
+
 ## Project Structure
 
 ```
