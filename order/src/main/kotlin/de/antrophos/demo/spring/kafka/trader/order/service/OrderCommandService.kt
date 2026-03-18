@@ -11,6 +11,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.events.OrderCancelled
 import de.antrophos.demo.spring.kafka.trader.shared.events.OrderPlaced
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -21,7 +22,8 @@ import java.util.UUID
 @Service
 class OrderCommandService(
     private val orderRepository: OrderRepository,
-    private val kafkaTemplate: KafkaTemplate<String, Any>
+    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val meterRegistry: MeterRegistry
 ) {
     private val log = LoggerFactory.getLogger(OrderCommandService::class.java)
 
@@ -48,6 +50,7 @@ class OrderCommandService(
             side = Side.valueOf(entity.side)
         )
         kafkaTemplate.send("orders", id.toString(), OrderPlaced(order))
+        meterRegistry.counter("orders.placed.total").increment()
         return OrderResponse.from(entity)
     }
 

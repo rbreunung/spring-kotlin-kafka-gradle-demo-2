@@ -7,6 +7,8 @@ import de.antrophos.demo.spring.kafka.trader.order.exception.OrderNotFoundExcept
 import de.antrophos.demo.spring.kafka.trader.order.exception.OrderNotCancellableException
 import de.antrophos.demo.spring.kafka.trader.order.repository.OrderRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -30,9 +32,11 @@ class OrderCommandServiceTest {
 
     private lateinit var service: OrderCommandService
 
+    private val meterRegistry = SimpleMeterRegistry()
+
     @BeforeEach
     fun setUp() {
-        service = OrderCommandService(orderRepository, kafkaTemplate)
+        service = OrderCommandService(orderRepository, kafkaTemplate, meterRegistry)
     }
 
     private fun pendingEntity(id: UUID = UUID.randomUUID()) = OrderEntity(
@@ -150,5 +154,17 @@ class OrderCommandServiceTest {
 
         assertEquals(OrderStatus.PENDING.name, entity.status)
         verify(orderRepository, never()).save(any())
+    }
+
+    @Test
+    fun `place increments orders placed total counter`() {
+        val registry = SimpleMeterRegistry()
+        val service = OrderCommandService(orderRepository, kafkaTemplate, registry)
+        val captor = ArgumentCaptor.forClass(OrderEntity::class.java)
+        `when`(orderRepository.save(captor.capture())).thenAnswer { captor.value }
+
+        service.place(PlaceOrderRequest(traderId = "T1", symbol = "AAPL", quantity = 10, side = Side.BUY))
+
+        assertThat(registry.counter("orders.placed.total").count()).isEqualTo(1.0)
     }
 }
