@@ -1,0 +1,11 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9999
+    consumer:
+      auto-startup: false
+      auto-offset-reset: earliest
+  main:
+    web-application-type: none
+management:
+  tracing:
+    enabled: false

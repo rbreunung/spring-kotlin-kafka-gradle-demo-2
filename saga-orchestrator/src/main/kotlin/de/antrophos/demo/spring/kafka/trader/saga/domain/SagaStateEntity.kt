@@ -24,5 +24,8 @@ data class SagaStateEntity(
     val updatedAt: Instant,
 
     @Column(nullable = false, length = 4096)
-    val orderJson: String = ""
+    val orderJson: String = "",
+
+    @Column(nullable = false)
+    val startedAt: Instant = Instant.now()
 )

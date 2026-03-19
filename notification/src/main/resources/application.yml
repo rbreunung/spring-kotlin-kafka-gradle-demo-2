@@ -3,5 +3,19 @@ spring:
     name: notification-service
   kafka:
     bootstrap-servers: localhost:9092
-  main:
-    web-application-type: none
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
+
+server:
+  port: 8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  tracing:
+    sampling:
+      probability: "1.0"

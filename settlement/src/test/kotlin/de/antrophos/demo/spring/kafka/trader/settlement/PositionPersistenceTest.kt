@@ -6,6 +6,7 @@ import de.antrophos.demo.spring.kafka.trader.settlement.repository.PositionRepos
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
+import io.micrometer.core.instrument.MeterRegistry
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +26,9 @@ class PositionPersistenceTest {
 
     @MockitoBean
     private lateinit var eventPublisher: SettlementEventPublisher
+
+    @MockitoBean
+    private lateinit var meterRegistry: MeterRegistry
 
     @Autowired
     lateinit var settlementService: SettlementService

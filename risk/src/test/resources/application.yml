@@ -1,4 +1,6 @@
 spring:
+  main:
+    web-application-type: none
   kafka:
     bootstrap-servers: localhost:9999
     producer:
@@ -26,3 +28,7 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         permittedNumberOfCallsInHalfOpenState: 3
+
+management:
+  tracing:
+    enabled: false

@@ -1,8 +1,17 @@
 spring:
+  main:
+    web-application-type: none
   kafka:
     bootstrap-servers: localhost:9999
     listener:
       auto-startup: false
+      observation-enabled: false
+    template:
+      observation-enabled: false
 
 settlement:
   simulate-failure-probability: 0.0
+
+management:
+  tracing:
+    enabled: false

@@ -16,9 +16,11 @@ import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
 import de.antrophos.demo.spring.kafka.trader.shared.events.TradeExecuted
 import de.antrophos.demo.spring.kafka.trader.shared.events.TradeVoided
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -26,7 +28,8 @@ import java.util.UUID
 class SagaOrchestrator(
     private val repository: SagaStateRepository,
     private val publisher: SagaEventPublisher,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val meterRegistry: MeterRegistry
 ) {
     private val log = LoggerFactory.getLogger(SagaOrchestrator::class.java)
 
@@ -75,6 +78,7 @@ class SagaOrchestrator(
         val entity = findOrWarn(event.orderId, "onRiskRejected") ?: return
         if (isTerminalOrWarn(entity, "onRiskRejected")) return
         repository.save(entity.copy(step = SagaStep.RISK_REJECTED.name, updatedAt = Instant.now()))
+        recordSagaDuration(entity, "risk_rejected")
         log.warn("Risk rejected for orderId={}, reason={}", event.orderId, event.reason)
     }
 
@@ -112,6 +116,7 @@ class SagaOrchestrator(
             orderId = orderId,
             message = "Order $orderId settled successfully"
         )
+        recordSagaDuration(entity, "settled")
         log.info("Position settled for orderId={}", orderId)
     }
 
@@ -145,7 +150,15 @@ class SagaOrchestrator(
             return
         }
         repository.save(entity.copy(step = SagaStep.COMPENSATION_COMPLETE.name, updatedAt = Instant.now()))
+        recordSagaDuration(entity, "compensation_complete")
         log.info("Trade voided for orderId={}, compensation complete", orderId)
+    }
+
+    // --- metrics ---
+
+    private fun recordSagaDuration(entity: SagaStateEntity, outcome: String) {
+        val duration = Duration.between(entity.startedAt, Instant.now())
+        meterRegistry.timer("saga.duration.seconds", "outcome", outcome).record(duration)
     }
 
     // --- helpers ---

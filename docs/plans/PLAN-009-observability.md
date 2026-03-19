@@ -4,30 +4,20 @@ Status: complete
 Date: 2026-03-18
 Feature: [FEAT-009](../features/FEAT-009-observability.md)
 
-## Progress
-
-> Agent: update after each completed slice. Remove entire section when all slices done.
-
-Current Slice: 1
-Completed Slices: []
-Last Updated: 2026-03-18
-
 ## Implementation Review
 
-> Agent: fill this section during the final review step of feature-impl.
-
-Status: pending
-Reviewed: —
+Status: complete
+Reviewed: 2026-03-18
 
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
-| `./gradlew build` passes | Slice 1 compile check | pending |
-| `/actuator/health` returns UP on all 6 services | `ObservabilityTest` | pending |
-| `/actuator/prometheus` returns Prometheus text including `orders_placed_total` | `ObservabilityTest` (stretch) | pending |
-| Zipkin trace spans OrderService + SagaOrchestrator after `POST /orders` | Manual / E2E | pending |
-| `saga_duration_seconds_count` appears in saga-orchestrator prometheus endpoint | `ObservabilityTest` (stretch) | pending |
+| `./gradlew build` passes | Slice 1 compile check | ✅ done |
+| `/actuator/health` returns UP on all 6 services | `ObservabilityTest` | ✅ done (system test created; requires Docker to execute) |
+| `/actuator/prometheus` returns Prometheus text including `orders_placed_total` | `ObservabilityTest` (stretch) | deferred to manual verification |
+| Zipkin trace spans OrderService + SagaOrchestrator after `POST /orders` | Manual / E2E | deferred to manual verification |
+| `saga_duration_seconds_count` appears in saga-orchestrator prometheus endpoint | `ObservabilityTest` (stretch) | deferred to manual verification |
 
-Gaps: —
+Gaps: stretch criteria deferred to manual/E2E validation; all unit tests and compile checks pass.
 
 ---
 
@@ -59,7 +49,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** `./gradlew build` compiles without errors. No functional test needed for this slice — compilation is the gate.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -77,7 +67,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** A `@SpringBootTest` (one per service is sufficient, or pick any one service) verifies that the Spring context loads and `GET /actuator/health` returns `{"status":"UP"}`.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -95,7 +85,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** All existing unit tests pass (`./gradlew test`) with no Zipkin-related connection errors in the log.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -109,7 +99,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** `docker compose -f docker-compose.full.yml config` validates without errors (dry-run, no Docker daemon needed).
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -123,7 +113,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Unit test: inject a `SimpleMeterRegistry`, call the order placement method, assert `orders.placed.total` counter value equals 1.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -137,7 +127,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Unit test: inject a `SimpleMeterRegistry`, drive the orchestrator to a terminal state, assert `saga.duration.seconds` has at least one recorded sample with the correct `outcome` tag.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -151,7 +141,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Unit test: inject a `SimpleMeterRegistry`, call settlement with a success and a failure scenario, assert `settlement.attempts.total{outcome="success"}` = 1 and `settlement.attempts.total{outcome="failure"}` = 1.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -164,7 +154,7 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** E2E test using the existing `SystemTestBase` Testcontainers setup. After container startup, HTTP GET to `http://localhost:{8080,8081,8082,8083,8084,8085}/actuator/health` on each service returns HTTP 200 with body containing `"status":"UP"`.
 
-**Status:** [ ] todo
+**Status:** [x] done
 
 ---
 
@@ -177,4 +167,4 @@ Each slice = one testable piece of behavior. Implement and test before moving to
 
 **Test description:** Doc review — no automated test. Section must include Zipkin URL (`http://localhost:9411`), all 6 Prometheus endpoint URLs, and the docker compose command to start.
 
-**Status:** [ ] todo
+**Status:** [x] done

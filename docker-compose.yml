@@ -27,5 +27,10 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
 
+  zipkin:
+    image: openzipkin/zipkin:3
+    ports:
+      - "9411:9411"
+
 volumes:
   kafka-data:

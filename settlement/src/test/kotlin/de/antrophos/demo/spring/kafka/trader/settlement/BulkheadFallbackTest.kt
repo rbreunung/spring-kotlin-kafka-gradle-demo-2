@@ -5,6 +5,8 @@ import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
 import io.github.resilience4j.bulkhead.BulkheadRegistry
+import io.micrometer.core.instrument.MeterRegistry
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
@@ -58,6 +60,9 @@ class BulkheadFallbackTest {
     @Autowired
     private lateinit var bulkheadRegistry: BulkheadRegistry
 
+    @Autowired
+    private lateinit var meterRegistry: MeterRegistry
+
     @MockitoSpyBean
     private lateinit var eventPublisher: SettlementEventPublisher
 
@@ -98,5 +103,9 @@ class BulkheadFallbackTest {
         }
 
         verify(eventPublisher, atLeast(1)).publishSettlementFailed(any(), eq("bulkhead-full"))
+
+        val counter = meterRegistry.find("settlement.attempts.total").tag("outcome", "failure").counter()
+        assertThat(counter).isNotNull
+        assertThat(counter!!.count()).isGreaterThanOrEqualTo(1.0)
     }
 }
