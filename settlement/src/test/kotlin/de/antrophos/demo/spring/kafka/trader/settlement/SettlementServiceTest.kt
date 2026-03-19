@@ -1,7 +1,6 @@
 package de.antrophos.demo.spring.kafka.trader.settlement
 
 import de.antrophos.demo.spring.kafka.trader.settlement.domain.PositionEntity
-import de.antrophos.demo.spring.kafka.trader.settlement.exception.SettlementException
 import de.antrophos.demo.spring.kafka.trader.settlement.kafka.SettlementEventPublisher
 import de.antrophos.demo.spring.kafka.trader.settlement.repository.PositionRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Order
@@ -10,7 +9,6 @@ import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
@@ -48,34 +46,6 @@ class SettlementServiceTest {
         service.settle(testTrade, testOrder)
 
         val counter = registry.find("settlement.attempts.total").tag("outcome", "success").counter()
-        assertThat(counter).isNotNull
-        assertThat(counter!!.count()).isEqualTo(1.0)
-    }
-
-    @Test
-    fun `settleFallback increments settlement attempts total with outcome failure`() {
-        val registry = SimpleMeterRegistry()
-        val service = SettlementService(positionRepository, eventPublisher, 0.0, 0L, registry)
-
-        assertThrows<SettlementException> {
-            service.settleFallback(testTrade, testOrder, SettlementException("simulated"))
-        }
-
-        val counter = registry.find("settlement.attempts.total").tag("outcome", "failure").counter()
-        assertThat(counter).isNotNull
-        assertThat(counter!!.count()).isEqualTo(1.0)
-    }
-
-    @Test
-    fun `settleBulkheadFallback increments settlement attempts total with outcome failure`() {
-        val registry = SimpleMeterRegistry()
-        val service = SettlementService(positionRepository, eventPublisher, 0.0, 0L, registry)
-
-        assertThrows<RuntimeException> {
-            service.settleBulkheadFallback(testTrade, testOrder, RuntimeException("bulkhead-full"))
-        }
-
-        val counter = registry.find("settlement.attempts.total").tag("outcome", "failure").counter()
         assertThat(counter).isNotNull
         assertThat(counter!!.count()).isEqualTo(1.0)
     }

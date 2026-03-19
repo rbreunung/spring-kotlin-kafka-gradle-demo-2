@@ -38,14 +38,14 @@ class SettlementService(
     }
 
     @Suppress("unused")
-    internal fun settleBulkheadFallback(trade: Trade, order: Order, ex: Exception): Position {
+    private fun settleBulkheadFallback(trade: Trade, order: Order, ex: Exception): Position {
         eventPublisher.publishSettlementFailed(trade.id, "bulkhead-full")
         meterRegistry.counter("settlement.attempts.total", "outcome", "failure").increment()
         throw ex
     }
 
     @Suppress("unused")
-    internal fun settleFallback(trade: Trade, order: Order, ex: Exception): Position {
+    private fun settleFallback(trade: Trade, order: Order, ex: Exception): Position {
         eventPublisher.publishSettlementFailed(trade.id, ex.message ?: "unknown error")
         meterRegistry.counter("settlement.attempts.total", "outcome", "failure").increment()
         throw ex

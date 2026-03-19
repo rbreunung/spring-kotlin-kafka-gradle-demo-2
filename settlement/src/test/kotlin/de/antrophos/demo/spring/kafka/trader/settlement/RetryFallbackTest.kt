@@ -13,6 +13,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
@@ -61,6 +62,9 @@ class RetryFallbackTest {
     @Autowired
     private lateinit var positionRepository: de.antrophos.demo.spring.kafka.trader.settlement.repository.PositionRepository
 
+    @Autowired
+    private lateinit var meterRegistry: MeterRegistry
+
     @BeforeAll
     fun setup() {
         listenerRegistry.listenerContainers.forEach { container ->
@@ -107,5 +111,9 @@ class RetryFallbackTest {
 
         val position = positionRepository.findByTraderIdAndSymbol("retry-trader", "RETRY")
         assertThat(position).isNull()
+
+        val counter = meterRegistry.find("settlement.attempts.total").tag("outcome", "failure").counter()
+        assertThat(counter).isNotNull
+        assertThat(counter!!.count()).isGreaterThanOrEqualTo(1.0)
     }
 }
