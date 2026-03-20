@@ -57,7 +57,7 @@ The registry status tracks **document completeness**, not implementation progres
 | PLAN-008 | PLAN | Saga Compensation — Rollback on Settlement Failure | complete |
 | FEAT-009 | FEAT | Observability — Micrometer Metrics and Distributed Tracing | complete |
 | PLAN-009 | PLAN | Observability — Micrometer Metrics and Distributed Tracing | complete |
-| FEAT-010 | FEAT | Notification Service — WebSocket Push for Real-Time Order Status | draft |
+| FEAT-010 | FEAT | Notification Service — WebSocket Push for Real-Time Order Status | complete |
 | FEAT-011 | FEAT | Cancel In-Flight Orders — User-Initiated Saga Rollback | draft |
 | RETRO-009 | RETRO | FEAT-008 feature spec retrospective | complete |
 | RETRO-REVIEW-002 | RETRO-REVIEW | Retro review — RETRO-003 through RETRO-009 | complete |
@@ -70,3 +70,4 @@ The registry status tracks **document completeness**, not implementation progres
 | BUG-001 | BUG | SagaCompensationTest race condition and URL deprecation | resolved |
 | RETRO-014 | RETRO | Bug-fix: BUG-001 SagaCompensationTest race condition | complete |
 | RETRO-015 | RETRO | FEAT-009 implementation retrospective | complete |
+| RETRO-016 | RETRO | FEAT-010 implementation retrospective | complete |
