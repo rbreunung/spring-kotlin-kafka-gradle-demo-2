@@ -1,6 +1,5 @@
 package de.antrophos.demo.spring.kafka.trader.notification
 
-import de.antrophos.demo.spring.kafka.trader.notification.dto.NotificationPayload
 import de.antrophos.demo.spring.kafka.trader.notification.kafka.NotificationEventPublisher
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -8,7 +7,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -35,7 +33,7 @@ class NotificationServiceTest {
 
         service.notify(traderId, orderId, message)
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/trader/$traderId"), any<NotificationPayload>())
+        verify(messagingTemplate).convertAndSend(eq("/topic/trader/$traderId"), any<Any>())
         verify(eventPublisher).publishTraderNotified(traderId, orderId, message)
     }
 
@@ -46,7 +44,7 @@ class NotificationServiceTest {
         val message = "Order settled"
 
         doThrow(RuntimeException("STOMP error")).whenever(messagingTemplate)
-            .convertAndSend(any<String>(), any<NotificationPayload>())
+            .convertAndSend(any<String>(), any<Any>())
 
         service.notify(traderId, orderId, message)
 
@@ -64,6 +62,7 @@ class NotificationServiceTest {
 
         service.notify(traderId, orderId, message)
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/trader/$traderId"), any<NotificationPayload>())
+        verify(messagingTemplate).convertAndSend(eq("/topic/trader/$traderId"), any<Any>())
+        verify(eventPublisher).publishTraderNotified(traderId, orderId, message)
     }
 }

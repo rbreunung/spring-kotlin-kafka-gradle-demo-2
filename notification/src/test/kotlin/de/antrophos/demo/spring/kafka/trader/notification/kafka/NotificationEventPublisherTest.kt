@@ -1,7 +1,7 @@
 package de.antrophos.demo.spring.kafka.trader.notification.kafka
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import de.antrophos.demo.spring.kafka.trader.shared.events.TraderNotified
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,22 +33,24 @@ class NotificationEventPublisherTest {
     @Autowired
     private lateinit var publisher: NotificationEventPublisher
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     @Test
     fun `publishTraderNotified sends TraderNotified event to trader-notifications topic`() {
         val traderId = "trader-test"
         val orderId = UUID.randomUUID()
         val message = "Order settled"
 
-        publisher.publishTraderNotified(traderId, orderId, message)
-
         val consumerProps = KafkaTestUtils.consumerProps("test-group", "true", embeddedKafka)
-        consumerProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        consumerProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
-        consumerProps[JsonDeserializer.TRUSTED_PACKAGES] = "*"
-        consumerProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = TraderNotified::class.java.name
-
-        val consumer = DefaultKafkaConsumerFactory<String, TraderNotified>(consumerProps).createConsumer()
+        val jsonDeserializer = JsonDeserializer(TraderNotified::class.java, objectMapper)
+        jsonDeserializer.addTrustedPackages("*")
+        val consumer = DefaultKafkaConsumerFactory<String, TraderNotified>(
+            consumerProps, StringDeserializer(), jsonDeserializer
+        ).createConsumer()
         embeddedKafka.consumeFromAnEmbeddedTopic(consumer, "trader-notifications")
+
+        publisher.publishTraderNotified(traderId, orderId, message)
 
         val records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(5))
         consumer.close()
