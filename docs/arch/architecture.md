@@ -36,7 +36,7 @@ flowchart LR
 | `RiskService` | Kafka consumer/producer (port 8081); consumes `RiskCheckRequested`; quantity-based approval rule; Resilience4j CB wrapping simulated external call |
 | `ExecutionService` | Kafka consumer/producer (port 8082); simulates trade execution on exchange; publishes `TradeExecuted` |
 | `SettlementService` | Kafka consumer/producer (port 8083); updates positions; transactional Kafka producer; Resilience4j retry + bulkhead |
-| `NotificationService` | Kafka consumer/producer (port 8084); sends trader notification (log stub) |
+| `NotificationService` | Kafka consumer/producer + WebSocket/STOMP push (port 8090); consumes `NotificationRequested`; broadcasts to `/topic/trader/{traderId}`; publishes `TraderNotified` to `trader-notifications` |
 | `SystemTest` | E2E test module using Testcontainers with real Kafka for end-to-end verification of all use cases |
 
 ## Kafka Topics
@@ -51,6 +51,7 @@ flowchart LR
 | `settlement-requests` | SagaOrchestrator | SettlementService | Settlement requests (`SettlementRequested`) |
 | `settlements` | SettlementService | SagaOrchestrator, OrderService | Settlement outcomes (`PositionSettled`, `SettlementFailed`) |
 | `notifications` | SagaOrchestrator | NotificationService | Trader alerts (`NotificationRequested`) |
+| `trader-notifications` | NotificationService | — | Audit trail (`TraderNotified`) |
 | `compensation-requests` | SagaOrchestrator | ExecutionService | Compensation trigger (`CompensationRequested`) |
 | `compensation-results` | ExecutionService | SagaOrchestrator, OrderService | Compensation outcome (`TradeVoided`) |
 | `dlq.settlements` | Spring Kafka DLT | Manual review consumer | Poison-pill + retry exhaustion |
@@ -101,7 +102,7 @@ enum class Side { BUY, SELL }
 :risk              — Spring Boot app: Kafka consumer/producer
 :execution         — Spring Boot app: Kafka consumer/producer
 :settlement        — Spring Boot app: Kafka consumer/producer
-:notification      — Spring Boot app: Kafka consumer/producer
+:notification      — Spring Boot app: Kafka consumer/producer + WebSocket/STOMP push (port 8090)
 :saga-orchestrator — Spring Boot app: Kafka consumer/producer (orchestrates saga)
 :system-test       — Test module: E2E tests using Testcontainers (requires Docker)
 ```

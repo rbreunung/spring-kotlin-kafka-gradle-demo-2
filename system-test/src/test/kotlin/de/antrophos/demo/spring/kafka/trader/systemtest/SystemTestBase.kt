@@ -5,15 +5,65 @@ import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.common.ConsumerGroupState
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.RestTemplate
 import org.testcontainers.containers.DockerComposeContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URI
 import java.time.Duration
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 abstract class SystemTestBase {
+
+    private val restTemplate: RestTemplate = RestTemplate()
+
+    protected fun placeOrder(traderId: String = "trader-001"): UUID {
+        val request = mapOf(
+            "traderId" to traderId,
+            "symbol" to "AAPL",
+            "quantity" to 100,
+            "side" to "BUY"
+        )
+        val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
+        val response = restTemplate.postForEntity(
+            "${orderServiceBaseUrl()}/orders",
+            HttpEntity(request, headers),
+            OrderResponse::class.java
+        )
+        assertNotNull(response.body)
+        return response.body!!.id
+    }
+
+    protected fun awaitSagaSettled(orderId: UUID, timeout: Long = 120): SagaStateResponse {
+        await.atMost(timeout, TimeUnit.SECONDS)
+            .pollInterval(Duration.ofSeconds(2))
+            .until {
+                try {
+                    val response = restTemplate.getForEntity(
+                        "${sagaServiceBaseUrl()}/sagas/$orderId",
+                        SagaStateResponse::class.java
+                    )
+                    response.statusCode.is2xxSuccessful && response.body?.step == "SETTLED"
+                } catch (_: HttpClientErrorException) {
+                    false
+                }
+            }
+        return restTemplate.getForEntity(
+            "${sagaServiceBaseUrl()}/sagas/$orderId",
+            SagaStateResponse::class.java
+        ).body!!
+    }
+
+    data class OrderResponse(val id: UUID)
+    data class SagaStateResponse(val orderId: UUID, val step: String)
 
     companion object {
         @JvmStatic
@@ -108,6 +158,7 @@ abstract class SystemTestBase {
                     "risk-service",
                     "execution-service",
                     "settlement-service",
+                    "notification-service",
                     "saga-orchestrator"
                 )
             val adminProps = mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092")
