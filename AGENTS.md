@@ -67,6 +67,20 @@ When running build, test, or git commands:
 
 ---
 
+## Pre-Slice Checklist
+
+Run this checklist at the start of every implementation session, before writing any code:
+
+- Re-read `AGENTS.md` (this file) to refresh all conventions
+- Check `libs.versions.toml` before adding any dependency — never hardcode a version string
+- Review the Bash Command Style section below; follow its restrictions throughout the session
+- Batch independent file reads into a single parallel tool call rather than reading files one at a time
+- Every tool call must have a description that explains its intent (e.g., "run unit tests for order module"), not just what it runs (e.g., "shell command")
+
+**Binding workflow rule:** Invoking a named workflow (e.g., `feature-impl`, `bug-fix`) is a commitment to complete all its steps in order. Do not skip steps — including retrospective and PR steps at the end.
+
+---
+
 ## Behavioral Disciplines
 
 Apply these at all times — for workflow tasks and ad-hoc requests:
