@@ -1,17 +1,9 @@
 # BUG-002: Settlement service DLQ serializer mismatch causes infinite retry loop
 
-Status: in-progress
+Status: resolved
 Severity: medium
 Date: 2026-03-20
 Reporter: rbreunung
-
-## Progress
-
-Phase: investigating
-Hypothesis: —
-Last Updated: 2026-03-20
-
----
 
 ## Environment
 
@@ -63,11 +55,11 @@ Restart the full Docker Compose stack. The first order placed after restart alwa
 
 ## Root Cause
 
-> Agent: fill during investigation phase.
+`SettlementKafkaConfig` configured the DLQ producer with `ByteArraySerializer` for values. When `SettlementService.settle()` throws (after Resilience4j exhausts retries), the `DeadLetterPublishingRecoverer` receives the deserialized `SettlementRequested` object — not raw bytes. `ByteArraySerializer` cannot serialize a non-`byte[]` value, throwing `ClassCastException`. The DLQ publication fails, the error handler cannot recover the record, and the consumer seeks back to the failed offset and retries indefinitely.
 
 ## Fix Summary
 
-> Agent: fill after fix is implemented.
+Changed `VALUE_SERIALIZER_CLASS_CONFIG` in the DLQ producer from `ByteArraySerializer` to `JsonSerializer` and updated the producer factory type from `DefaultKafkaProducerFactory<String, ByteArray>` to `DefaultKafkaProducerFactory<String, Any>`. The `DeadLetterPublishingRecoverer` can now correctly serialize any deserialized event object to the DLQ.
 
-- **Test added:** —
-- **Commit:** —
+- **Test added:** `settlement/src/test/kotlin/.../kafka/DeadLetterTopicServiceFailureTest.kt` — `valid SettlementRequested that fails processing is routed to dlq settlements`
+- **Commit:** 77e9def
