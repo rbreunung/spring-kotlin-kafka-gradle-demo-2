@@ -31,6 +31,8 @@ Read these files at STEP 3 (max 5 total):
 4. Related existing FEAT spec (if applicable)
 5. Related existing FEAT spec (if applicable)
 
+> **⚠️ Boundary: This is a SPEC session.** The outputs are documentation only — feature spec, architecture updates, and implementation plan. Do NOT make source code changes in this workflow. If source code changes seem necessary, flag it to the user and defer to the `feature-impl` workflow.
+
 ---
 
 ## Steps
@@ -175,6 +177,8 @@ Ask the user:
 
 If **A**: offer to create a PR for spec docs only. When implementation starts later, create a fresh `feat/FEAT_ID` branch from updated main.
 If **B**: the branch is ready for the `feature-impl` workflow.
+
+> **⚠️ PR only — never merge directly to main.** Always use a GitHub pull request. Do not run `git merge` or `git push` directly to the main branch.
 
 ### STEP 12: Opt-in Retrospective
 
