@@ -86,7 +86,7 @@ services:
       context: .
       dockerfile: notification/Dockerfile
     ports:
-      - "8084:8084"
+      - "8090:8090"
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans

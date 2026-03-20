@@ -34,8 +34,11 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.kafka:spring-kafka")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(libs.mockito.kotlin)
+    testImplementation("org.awaitility:awaitility-kotlin")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

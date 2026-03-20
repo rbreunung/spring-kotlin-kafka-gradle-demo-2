@@ -6,6 +6,10 @@
 spring-boot = "3.5.11"          # see gradle.properties: springBootVersion
 spring-cloud = "2025.0.1"       # see gradle.properties: springCloudVersion
 kotlin = "1.9.25"
+mockito-kotlin = "5.4.0"
+
+[libraries]
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -14,7 +14,7 @@ class ObservabilityTest : SystemTestBase() {
             "risk-service"         to "http://localhost:8081/actuator/health",
             "execution-service"    to "http://localhost:8082/actuator/health",
             "settlement-service"   to "http://localhost:8083/actuator/health",
-            "notification-service" to "http://localhost:8084/actuator/health",
+            "notification-service" to "http://localhost:8090/actuator/health",
             "saga-orchestrator"    to "http://localhost:8085/actuator/health"
         )
 
