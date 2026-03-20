@@ -39,6 +39,11 @@ Read these files at STEP 1 (max 3):
 
 ### STEP 1: Load Context
 
+> **Session checklist** — before reading any files, confirm:
+> - You have re-read `AGENTS.md` (Bash conventions, Pre-Slice Checklist)
+> - You know where `libs.versions.toml` is and will check it before adding any dependency
+> - You will not skip STEP 8 (retrospective) or STEP 9 (PR) — both are required to close this workflow
+
 Find and read (use glob `docs/features/FEAT-NNN-*.md` and `docs/plans/PLAN-NNN-*.md`):
 - Feature spec for the requested FEAT-NNN
 - Implementation plan (same number: PLAN-NNN)
@@ -184,6 +189,8 @@ docs(FEAT-NNN): update architecture for implementation
 ```
 
 ### STEP 8: Opt-in Retrospective
+
+> **Exit gate:** Do not proceed to STEP 9 until this step is complete. STEP 8 is not optional to *ask* — always offer the retrospective before the PR.
 
 Ask: "Would you like to add a retrospective for this implementation?"
 
