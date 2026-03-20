@@ -52,6 +52,8 @@ If corrections are needed: update and re-confirm. Proceed to Phase 2 only when c
 
 ### STEP 1: Allocate ID & Create Doc
 
+> **⚠️ Compliance gate:** Complete this step fully before moving to STEP 3. Do NOT read source files or begin investigation until the BUG-NNN doc exists in `docs/bugs/` and is registered in `docs/registry.md`.
+
 1. Read `docs/registry.md`, find highest BUG-NNN, allocate next
 2. Add to registry: `| BUG-NNN | BUG | [title] | in-progress |`
 3. Copy `docs/templates/bug-report-template.md` to `docs/bugs/BUG-NNN-kebab-title.md`
@@ -72,6 +74,8 @@ Read (max 5 files):
 - Source files for the affected component
 - Relevant test files
 - Related feature spec (if the behavior is documented in `docs/features/`)
+
+**Coverage check** — before proposing a fix, identify whether a test for the affected failure path already exists. Note the finding in the bug report: "Existing coverage: [test name] / none". If no coverage exists, the reproduction test in STEP 4 will be the first.
 
 Document root cause hypothesis in the `## Progress` section of the bug report:
 ```
