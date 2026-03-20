@@ -73,3 +73,4 @@ The registry status tracks **document completeness**, not implementation progres
 | BUG-002 | BUG | Settlement service DLQ misconfigured — ByteArraySerializer/JsonSerializer mismatch causes retry loop on second order | resolved |
 | RETRO-016 | RETRO | FEAT-010 implementation retrospective | complete |
 | RETRO-017 | RETRO | Bug-fix: BUG-002 settlement DLQ serializer mismatch | complete |
+| BUG-003 | BUG | Settlement service fails all orders after the first — original exception unknown due to missing error logging | open |
