@@ -1,8 +1,8 @@
 package de.antrophos.demo.spring.kafka.trader.settlement.kafka
 
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.springframework.kafka.support.serializer.JsonSerializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer
 import org.springframework.context.annotation.Bean
@@ -28,9 +28,9 @@ class SettlementKafkaConfig(
         val dlqProducerProps = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to ByteArraySerializer::class.java
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java
         )
-        val dlqTemplate = KafkaTemplate(DefaultKafkaProducerFactory<String, ByteArray>(dlqProducerProps))
+        val dlqTemplate = KafkaTemplate(DefaultKafkaProducerFactory<String, Any>(dlqProducerProps))
         val recoverer = DeadLetterPublishingRecoverer(dlqTemplate) { _, _ ->
             org.apache.kafka.common.TopicPartition("dlq.settlements", 0)
         }

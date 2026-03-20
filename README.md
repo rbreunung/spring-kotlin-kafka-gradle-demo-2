@@ -96,7 +96,7 @@ The platform exposes metrics and distributed traces for all six services.
 | risk-service | http://localhost:8081/actuator/prometheus |
 | execution-service | http://localhost:8082/actuator/prometheus |
 | settlement-service | http://localhost:8083/actuator/prometheus |
-| notification-service | http://localhost:8084/actuator/prometheus |
+| notification-service | http://localhost:8090/actuator/prometheus |
 | saga-orchestrator | http://localhost:8085/actuator/prometheus |
 
 ### Zipkin distributed tracing
@@ -128,7 +128,7 @@ trader/
 ├── risk/                # Spring Boot: Kafka consumer/producer (Resilience4j CB)
 ├── execution/           # Spring Boot: Kafka consumer/producer
 ├── settlement/          # Spring Boot: Kafka consumer/producer (Resilience4j retry)
-├── notification/        # Spring Boot: Kafka consumer (log stub)
+├── notification/        # Spring Boot: Kafka consumer + WebSocket/STOMP push (port 8090)
 ├── saga-orchestrator/   # Spring Boot: saga state machine over Kafka
 ├── docker-compose.yml         # Kafka only (daily dev)
 ├── docker-compose.full.yml    # Kafka + all services (demo/CI)
