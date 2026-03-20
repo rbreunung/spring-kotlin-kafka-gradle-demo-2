@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notification Test Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; max-width: 600px; }
+        input { width: 200px; padding: 4px; }
+        button { padding: 4px 12px; margin-left: 8px; }
+        #messages { margin-top: 16px; padding: 10px; background: #f4f4f4; min-height: 100px; white-space: pre-wrap; }
+        .status { color: #666; font-size: 0.9em; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <h2>Notification Test Client</h2>
+    <label>Trader ID: <input id="traderId" type="text" value="T001" /></label>
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <p class="status" id="status">Disconnected</p>
+    <div id="messages"></div>
+
+    <script>
+        var stompClient = null;
+
+        function connect() {
+            var traderId = document.getElementById('traderId').value;
+            var socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function () {
+                document.getElementById('status').textContent = 'Connected — subscribed to /topic/trader/' + traderId;
+                stompClient.subscribe('/topic/trader/' + traderId, function (msg) {
+                    var payload = JSON.parse(msg.body);
+                    var line = new Date().toISOString() + '  ' + JSON.stringify(payload) + '\n';
+                    document.getElementById('messages').textContent += line;
+                });
+            }, function (err) {
+                document.getElementById('status').textContent = 'Connection error: ' + err;
+            });
+        }
+
+        function disconnect() {
+            if (stompClient) {
+                stompClient.disconnect();
+                stompClient = null;
+            }
+            document.getElementById('status').textContent = 'Disconnected';
+        }
+    </script>
+</body>
+</html>

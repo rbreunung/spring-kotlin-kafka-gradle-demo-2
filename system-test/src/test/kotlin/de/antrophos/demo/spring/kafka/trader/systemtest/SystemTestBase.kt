@@ -108,6 +108,7 @@ abstract class SystemTestBase {
                     "risk-service",
                     "execution-service",
                     "settlement-service",
+                    "notification-service",
                     "saga-orchestrator"
                 )
             val adminProps = mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092")

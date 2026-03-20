@@ -10,7 +10,7 @@ enum class SagaStep {
     COMPENSATION_REQUESTED,      // new
     COMPENSATION_COMPLETE,       // new (terminal)
     COMPENSATION_FAILED,         // new (terminal — reserved)
-    NOTIFICATION_SENT;           // reserved — not yet activated
+    NOTIFICATION_SENT;           // reserved — not yet activated; see FEAT-010 design notes
 
     val isTerminal: Boolean get() = this in setOf(
         RISK_REJECTED, SETTLED, COMPENSATION_COMPLETE, COMPENSATION_FAILED
