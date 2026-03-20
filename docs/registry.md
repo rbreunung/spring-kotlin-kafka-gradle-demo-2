@@ -71,3 +71,4 @@ The registry status tracks **document completeness**, not implementation progres
 | RETRO-014 | RETRO | Bug-fix: BUG-001 SagaCompensationTest race condition | complete |
 | RETRO-015 | RETRO | FEAT-009 implementation retrospective | complete |
 | BUG-002 | BUG | Settlement service DLQ misconfigured — ByteArraySerializer/JsonSerializer mismatch causes retry loop on second order | resolved |
+| RETRO-017 | RETRO | Bug-fix: BUG-002 settlement DLQ serializer mismatch | complete |
