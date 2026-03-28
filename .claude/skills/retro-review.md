@@ -7,18 +7,21 @@ description: Use to aggregate all retrospectives, identify recurring themes, and
 
 ```mermaid
 flowchart TD
-    A[Read all RETRO-NNN docs] --> B[Identify themes]
-    B --> C[Draft improvements per theme]
-    C --> D[Present + discuss with user]
-    D --> E[Apply agreed changes]
-    E --> F[Write RETRO-REVIEW-NNN doc]
-    F --> G[Commit all changes]
+    A[Read all RETRO-NNN docs] --> B[Create branch]
+    B --> C[Identify themes]
+    C --> D[Draft improvements per theme]
+    D --> E[Present + discuss with user]
+    E --> F[Apply agreed changes]
+    F --> G[Write RETRO-REVIEW-NNN doc]
+    G --> H[Commit all changes]
+    H --> I[Offer Integration]
 ```
 
 ## Context Budget
 
 Files to read:
-- All `docs/retrospectives/RETRO-NNN-*.md` files (use glob — do NOT read RETRO-REVIEW files)
+- All `docs/retrospectives/RETRO-NNN-*.md` files (use glob)
+- All `docs/retrospectives/RETRO-REVIEW-NNN.md` files — read to identify which retros are already reviewed
 - `AGENTS.md` (for potential updates)
 - Any specific workflow or feature doc flagged for improvement
 
@@ -31,6 +34,22 @@ Files to read:
 Use glob to list all files matching `docs/retrospectives/RETRO-[0-9]*.md`.
 
 Read each one. For any `RETRO-REVIEW-NNN.md` files that exist, read them to determine which retrospectives have already been reviewed — focus analysis on the **unreviewed** ones, but note any recurring patterns from older ones too.
+
+### STEP 1b: Create Branch
+
+Before making any changes, allocate the RETRO-REVIEW ID and create a branch:
+
+1. Read `docs/registry.md`, find the highest existing RETRO-REVIEW-NNN, allocate the next number
+2. Add a row to the registry immediately: `| RETRO-REVIEW-NNN | RETRO-REVIEW | [session date] | in-progress |`
+3. Create the branch:
+
+```bash
+git checkout main    # or master
+git pull
+git checkout -b chore/retro-review-NNN
+```
+
+All workflow edits and the review doc commit go on this branch.
 
 ### STEP 2: Identify Themes
 
@@ -92,7 +111,7 @@ chore: [brief description of improvement] — retro review finding
 
 ### STEP 6: Write Review Doc
 
-1. Allocate RETRO-REVIEW-NNN from `docs/registry.md`
+1. Use the RETRO-REVIEW-NNN allocated and registered in STEP 1b
 2. Copy `docs/templates/retro-review-template.md` to `docs/retrospectives/RETRO-REVIEW-NNN.md`
 3. Fill:
    - Retrospectives reviewed (list RETRO IDs)
@@ -100,3 +119,13 @@ chore: [brief description of improvement] — retro review finding
    - Themes found with examples and agreed actions
    - Changes made (list of files updated)
 4. Commit: `chore(RETRO-REVIEW-NNN): retrospective review — [one-line theme summary]`
+
+### STEP 7: Offer Integration
+
+Ask the user:
+> "The retro-review changes are on `chore/retro-review-NNN`. How would you like to integrate them?
+> - **A) Open a pull/merge request** — create a PR/MR for review
+> - **B) Merge locally** — merge into main now
+> - **C) Keep on branch** — continue work before integrating"
+
+If **B**: confirm explicitly with the user before merging.

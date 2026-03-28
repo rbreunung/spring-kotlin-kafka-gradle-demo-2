@@ -22,13 +22,13 @@ flowchart TD
     N -->|no| O[Update arch doc if needed]
     O --> P{Retrospective?}
     P -->|yes| Q[Write retro]
-    P -->|no| R[Offer PR]
+    P -->|no| R[Offer Integration]
     Q --> R
 ```
 
 ## Context Budget
 
-Read these files at STEP 1 (max 3):
+Read these files at STEP 1:
 1. `docs/features/FEAT-NNN-title.md` — the feature spec
 2. `docs/plans/PLAN-NNN-title.md` — the implementation plan
 3. `docs/arch/architecture.md`
@@ -40,9 +40,9 @@ Read these files at STEP 1 (max 3):
 ### STEP 1: Load Context
 
 > **Session checklist** — before reading any files, confirm:
-> - You have re-read `AGENTS.md` (Bash conventions, Pre-Slice Checklist)
+> - You have re-read `AGENTS.md` (Bash Command Style section and Pre-Slice Checklist)
 > - You know where `libs.versions.toml` is and will check it before adding any dependency
-> - You will not skip STEP 8 (retrospective) or STEP 9 (PR) — both are required to close this workflow
+> - You will not skip STEP 8 (retrospective) or STEP 9 (Offer Integration) — both are required to close this workflow
 
 Find and read (use glob `docs/features/FEAT-NNN-*.md` and `docs/plans/PLAN-NNN-*.md`):
 - Feature spec for the requested FEAT-NNN
@@ -58,8 +58,10 @@ Read each vertical slice in the plan. For each one, verify:
 - Are the files to touch identified?
 - Does the test description specify what to assert?
 
-If any slice is ambiguous: ask the user to clarify. Update the plan doc with the clarification.
-Do not start coding until every upcoming slice is unambiguous.
+For each slice, confirm it is unambiguous before writing any code. If a slice is unclear, ask the user and wait for their answer before proceeding to STEP 4. Update the plan doc with each clarification.
+
+> **✅ Gate — Ambiguity Check**
+> Every upcoming slice must be unambiguous before any code is written.
 
 **Data-flow traceability check** — for every event or message the feature publishes:
 1. List every field in the event's data class.
@@ -71,6 +73,8 @@ Do not start coding until every upcoming slice is unambiguous.
 - Any mismatch is a blocker. Resolve it with the user and update all sections before starting.
 
 **API signature pre-check** — for any test utility named in the plan (e.g., `KafkaTestUtils`, `Awaitility`, `RestTemplate`), look up its current API signature before writing the test. Do not assume the overload from the plan description alone — API signatures can change between library versions.
+
+**Port verification** — if the feature spec notes a port for a new network listener, verify the port matches `application.yml` and `docker-compose.yml` before writing any code. If a mismatch is found, raise it with the user before proceeding.
 
 ### STEP 3: Branch Setup
 
@@ -161,15 +165,17 @@ Reviewed: [date]
 Gaps: [none / description]
 ```
 
-**Important:** Do NOT recreate `PLAN-NNN` — update the existing file only. Fill in the Implementation Review table, set `Status: complete` in both the feature doc and plan doc, tick all `[ ]` goal and acceptance checkboxes, then remove the `## Progress` section.
-
-Commit: `chore(FEAT-NNN): implementation review — [passed / N gaps found]`
+**Important:** Do NOT recreate `PLAN-NNN` — update the existing file only. Fill in the Implementation Review table, set `Status: complete` in both the feature doc and plan doc, tick all `[ ]` goal and acceptance checkboxes.
 
 **If gaps are found:** return to STEP 4 for the affected slices. Re-run the review after fixing.
 
-### STEP 7: Update Architecture Doc
+> **✅ Gate — Review Passed**
+> All acceptance criteria covered, all slices tested, Status set to `complete` in both docs.
+> Remove the `## Progress` section from `docs/plans/PLAN-NNN-*.md`, then commit:
+> `chore(FEAT-NNN): implementation review — passed`
+> Do NOT proceed to STEP 7 until this gate is cleared.
 
-Remove the `## Progress` section from `docs/plans/PLAN-NNN-*.md` — implementation is complete.
+### STEP 7: Update Architecture Doc
 
 If the implementation revealed differences from the spec's architecture (e.g., a component was split, a different pattern was used):
 - Update `docs/arch/architecture.md` (Component Map or Data Model)
@@ -190,9 +196,10 @@ Commit any changes made in this step:
 docs(FEAT-NNN): update architecture for implementation
 ```
 
-### STEP 8: Opt-in Retrospective
+### STEP 8: Retrospective
 
-> **Exit gate:** Do not proceed to STEP 9 until this step is complete. STEP 8 is not optional to *ask* — always offer the retrospective before the PR.
+> **✅ Gate — Retrospective**
+> Always offer the retrospective and wait for the user's answer before proceeding to STEP 9.
 
 Ask: "Would you like to add a retrospective for this implementation?"
 
@@ -202,13 +209,18 @@ If yes:
 3. Write `docs/retrospectives/RETRO-NNN-impl-FEAT-NNN.md`
 4. Commit: `chore(RETRO-NNN): feature impl retrospective for FEAT-NNN`
 
-### STEP 9: Offer PR
+### STEP 9: Offer Integration
 
-Ask: "Ready to create a pull request for `feat/FEAT-NNN-*`?"
+Ask the user:
+> "The implementation is complete on `feat/FEAT-NNN-*`. How would you like to integrate it?
+> - **A) Open a pull/merge request** — create a PR/MR for review
+> - **B) Merge locally** — merge into main now
+> - **C) Keep on branch** — continue work before integrating"
 
-If yes: generate PR title (`feat(FEAT-NNN): [feature title]`) and body summarizing:
+If **A**: generate PR title (`feat(FEAT-NNN): [feature title]`) and body summarizing:
 - What the feature does (from spec purpose)
 - Acceptance criteria covered
 - Tests added
 
 Confirm the PR description with the user before creating.
+If **B**: confirm explicitly with the user before merging.
