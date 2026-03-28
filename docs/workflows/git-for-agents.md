@@ -46,6 +46,14 @@ git rebase main                    # only if branch not yet pushed to origin
 | `git checkout .` / `git restore .` | Discards uncommitted work | Discuss with user first |
 | `git add -A` / `git add .` | Stages unintended files | Add specific files by name |
 
+## Branch State on Checkout
+
+If checking out a branch that already exists (e.g., `feat/FEAT-NNN-*` from a prior session):
+
+1. Run `git log HEAD --oneline -5` to see what commits are already on it.
+2. Run `git status` to check for uncommitted changes.
+3. If anything unexpected is found (stale commits, modified files, merge conflicts), summarize it to the user and confirm before proceeding — do not silently discard or overwrite existing work.
+
 ## Commit Discipline
 
 - **One commit per vertical slice** (one logical unit of deliverable work).
