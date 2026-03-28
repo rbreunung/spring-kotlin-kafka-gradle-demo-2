@@ -28,7 +28,7 @@ Read these files at STEP 3:
 4. Related existing FEAT spec (if applicable)
 5. Related existing FEAT spec (if applicable)
 
-> **✅ Gate — Spec Session Boundary**
+> **⚠️ Workflow Constraint — Spec Session Boundary**
 > This workflow produces documentation only — feature spec, architecture updates, and implementation plan. Do NOT make source code changes. If source code changes seem necessary, flag it to the user and defer to the `feature-impl` workflow.
 
 ---

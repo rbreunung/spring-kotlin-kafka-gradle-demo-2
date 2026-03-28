@@ -73,7 +73,7 @@ Run this checklist at the start of every implementation session, before writing 
 
 - Re-read `AGENTS.md` (this file) to refresh all conventions
 - Check `libs.versions.toml` before adding any dependency — never hardcode a version string
-- Review the Bash Command Style section below; follow its restrictions throughout the session
+- Review the Bash Command Style section above; follow its restrictions throughout the session
 - Batch independent file reads into a single parallel tool call rather than reading files one at a time
 - Every tool call must have a description that explains its intent (e.g., "run unit tests for order module"), not just what it runs (e.g., "shell command")
 
@@ -88,7 +88,7 @@ Apply these at all times — for workflow tasks and ad-hoc requests:
 - **Design before coding.** For any non-trivial change, agree on the approach before writing implementation code. Ask questions one at a time; do not start implementation until the design is unambiguous.
 - **Test before implementation.** Write a failing test first. The test must fail before the fix/feature is written. If it passes without implementation, it does not verify the right thing.
 - **Verify before claiming done.** Run the tests. See the output. Do not assert "tests pass" without running them. Evidence before assertions.
-- **Review before PR.** Before offering a pull request, check each acceptance criterion from the spec against the actual test coverage.
+- **Review before integration.** Before the Offer Integration step, check each acceptance criterion from the spec against actual test coverage.
 - **Minimum change.** Implement only what the current task requires. Do not refactor surrounding code, add unrelated improvements, or speculate about future needs.
 - **Never modify build toolchain versions** (Java, Gradle wrapper, Kotlin plugin) without explicit user approval. If a toolchain change is needed, state the reason and version delta and wait for confirmation before proceeding.
 

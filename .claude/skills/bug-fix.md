@@ -58,7 +58,7 @@ If corrections are needed: update and re-confirm. Proceed to Phase 2 only when c
 ### STEP 1: Allocate ID & Create Doc
 
 > **✅ Gate — Bug Doc Exists**
-> Complete this step fully before moving to STEP 3. Do NOT read source files or begin investigation until the BUG-NNN doc exists in `docs/bugs/` and is registered in `docs/registry.md`.
+> Complete STEP 1 fully. STEP 2 (branch creation) may proceed immediately after. Do NOT begin STEP 3 until the BUG-NNN doc exists in `docs/bugs/` and is registered in `docs/registry.md`.
 
 1. Read `docs/registry.md`, find highest BUG-NNN, allocate next
 2. Add to registry: `| BUG-NNN | BUG | [title] | in-progress |`
