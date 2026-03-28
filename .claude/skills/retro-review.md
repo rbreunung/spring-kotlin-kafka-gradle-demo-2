@@ -20,7 +20,8 @@ flowchart TD
 ## Context Budget
 
 Files to read:
-- All `docs/retrospectives/RETRO-NNN-*.md` files (use glob — do NOT read RETRO-REVIEW files)
+- All `docs/retrospectives/RETRO-NNN-*.md` files (use glob)
+- All `docs/retrospectives/RETRO-REVIEW-NNN.md` files — read to identify which retros are already reviewed
 - `AGENTS.md` (for potential updates)
 - Any specific workflow or feature doc flagged for improvement
 
@@ -36,7 +37,11 @@ Read each one. For any `RETRO-REVIEW-NNN.md` files that exist, read them to dete
 
 ### STEP 1b: Create Branch
 
-Before making any changes, create a branch for this retro-review session:
+Before making any changes, allocate the RETRO-REVIEW ID and create a branch:
+
+1. Read `docs/registry.md`, find the highest existing RETRO-REVIEW-NNN, allocate the next number
+2. Add a row to the registry immediately: `| RETRO-REVIEW-NNN | RETRO-REVIEW | [session date] | in-progress |`
+3. Create the branch:
 
 ```bash
 git checkout main    # or master
@@ -44,7 +49,7 @@ git pull
 git checkout -b chore/retro-review-NNN
 ```
 
-Where NNN is the RETRO-REVIEW number to be allocated in STEP 6. Allocate that number from `docs/registry.md` now so the branch name matches the doc. All workflow edits and the review doc commit go on this branch.
+All workflow edits and the review doc commit go on this branch.
 
 ### STEP 2: Identify Themes
 
@@ -106,7 +111,7 @@ chore: [brief description of improvement] — retro review finding
 
 ### STEP 6: Write Review Doc
 
-1. The RETRO-REVIEW-NNN number was allocated in STEP 1b — use it here
+1. Use the RETRO-REVIEW-NNN allocated and registered in STEP 1b
 2. Copy `docs/templates/retro-review-template.md` to `docs/retrospectives/RETRO-REVIEW-NNN.md`
 3. Fill:
    - Retrospectives reviewed (list RETRO IDs)
