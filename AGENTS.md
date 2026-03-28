@@ -77,7 +77,7 @@ Run this checklist at the start of every implementation session, before writing 
 - Batch independent file reads into a single parallel tool call rather than reading files one at a time
 - Every tool call must have a description that explains its intent (e.g., "run unit tests for order module"), not just what it runs (e.g., "shell command")
 
-**Binding workflow rule:** Invoking a named workflow (e.g., `feature-impl`, `bug-fix`) is a commitment to complete all its steps in order. Do not skip steps — including retrospective and PR steps at the end.
+**Binding workflow rule:** Invoking a named workflow (e.g., `feature-impl`, `bug-fix`) is a commitment to complete all its steps in order. Do not skip steps — including retrospective and PR steps at the end. When invoking a named workflow, create a TodoWrite task for each numbered step before starting the first one. Mark each task complete as it finishes.
 
 ---
 
@@ -90,6 +90,7 @@ Apply these at all times — for workflow tasks and ad-hoc requests:
 - **Verify before claiming done.** Run the tests. See the output. Do not assert "tests pass" without running them. Evidence before assertions.
 - **Review before PR.** Before offering a pull request, check each acceptance criterion from the spec against the actual test coverage.
 - **Minimum change.** Implement only what the current task requires. Do not refactor surrounding code, add unrelated improvements, or speculate about future needs.
+- **Never modify build toolchain versions** (Java, Gradle wrapper, Kotlin plugin) without explicit user approval. If a toolchain change is needed, state the reason and version delta and wait for confirmation before proceeding.
 
 ---
 
@@ -100,4 +101,4 @@ Apply these at all times — for workflow tasks and ad-hoc requests:
 - Commit format: `feat(FEAT-NNN): description` / `fix(BUG-NNN): description` / `chore: description`
 - Commit after each passing test iteration — do not accumulate uncommitted work
 - At workflow end: offer to create a PR with a generated title and description
-- See `docs/workflows/git-for-agents.md` for allowed and prohibited git command patterns.
+- **Must read:** `docs/workflows/git-for-agents.md` — allowed and prohibited git command patterns, branch rules, and commit discipline.
