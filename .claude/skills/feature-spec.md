@@ -79,6 +79,11 @@ If multiple approaches are viable, present 2–3 options with trade-offs. Agree 
 
 **Never silently apply an established pattern** — when a design choice follows a prior feature, name the pattern and its origin: *"Following [pattern] from [FEAT-NNN], I'd use [X] here — does this look right?"* Always confirm before moving on.
 
+**Port assignment** — If the feature introduces an HTTP server, WebSocket endpoint, or any other network listener:
+1. Confirm the intended port with the user.
+2. Cross-check for conflicts in existing feature specs (`docs/features/`) and configuration files (e.g., `docker-compose.yml`, `application.yml`). If a conflict is found, present alternative ports and let the user decide.
+3. The agreed port must be documented in the feature spec, added to the architecture doc services table, and reflected in the README (manual testing section).
+
 ### STEP 5: Scope Clarification
 
 Continue Q&A to nail down (one question at a time):
@@ -107,24 +112,22 @@ Review the docs loaded in STEP 3:
 
 Make any necessary updates to existing docs now (keep changes minimal).
 
-### STEP 6b: Concurrent Event Analysis
+### STEP 6b: Use Case Flow and Race Condition Analysis
 
-**Apply this step whenever the feature touches a state machine** (saga steps, order status, entity lifecycle, or any component that guards duplicate/out-of-order events). Skip only if the feature has no stateful transitions.
+**Apply this step to every feature.**
 
-For each stateful transition introduced or modified by this feature:
+1. **Enumerate use cases and their flows** — for each external trigger (HTTP endpoint, Kafka consumer, scheduled job, UI action): write a short numbered sequence of steps describing the happy path.
+2. **Explore race conditions** — for each flow, ask: could two instances of this trigger arrive concurrently? Could a timeout-and-retry overlap with a still-in-flight first attempt? Could a user action race an async event? Could an older event arrive after a newer one?
+3. **Document any race conditions found** — for each race: name the scenario, name the guard or idempotency mechanism, and add an abstract test case describing the negative path. Use this table:
 
-1. **List all events or actions that could arrive concurrently** — e.g., two copies of the same event, an older event arriving after a newer one, a user action racing an async event.
-2. **For each concurrent scenario, name the guard** that prevents inconsistency — e.g., `isTerminalOrWarn()`, `applyTransition()` fromStatus check, idempotency key, database unique constraint.
-3. **Present the analysis to the user as a table:**
+| Trigger / Transition | Concurrent scenario | Guard | Negative Test Case |
+|---|---|---|---|
+| `POST /orders` | Duplicate request arrives twice | Idempotency key drops duplicate | POST same order twice → assert second is rejected or silently dropped |
+| `A → B` | Competing event arrives while first in-flight | State pre-condition check rejects invalid transition | Send out-of-order event → assert it is rejected |
 
-| Transition | Concurrent scenario | Guard |
-|---|---|---|
-| `A → B` | Duplicate trigger event arrives twice | Idempotency guard drops the duplicate |
-| `A → B` | Competing event arrives while first in-flight | State pre-condition check rejects invalid transition |
+4. **Propose protection** — for any unguarded race, agree on a guard with the user before writing the spec.
 
-4. **Discuss any scenario that has no guard** — agree on whether it needs one or is acceptable to leave unguarded (and document the decision).
-
-Do not proceed to STEP 7 until all concurrent scenarios are either guarded or explicitly accepted as out-of-scope.
+Do not proceed to STEP 7 until all race conditions are either guarded or explicitly accepted as out-of-scope.
 
 ### STEP 7: Write Feature Spec
 
@@ -159,6 +162,8 @@ If this feature introduces a **significant architectural decision** (a choice th
 3. Break the feature into **vertical slices** — each slice delivers one testable piece of behavior
 4. For each slice: name it, list files to touch, describe the test in plain language
 5. Order slices from core domain logic outward (domain model → service → API → UI if applicable)
+
+**API signature specificity** — for each slice that uses a test utility or third-party API with multiple overloads (e.g., `KafkaTestUtils`, `Awaitility`, `RestTemplate`), specify the exact method signature to use. If uncertain at plan-writing time, mark it as a lookup task for the implementation phase so it is not silently assumed.
 
 ### STEP 10: Commit
 
