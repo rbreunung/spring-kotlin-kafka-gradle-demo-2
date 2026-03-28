@@ -4,20 +4,31 @@
 
 You are either on **main** or on a **feature branch**. Rules differ:
 
+**Main is protected.** No workflow may commit directly to `main`. This includes spec work, retros, retro-reviews, and process improvements. If you are on `main`, create a branch before making any commit.
+
 **On a feature branch:**
 - All commits (code + docs) go on the feature branch — never to `main`.
 - The **only permitted merge** on a feature branch is `git merge main` (bringing main updates in).
   No other merge direction or branch pairing is allowed without explicit user approval.
-- Never merge the feature branch into `main` — leave integration to the user.
+- Never merge the feature branch into `main` — leave integration to the user via the Offer Integration step.
 - Do not read files from `main` directly (`git show main:path` or `git -C`);
   run `git merge main` first, then read files normally.
-
-**On `main` (spec/planning work, no feature branch active):**
-- Spec, planning, and documentation commits go directly on `main`.
 
 **Stale feature branch (behind main):**
 - Not pushed to origin → `git rebase main` (clean linear history).
 - Already pushed to origin → `git merge main` (preserve history; discuss recreation with user).
+
+## Branch Naming
+
+| Purpose | Pattern |
+|---|---|
+| Feature spec + impl | `feat/FEAT-NNN-kebab-title` |
+| Bug fix | `fix/BUG-NNN-kebab-title` |
+| Retrospective write-up | `chore/retro-NNN-kebab-title` |
+| Retro-review session | `chore/retro-review-NNN` |
+| Standalone workflow improvement | `chore/workflow-kebab-topic` |
+
+All branches end with an Offer Integration step. Main receives no direct commits.
 
 ## Allowed Operations
 

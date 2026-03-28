@@ -49,6 +49,7 @@ Load these into context before working on any task (if not already loaded):
 - Context discipline: read max 5 files per workflow step
 - Directories: created on demand — never create empty directories
 - Architecture diagrams: Mermaid, embedded in `docs/arch/architecture.md`
+- `docs/workflows/` contains human-readable copies of all `.claude/skills/` files. Both are authoritative — keep them in sync (see Git Conventions sync rule).
 
 ## Bash Command Style
 
@@ -77,7 +78,7 @@ Run this checklist at the start of every implementation session, before writing 
 - Batch independent file reads into a single parallel tool call rather than reading files one at a time
 - Every tool call must have a description that explains its intent (e.g., "run unit tests for order module"), not just what it runs (e.g., "shell command")
 
-**Binding workflow rule:** Invoking a named workflow (e.g., `feature-impl`, `bug-fix`) is a commitment to complete all its steps in order. Do not skip steps — including retrospective and PR steps at the end. When invoking a named workflow, create a TodoWrite task for each numbered step before starting the first one. Mark each task complete as it finishes.
+**Binding workflow rule:** Invoking any workflow listed in the Available Workflows table is a commitment to complete all its steps in order. Do not skip steps — including retrospective and Offer Integration steps at the end. When invoking a named workflow, create a TodoWrite task for each numbered step before starting the first one. Mark each task complete as it finishes.
 
 ---
 
@@ -96,9 +97,14 @@ Apply these at all times — for workflow tasks and ad-hoc requests:
 
 ## Git Conventions
 
+- **Main is protected.** No commits go directly to `main` from any workflow — not source code, not docs, not retros, not process changes. All work goes on a named branch and integrates via the Offer Integration step.
 - Feature branch: `feat/FEAT-NNN-kebab-title` (created at spec time, covers spec + impl)
 - Bug fix branch: `fix/BUG-NNN-kebab-title`
+- Retro branch: `chore/retro-NNN-kebab-title`
+- Retro-review branch: `chore/retro-review-NNN`
+- Workflow improvement branch: `chore/workflow-kebab-topic`
 - Commit format: `feat(FEAT-NNN): description` / `fix(BUG-NNN): description` / `chore: description`
 - Commit after each passing test iteration — do not accumulate uncommitted work
-- At workflow end: offer to create a PR with a generated title and description
+- At workflow end: use the Offer Integration step — ask whether to open a PR/MR, merge locally, or keep on branch
+- When editing any workflow skill (`.claude/skills/`), always update the corresponding `docs/workflows/` file to match. Both files must stay in sync — they serve different agents but contain identical workflow logic.
 - **Must read:** `docs/workflows/git-for-agents.md` — allowed and prohibited git command patterns, branch rules, and commit discipline.
