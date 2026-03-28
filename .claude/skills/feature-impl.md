@@ -45,7 +45,7 @@ Read these files at STEP 1:
 ### STEP 1: Load Context
 
 > **Session checklist** — before reading any files, confirm:
-> - You have re-read `AGENTS.md` (Bash conventions, Pre-Slice Checklist)
+> - You have re-read `AGENTS.md` (Bash Command Style section and Pre-Slice Checklist)
 > - You know where `libs.versions.toml` is and will check it before adding any dependency
 > - You will not skip STEP 8 (retrospective) or STEP 9 (Offer Integration) — both are required to close this workflow
 
@@ -170,15 +170,17 @@ Reviewed: [date]
 Gaps: [none / description]
 ```
 
-**Important:** Do NOT recreate `PLAN-NNN` — update the existing file only. Fill in the Implementation Review table, set `Status: complete` in both the feature doc and plan doc, tick all `[ ]` goal and acceptance checkboxes, then remove the `## Progress` section.
-
-Commit: `chore(FEAT-NNN): implementation review — [passed / N gaps found]`
+**Important:** Do NOT recreate `PLAN-NNN` — update the existing file only. Fill in the Implementation Review table, set `Status: complete` in both the feature doc and plan doc, tick all `[ ]` goal and acceptance checkboxes.
 
 **If gaps are found:** return to STEP 4 for the affected slices. Re-run the review after fixing.
 
-### STEP 7: Update Architecture Doc
+> **✅ Gate — Review Passed**
+> All acceptance criteria covered, all slices tested, Status set to `complete` in both docs.
+> Remove the `## Progress` section from `docs/plans/PLAN-NNN-*.md`, then commit:
+> `chore(FEAT-NNN): implementation review — passed`
+> Do NOT proceed to STEP 7 until this gate is cleared.
 
-Remove the `## Progress` section from `docs/plans/PLAN-NNN-*.md` — implementation is complete.
+### STEP 7: Update Architecture Doc
 
 If the implementation revealed differences from the spec's architecture (e.g., a component was split, a different pattern was used):
 - Update `docs/arch/architecture.md` (Component Map or Data Model)
