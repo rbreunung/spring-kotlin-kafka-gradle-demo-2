@@ -75,6 +75,8 @@ Do not start coding until every upcoming slice is unambiguous.
 - Verify the field list is identical in every place it appears (Data Model, Publisher table, Consumer table, sequence diagram).
 - Any mismatch is a blocker. Resolve it with the user and update all sections before starting.
 
+**API signature pre-check** — for any test utility named in the plan (e.g., `KafkaTestUtils`, `Awaitility`, `RestTemplate`), look up its current API signature before writing the test. Do not assume the overload from the plan description alone — API signatures can change between library versions.
+
 ### STEP 3: Branch Setup
 
 Check if branch `feat/FEAT-NNN-*` exists:
