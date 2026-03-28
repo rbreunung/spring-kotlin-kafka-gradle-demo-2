@@ -42,7 +42,7 @@ Read these files at STEP 1 (max 3):
 > **Session checklist** — before reading any files, confirm:
 > - You have re-read `AGENTS.md` (Bash conventions, Pre-Slice Checklist)
 > - You know where `libs.versions.toml` is and will check it before adding any dependency
-> - You will not skip STEP 8 (retrospective) or STEP 9 (PR) — both are required to close this workflow
+> - You will not skip STEP 8 (retrospective) or STEP 9 (Offer Integration) — both are required to close this workflow
 
 Find and read (use glob `docs/features/FEAT-NNN-*.md` and `docs/plans/PLAN-NNN-*.md`):
 - Feature spec for the requested FEAT-NNN
