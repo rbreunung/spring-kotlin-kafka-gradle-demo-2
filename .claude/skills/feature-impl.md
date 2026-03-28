@@ -33,7 +33,7 @@ flowchart TD
 
 ## Context Budget
 
-Read these files at STEP 1 (max 3):
+Read these files at STEP 1:
 1. `docs/features/FEAT-NNN-title.md` — the feature spec
 2. `docs/plans/PLAN-NNN-title.md` — the implementation plan
 3. `docs/arch/architecture.md`

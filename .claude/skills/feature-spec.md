@@ -26,7 +26,7 @@ flowchart TD
 
 ## Context Budget
 
-Read these files at STEP 3 (max 5 total):
+Read these files at STEP 3:
 1. `docs/registry.md`
 2. `docs/project-idea.md`
 3. `docs/arch/architecture.md`

@@ -46,7 +46,6 @@ Load these into context before working on any task (if not already loaded):
 - Filenames: `TYPE-NNN-kebab-title.md` (kebab = first 3–5 words, lowercase, hyphens)
 - Always read `docs/registry.md` before allocating an ID; update registry immediately after
 - `## Progress` section: embedded in active workflow docs; removed when workflow completes
-- Context discipline: read max 5 files per workflow step
 - Directories: created on demand — never create empty directories
 - Architecture diagrams: Mermaid, embedded in `docs/arch/architecture.md`
 - `docs/workflows/` contains human-readable copies of all `.claude/skills/` files. Both are authoritative — keep them in sync (see Git Conventions sync rule).
