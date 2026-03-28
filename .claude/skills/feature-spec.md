@@ -116,7 +116,10 @@ Review the docs loaded in STEP 3:
 
 Update all affected docs now. For each doc updated, note the filename and the change made.
 
-### STEP 6b: Use Case Flow and Race Condition Analysis
+> **✅ Gate — Consistency Verified**
+> All conflicts resolved, ADR constraints noted, event fields aligned, and affected docs updated before proceeding to STEP 7.
+
+### STEP 7: Use Case Flow and Race Condition Analysis
 
 **Apply this step to every feature.**
 
@@ -132,22 +135,22 @@ Update all affected docs now. For each doc updated, note the filename and the ch
 4. **Propose protection** — for any unguarded race, agree on a guard with the user before writing the spec.
 
 > **✅ Gate — Race Conditions Resolved**
-> All race conditions must be either guarded or explicitly accepted as out-of-scope before proceeding to STEP 7.
+> All race conditions must be either guarded or explicitly accepted as out-of-scope before proceeding to STEP 8.
 
-### STEP 7: Write Feature Spec
+### STEP 8: Write Feature Spec
 
 1. Copy `docs/templates/feature-spec-template.md` to `docs/features/FEAT_ID-kebab-title.md`
-2. Fill every section based on the Q&A from STEPs 4–6
+2. Fill every section based on the Q&A from STEPs 4–7
 3. Add a `## Progress` section at the very top of the new file:
 
 ```markdown
 ## Progress
-Current Step: 7
-Completed Steps: [1, 2, 3, 4, 5, 6]
+Current Step: 8
+Completed Steps: [1, 2, 3, 4, 5, 6, 7]
 Last Updated: [date]
 ```
 
-### STEP 8: Update Architecture Doc
+### STEP 9: Update Architecture Doc
 
 Open `docs/arch/architecture.md` and:
 - Add new components to the Component Map (Mermaid graph)
@@ -160,7 +163,7 @@ If this feature introduces a **significant architectural decision** (a choice th
 3. Fill the ADR with context, decision, and alternatives considered
 4. Add a link in the architecture doc's "Key Design Decisions" section
 
-### STEP 9: Write Implementation Plan
+### STEP 10: Write Implementation Plan
 
 1. Allocate PLAN-NNN in registry (same number as FEAT-NNN: e.g., PLAN-001 for FEAT-001)
 2. Copy `docs/templates/impl-plan-template.md` to `docs/plans/PLAN-NNN-kebab-title.md`
@@ -170,7 +173,7 @@ If this feature introduces a **significant architectural decision** (a choice th
 
 **API signature specificity** — for each slice that uses a test utility or third-party API with multiple overloads (e.g., `KafkaTestUtils`, `Awaitility`, `RestTemplate`), specify the exact method signature to use. If uncertain at plan-writing time, mark it as a lookup task for the implementation phase so it is not silently assumed.
 
-### STEP 10: Commit
+### STEP 11: Commit
 
 Remove the `## Progress` section from `docs/features/FEAT_ID-*.md` — the spec is complete.
 
@@ -183,7 +186,7 @@ Stage all new and changed files:
 feat(FEAT_ID): add feature spec, architecture update, and implementation plan
 ```
 
-### STEP 11: Offer Integration
+### STEP 12: Offer Integration
 
 Ask the user:
 > "The spec is ready on `feat/FEAT_ID-*`. How would you like to integrate it?
@@ -198,7 +201,7 @@ If **C**: the branch is ready for the `feature-impl` workflow.
 > **✅ Gate — Main Protected**
 > Do NOT merge or push directly to `main` without explicit user confirmation. Always prefer A (PR/MR) as the default path.
 
-### STEP 12: Retrospective
+### STEP 13: Retrospective
 
 Always ask: "Would you like to add a retrospective for this spec session?" Wait for the answer before declaring the workflow complete.
 
