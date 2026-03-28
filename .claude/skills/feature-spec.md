@@ -18,7 +18,7 @@ flowchart TD
     H --> I[Write impl plan]
     I --> J[Commit]
     J --> K{Merge spec to main now?}
-    K -->|yes| L[Offer PR]
+    K -->|yes| L[Offer Integration]
     K -->|no| M[Keep on branch]
     L --> N{Retrospective?}
     M --> N

@@ -23,7 +23,7 @@ flowchart TD
     L --> M[Doc review]
     M --> N{Retrospective?}
     N -->|yes| O[Write retro]
-    N -->|no| P[Offer PR]
+    N -->|no| P[Offer Integration]
     O --> P
 ```
 

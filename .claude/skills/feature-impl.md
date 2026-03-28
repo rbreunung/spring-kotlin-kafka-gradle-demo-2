@@ -27,7 +27,7 @@ flowchart TD
     N -->|no| O[Update arch doc if needed]
     O --> P{Retrospective?}
     P -->|yes| Q[Write retro]
-    P -->|no| R[Offer PR]
+    P -->|no| R[Offer Integration]
     Q --> R
 ```
 
