@@ -32,6 +32,18 @@ Use glob to list all files matching `docs/retrospectives/RETRO-[0-9]*.md`.
 
 Read each one. For any `RETRO-REVIEW-NNN.md` files that exist, read them to determine which retrospectives have already been reviewed — focus analysis on the **unreviewed** ones, but note any recurring patterns from older ones too.
 
+### STEP 1b: Create Branch
+
+Before making any changes, create a branch for this retro-review session:
+
+```bash
+git checkout main    # or master
+git pull
+git checkout -b chore/retro-review-NNN
+```
+
+Where NNN is the RETRO-REVIEW number to be allocated in STEP 6. Allocate that number from `docs/registry.md` now so the branch name matches the doc. All workflow edits and the review doc commit go on this branch.
+
 ### STEP 2: Identify Themes
 
 Group friction points and suggestions across all retrospectives by category:
@@ -92,7 +104,7 @@ chore: [brief description of improvement] — retro review finding
 
 ### STEP 6: Write Review Doc
 
-1. Allocate RETRO-REVIEW-NNN from `docs/registry.md`
+1. The RETRO-REVIEW-NNN number was allocated in STEP 1b — use it here
 2. Copy `docs/templates/retro-review-template.md` to `docs/retrospectives/RETRO-REVIEW-NNN.md`
 3. Fill:
    - Retrospectives reviewed (list RETRO IDs)
@@ -100,3 +112,13 @@ chore: [brief description of improvement] — retro review finding
    - Themes found with examples and agreed actions
    - Changes made (list of files updated)
 4. Commit: `chore(RETRO-REVIEW-NNN): retrospective review — [one-line theme summary]`
+
+### STEP 7: Offer Integration
+
+Ask the user:
+> "The retro-review changes are on `chore/retro-review-NNN`. How would you like to integrate them?
+> - **A) Open a pull/merge request** — create a PR/MR for review
+> - **B) Merge locally** — merge into main now
+> - **C) Keep on branch** — continue work before integrating"
+
+If **B**: confirm explicitly with the user before merging.

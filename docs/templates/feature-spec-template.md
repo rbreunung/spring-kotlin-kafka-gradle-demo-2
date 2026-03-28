@@ -32,6 +32,15 @@ Notes: [any state worth preserving across sessions]
 
 [Describe the high-level design. How does this feature fit into the existing system?]
 
+### Ports & Network Listeners
+
+> If this feature introduces an HTTP server, WebSocket endpoint, or any other network listener,
+> record the agreed port here as a historical note.
+> **Authoritative reference for current port assignments: `docs/arch/architecture.md` § Services.**
+
+Port agreed at spec time: [port number, or "none — no new listeners introduced"]
+Conflict check completed: [yes / not applicable]
+
 ```mermaid
 graph TD
     A[Existing Component] --> B[New Component]

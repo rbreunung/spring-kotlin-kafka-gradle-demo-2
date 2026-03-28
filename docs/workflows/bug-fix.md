@@ -52,7 +52,8 @@ If corrections are needed: update and re-confirm. Proceed to Phase 2 only when c
 
 ### STEP 1: Allocate ID & Create Doc
 
-> **⚠️ Compliance gate:** Complete this step fully before moving to STEP 3. Do NOT read source files or begin investigation until the BUG-NNN doc exists in `docs/bugs/` and is registered in `docs/registry.md`.
+> **✅ Gate — Bug Doc Exists**
+> Complete this step fully before moving to STEP 3. Do NOT read source files or begin investigation until the BUG-NNN doc exists in `docs/bugs/` and is registered in `docs/registry.md`.
 
 1. Read `docs/registry.md`, find highest BUG-NNN, allocate next
 2. Add to registry: `| BUG-NNN | BUG | [title] | in-progress |`
@@ -70,10 +71,12 @@ git checkout -b fix/BUG-NNN-kebab-title
 
 ### STEP 3: Investigate
 
-Read (max 5 files):
+Read all immediately relevant docs and source files:
 - Source files for the affected component
 - Relevant test files
 - Related feature spec (if the behavior is documented in `docs/features/`)
+
+If the context required becomes too large to handle in one session, note this in the retrospective for future workflow improvement.
 
 **Coverage check** — before proposing a fix, identify whether a test for the affected failure path already exists. Note the finding in the bug report: "Existing coverage: [test name] / none". If no coverage exists, the reproduction test in STEP 4 will be the first.
 
@@ -120,13 +123,16 @@ Commit: `chore(BUG-NNN): finalize bug report`
 
 ### STEP 9: Doc Review
 
-Briefly check (read only the immediately relevant docs — no more than 2 files):
+Read all immediately relevant docs:
 - Does any feature spec describe behavior that this bug contradicts? If so, add a note to that spec.
 - Should `docs/arch/architecture.md` note this as a known constraint or edge case?
 
 Make only obvious, minimal improvements. Do not rewrite documentation.
 
-### STEP 10: Opt-in Retrospective
+### STEP 10: Retrospective
+
+> **✅ Gate — Retrospective**
+> Always offer the retrospective and wait for the user's answer before proceeding to STEP 11.
 
 Ask: "Would you like to add a retrospective for this bug fix?"
 
@@ -136,14 +142,19 @@ If yes:
 3. Write `docs/retrospectives/RETRO-NNN-bugfix-BUG-NNN.md`
 4. Commit: `chore(RETRO-NNN): bug fix retrospective for BUG-NNN`
 
-### STEP 11: Offer PR
+### STEP 11: Offer Integration
 
-Ask: "Ready to create a pull request for `fix/BUG-NNN-*`?"
+Ask the user:
+> "The fix is complete on `fix/BUG-NNN-*`. How would you like to integrate it?
+> - **A) Open a pull/merge request** — create a PR/MR for review
+> - **B) Merge locally** — merge into main now
+> - **C) Keep on branch** — continue work before integrating"
 
-If yes: generate PR title (`fix(BUG-NNN): [short description]`) and body summarizing:
+If **A**: generate PR title (`fix(BUG-NNN): [short description]`) and body summarizing:
 - What the bug was (from report summary)
 - Root cause
 - Fix approach
 - Test added
 
 Confirm the PR description with the user before creating.
+If **B**: confirm explicitly with the user before merging.

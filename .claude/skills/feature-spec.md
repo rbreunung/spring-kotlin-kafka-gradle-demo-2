@@ -36,7 +36,8 @@ Read these files at STEP 3 (max 5 total):
 4. Related existing FEAT spec (if applicable)
 5. Related existing FEAT spec (if applicable)
 
-> **⚠️ Boundary: This is a SPEC session.** The outputs are documentation only — feature spec, architecture updates, and implementation plan. Do NOT make source code changes in this workflow. If source code changes seem necessary, flag it to the user and defer to the `feature-impl` workflow.
+> **✅ Gate — Spec Session Boundary**
+> This workflow produces documentation only — feature spec, architecture updates, and implementation plan. Do NOT make source code changes. If source code changes seem necessary, flag it to the user and defer to the `feature-impl` workflow.
 
 ---
 
@@ -49,7 +50,13 @@ Read these files at STEP 3 (max 5 total):
 3. Add a row to the registry immediately: `| FEAT-NNN | FEAT | [title] | in-progress |`
 4. Remember this as `FEAT_ID` for all subsequent steps
 
+> **✅ Gate — ID Allocated**
+> FEAT_ID must be assigned and the registry row written before proceeding to STEP 2.
+> Do NOT create the branch or load context until the registry entry exists.
+
 ### STEP 2: Create Git Branch
+
+Branch is created here — STEP 1 must be complete before running these commands.
 
 ```bash
 git checkout main    # or master — check which is default
@@ -110,7 +117,7 @@ Review the docs loaded in STEP 3:
 - Mismatches are a blocker — resolve with the user before writing the spec.
 - For features that introduce new message topics or queues: verify all new names follow the established naming pattern in the messaging topics table in `docs/arch/architecture.md`. Confirm names with the user before writing the spec.
 
-Make any necessary updates to existing docs now (keep changes minimal).
+Update all affected docs now. For each doc updated, note the filename and the change made.
 
 ### STEP 6b: Use Case Flow and Race Condition Analysis
 
@@ -127,7 +134,8 @@ Make any necessary updates to existing docs now (keep changes minimal).
 
 4. **Propose protection** — for any unguarded race, agree on a guard with the user before writing the spec.
 
-Do not proceed to STEP 7 until all race conditions are either guarded or explicitly accepted as out-of-scope.
+> **✅ Gate — Race Conditions Resolved**
+> All race conditions must be either guarded or explicitly accepted as out-of-scope before proceeding to STEP 7.
 
 ### STEP 7: Write Feature Spec
 
@@ -178,21 +186,24 @@ Stage all new and changed files:
 feat(FEAT_ID): add feature spec, architecture update, and implementation plan
 ```
 
-### STEP 11: Merge Decision
+### STEP 11: Offer Integration
 
 Ask the user:
-> "The spec is ready on `feat/FEAT_ID-*`. Would you like to:
-> - **A) Merge to main now** — spec reviewed before implementation starts (creates a PR for docs only)
-> - **B) Keep on this branch** — implementation will continue here, one PR for everything"
+> "The spec is ready on `feat/FEAT_ID-*`. How would you like to integrate it?
+> - **A) Open a pull/merge request** — create a PR/MR for review before implementation
+> - **B) Merge locally** — merge into main now
+> - **C) Keep on branch** — implementation will continue here"
 
-If **A**: offer to create a PR for spec docs only. When implementation starts later, create a fresh `feat/FEAT_ID` branch from updated main.
-If **B**: the branch is ready for the `feature-impl` workflow.
+If **A**: create a PR/MR. When implementation starts later, create a fresh `feat/FEAT_ID` branch from updated main.
+If **B**: confirm explicitly with the user before merging.
+If **C**: the branch is ready for the `feature-impl` workflow.
 
-> **⚠️ PR only — never merge directly to main.** Always use a GitHub pull request. Do not run `git merge` or `git push` directly to the main branch.
+> **✅ Gate — Main Protected**
+> Do NOT merge or push directly to `main` without explicit user confirmation. Always prefer A (PR/MR) as the default path.
 
-### STEP 12: Opt-in Retrospective
+### STEP 12: Retrospective
 
-Ask: "Would you like to add a brief retrospective for this spec session?"
+Always ask: "Would you like to add a retrospective for this spec session?" Wait for the answer before declaring the workflow complete.
 
 If yes:
 1. Allocate RETRO-NNN from registry

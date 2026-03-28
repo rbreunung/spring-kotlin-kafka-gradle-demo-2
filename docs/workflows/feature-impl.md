@@ -58,8 +58,10 @@ Read each vertical slice in the plan. For each one, verify:
 - Are the files to touch identified?
 - Does the test description specify what to assert?
 
-If any slice is ambiguous: ask the user to clarify. Update the plan doc with the clarification.
-Do not start coding until every upcoming slice is unambiguous.
+For each slice, confirm it is unambiguous before writing any code. If a slice is unclear, ask the user and wait for their answer before proceeding to STEP 4. Update the plan doc with each clarification.
+
+> **✅ Gate — Ambiguity Check**
+> Every upcoming slice must be unambiguous before any code is written.
 
 **Data-flow traceability check** — for every event or message the feature publishes:
 1. List every field in the event's data class.
@@ -71,6 +73,8 @@ Do not start coding until every upcoming slice is unambiguous.
 - Any mismatch is a blocker. Resolve it with the user and update all sections before starting.
 
 **API signature pre-check** — for any test utility named in the plan (e.g., `KafkaTestUtils`, `Awaitility`, `RestTemplate`), look up its current API signature before writing the test. Do not assume the overload from the plan description alone — API signatures can change between library versions.
+
+**Port verification** — if the feature spec notes a port for a new network listener, verify the port matches `application.yml` and `docker-compose.yml` before writing any code. If a mismatch is found, raise it with the user before proceeding.
 
 ### STEP 3: Branch Setup
 
@@ -190,9 +194,10 @@ Commit any changes made in this step:
 docs(FEAT-NNN): update architecture for implementation
 ```
 
-### STEP 8: Opt-in Retrospective
+### STEP 8: Retrospective
 
-> **Exit gate:** Do not proceed to STEP 9 until this step is complete. STEP 8 is not optional to *ask* — always offer the retrospective before the PR.
+> **✅ Gate — Retrospective**
+> Always offer the retrospective and wait for the user's answer before proceeding to STEP 9.
 
 Ask: "Would you like to add a retrospective for this implementation?"
 
@@ -202,13 +207,18 @@ If yes:
 3. Write `docs/retrospectives/RETRO-NNN-impl-FEAT-NNN.md`
 4. Commit: `chore(RETRO-NNN): feature impl retrospective for FEAT-NNN`
 
-### STEP 9: Offer PR
+### STEP 9: Offer Integration
 
-Ask: "Ready to create a pull request for `feat/FEAT-NNN-*`?"
+Ask the user:
+> "The implementation is complete on `feat/FEAT-NNN-*`. How would you like to integrate it?
+> - **A) Open a pull/merge request** — create a PR/MR for review
+> - **B) Merge locally** — merge into main now
+> - **C) Keep on branch** — continue work before integrating"
 
-If yes: generate PR title (`feat(FEAT-NNN): [feature title]`) and body summarizing:
+If **A**: generate PR title (`feat(FEAT-NNN): [feature title]`) and body summarizing:
 - What the feature does (from spec purpose)
 - Acceptance criteria covered
 - Tests added
 
 Confirm the PR description with the user before creating.
+If **B**: confirm explicitly with the user before merging.
