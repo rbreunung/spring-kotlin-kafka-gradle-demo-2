@@ -7,19 +7,16 @@ flowchart TD
     C --> D[Architecture brainstorm]
     D --> E[Scope clarification]
     E --> F[Consistency check]
-    F --> F2[Concurrent event analysis]
-    F2 --> G[Write feature spec]
-    G --> H[Update arch doc]
-    H --> I[Write impl plan]
-    I --> J[Commit]
-    J --> K{Merge spec to main now?}
-    K -->|yes| L[Offer Integration]
-    K -->|no| M[Keep on branch]
-    L --> N{Retrospective?}
-    M --> N
-    N -->|yes| O[Write retro + commit]
-    N -->|no| P[Done]
-    O --> P
+    F --> G[Use case + race analysis]
+    G --> H[Write feature spec]
+    H --> I[Update arch doc]
+    I --> J[Write impl plan]
+    J --> K[Commit]
+    K --> L[Offer Integration]
+    L --> M{Retrospective?}
+    M -->|yes| N[Write retro + commit]
+    M -->|no| O[Done]
+    N --> O
 ```
 
 ## Context Budget

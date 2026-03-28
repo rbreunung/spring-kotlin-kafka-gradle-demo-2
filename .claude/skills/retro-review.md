@@ -7,12 +7,14 @@ description: Use to aggregate all retrospectives, identify recurring themes, and
 
 ```mermaid
 flowchart TD
-    A[Read all RETRO-NNN docs] --> B[Identify themes]
-    B --> C[Draft improvements per theme]
-    C --> D[Present + discuss with user]
-    D --> E[Apply agreed changes]
-    E --> F[Write RETRO-REVIEW-NNN doc]
-    F --> G[Commit all changes]
+    A[Read all RETRO-NNN docs] --> B[Create branch]
+    B --> C[Identify themes]
+    C --> D[Draft improvements per theme]
+    D --> E[Present + discuss with user]
+    E --> F[Apply agreed changes]
+    F --> G[Write RETRO-REVIEW-NNN doc]
+    G --> H[Commit all changes]
+    H --> I[Offer Integration]
 ```
 
 ## Context Budget

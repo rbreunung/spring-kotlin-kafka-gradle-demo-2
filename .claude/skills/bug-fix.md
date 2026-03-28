@@ -12,7 +12,7 @@ flowchart TD
     C -->|corrections| A
     C -->|confirmed| D[Allocate BUG-NNN + create doc]
     D --> E[Create fix branch]
-    E --> F[Read source files — max 5]
+    E --> F[Investigate]
     F --> G[Identify root cause]
     G --> H[Write failing repro test]
     H --> I[Implement fix]
