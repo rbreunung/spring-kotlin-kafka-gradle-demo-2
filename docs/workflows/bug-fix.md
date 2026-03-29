@@ -100,9 +100,28 @@ Write the minimum change to address the root cause. Do not refactor surrounding 
 
 ### STEP 6: Verify
 
-Run the full test suite. All tests must pass, including the new reproduction test.
+Run the full unit/integration test suite for the affected module(s). All tests must pass, including the new reproduction test.
 
 If tests fail: fix the implementation, not the test (unless the test has a genuine error). Repeat until green.
+
+**STEP 6b: System test verification**
+
+If any of the following were changed, system tests are **mandatory**:
+- `docker-compose.full.yml`
+- Any file under `system-test/`
+- Kafka listener/producer wiring
+- Saga state transitions
+
+Check whether Docker is running:
+```bash
+docker info > /dev/null 2>&1
+```
+
+- **If Docker is running:** run `./gradlew :system-test:test` and verify it passes.
+- **If Docker is not running:** do not silently skip. Tell the user:
+  > "System tests were not run locally because Docker is not available. Please either start Docker so I can run them, or run `./gradlew :system-test:test` yourself before merging."
+
+For all other changes, system tests are still recommended but not required before committing.
 
 ### STEP 7: Commit
 

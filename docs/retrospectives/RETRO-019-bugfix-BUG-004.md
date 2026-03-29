@@ -29,7 +29,22 @@ Duration: ~30 minutes (brainstorming + implementation)
 
 ---
 
-### 2. Process — brainstorm before fixing non-obvious concurrency bugs
+### 2. Workflow — run system tests locally before pushing a bug fix
+
+**Description:** BUG-004 was discovered from a CI failure on PR #15, not from a local verification step before push. The `bug-fix` workflow ran `./gradlew :settlement:test` (unit tests only) but never exercised the system-test suite. Changes to `docker-compose.full.yml` or `SagaCompensationTest.kt` are invisible to unit tests — only `./gradlew :system-test:test` catches them.
+
+**Actionable Change:** Add a verification step to `docs/workflows/bug-fix.md` after the unit-test pass:
+
+> **STEP 6b — System test verification (if Docker is available):**
+> Run `./gradlew :system-test:test`. If Docker is not running, either start it and re-run, or explicitly ask the user to run the system tests before merging.
+>
+> If any of the following were changed, this step is **mandatory, not optional**: `docker-compose.full.yml`, any `*SystemTest*.kt` or `*E2E*.kt` file, Kafka listener/producer wiring, or saga state transitions.
+
+When running as an agent and Docker is not available, do not silently skip — instead surface the gap: *"System tests were not run locally because Docker is not available. Please run `./gradlew :system-test:test` before merging, or start Docker and I will run them."*
+
+---
+
+### 3. Process — brainstorm before fixing non-obvious concurrency bugs
 
 **Description:** The first instinct when `SagaCompensationTest` failed was to increase the delay. That would have made CI slightly more stable without fixing the root cause, and the next slow runner would have broken it again. Spending a few minutes listing approaches (even informally) before writing code prevented that.
 
