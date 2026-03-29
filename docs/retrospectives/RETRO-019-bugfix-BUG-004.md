@@ -33,14 +33,7 @@ Duration: ~30 minutes (brainstorming + implementation)
 
 **Description:** BUG-004 was discovered from a CI failure on PR #15, not from a local verification step before push. The `bug-fix` workflow ran `./gradlew :settlement:test` (unit tests only) but never exercised the system-test suite. Changes to `docker-compose.full.yml` or `SagaCompensationTest.kt` are invisible to unit tests — only `./gradlew :system-test:test` catches them.
 
-**Actionable Change:** Add a verification step to `docs/workflows/bug-fix.md` after the unit-test pass:
-
-> **STEP 6b — System test verification (if Docker is available):**
-> Run `./gradlew :system-test:test`. If Docker is not running, either start it and re-run, or explicitly ask the user to run the system tests before merging.
->
-> If any of the following were changed, this step is **mandatory, not optional**: `docker-compose.full.yml`, any `*SystemTest*.kt` or `*E2E*.kt` file, Kafka listener/producer wiring, or saga state transitions.
-
-When running as an agent and Docker is not available, do not silently skip — instead surface the gap: *"System tests were not run locally because Docker is not available. Please run `./gradlew :system-test:test` before merging, or start Docker and I will run them."*
+**Actionable Change:** Added STEP 7 to `docs/workflows/bug-fix.md` (between unit-test verification and commit): run `./gradlew :system-test:test`. STEP 7 is mandatory when `docker-compose.full.yml`, system-test files, Kafka wiring, or saga transitions are changed. If Docker is not running, the agent must tell the user explicitly rather than silently skipping.
 
 ---
 
