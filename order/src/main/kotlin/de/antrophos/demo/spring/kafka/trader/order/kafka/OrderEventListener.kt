@@ -54,12 +54,7 @@ class OrderEventListener(
                 commandService.applyTransition(entity.id, OrderStatus.SETTLED, fromStatus = OrderStatus.EXECUTED)
             }
             is SettlementFailed -> {
-                val entity = orderRepository.findByTradeId(event.tradeId)
-                if (entity == null) {
-                    log.warn("onSettlement: no order found for tradeId {}, skipping", event.tradeId)
-                    return
-                }
-                commandService.applyTransition(entity.id, OrderStatus.COMPENSATION_IN_PROGRESS, fromStatus = OrderStatus.EXECUTED)
+                commandService.applyTransition(event.orderId, OrderStatus.COMPENSATION_IN_PROGRESS, fromStatus = OrderStatus.EXECUTED)
             }
             else -> log.warn("onSettlement: unexpected event type {}", event?.javaClass?.simpleName)
         }

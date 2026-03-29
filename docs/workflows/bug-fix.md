@@ -11,15 +11,19 @@ flowchart TD
     F --> G[Identify root cause]
     G --> H[Write failing repro test]
     H --> I[Implement fix]
-    I --> J{Tests pass?}
+    I --> J{Unit tests pass?}
     J -->|no| I
-    J -->|yes| K[Commit fix + test]
-    K --> L[Update bug report]
-    L --> M[Doc review]
-    M --> N{Retrospective?}
-    N -->|yes| O[Write retro]
-    N -->|no| P[Offer Integration]
-    O --> P
+    J -->|yes| K{Docker available?}
+    K -->|yes| L[Run system tests]
+    K -->|no| M[Prompt user to run system tests]
+    L --> N[Commit fix + test]
+    M --> N
+    N --> O[Update bug report]
+    O --> P[Doc review]
+    P --> Q{Retrospective?}
+    Q -->|yes| R[Write retro]
+    Q -->|no| S[Offer Integration]
+    R --> S
 ```
 
 ---
@@ -98,19 +102,38 @@ Run it. **It must fail.** If it passes without a fix, revise the test.
 
 Write the minimum change to address the root cause. Do not refactor surrounding code or fix unrelated issues in the same commit.
 
-### STEP 6: Verify
+### STEP 6: Verify — Unit and Integration Tests
 
-Run the full test suite. All tests must pass, including the new reproduction test.
+Run the full unit/integration test suite for the affected module(s). All tests must pass, including the new reproduction test.
 
 If tests fail: fix the implementation, not the test (unless the test has a genuine error). Repeat until green.
 
-### STEP 7: Commit
+### STEP 7: Verify — System Tests
+
+System tests are **mandatory** when any of the following were changed:
+- `docker-compose.full.yml`
+- Any file under `system-test/`
+- Kafka listener/producer wiring
+- Saga state transitions
+
+For all other changes, system tests are still strongly recommended.
+
+Check whether Docker is running:
+```bash
+docker info > /dev/null 2>&1
+```
+
+- **If Docker is running:** run `./gradlew :system-test:test` and verify it passes.
+- **If Docker is not running:** do not silently skip. Tell the user:
+  > "System tests were not run locally because Docker is not available. Please either start Docker so I can run them, or run `./gradlew :system-test:test` yourself before merging."
+
+### STEP 8: Commit
 
 ```
 fix(BUG-NNN): [short description] — add reproduction test
 ```
 
-### STEP 8: Update Bug Report
+### STEP 9: Update Bug Report
 
 In `docs/bugs/BUG-NNN-*.md`:
 - Fill `## Root Cause` with the actual root cause
@@ -121,7 +144,7 @@ In `docs/bugs/BUG-NNN-*.md`:
 
 Commit: `chore(BUG-NNN): finalize bug report`
 
-### STEP 9: Doc Review
+### STEP 10: Doc Review
 
 Read all immediately relevant docs:
 - Does any feature spec describe behavior that this bug contradicts? If so, add a note to that spec.
@@ -129,10 +152,10 @@ Read all immediately relevant docs:
 
 Make only obvious, minimal improvements. Do not rewrite documentation.
 
-### STEP 10: Retrospective
+### STEP 11: Retrospective
 
 > **✅ Gate — Retrospective**
-> Always offer the retrospective and wait for the user's answer before proceeding to STEP 11.
+> Always offer the retrospective and wait for the user's answer before proceeding to STEP 12.
 
 Ask: "Would you like to add a retrospective for this bug fix?"
 
@@ -142,7 +165,7 @@ If yes:
 3. Write `docs/retrospectives/RETRO-NNN-bugfix-BUG-NNN.md`
 4. Commit: `chore(RETRO-NNN): bug fix retrospective for BUG-NNN`
 
-### STEP 11: Offer Integration
+### STEP 12: Offer Integration
 
 Ask the user:
 > "The fix is complete on `fix/BUG-NNN-*`. How would you like to integrate it?

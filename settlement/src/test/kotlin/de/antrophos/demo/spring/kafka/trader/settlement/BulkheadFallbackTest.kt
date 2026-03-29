@@ -102,7 +102,7 @@ class BulkheadFallbackTest {
             bulkhead.releasePermission()
         }
 
-        verify(eventPublisher, atLeast(1)).publishSettlementFailed(any(), eq("bulkhead-full"))
+        verify(eventPublisher, atLeast(1)).publishSettlementFailed(any(), any(), eq("bulkhead-full"))
 
         val counter = meterRegistry.find("settlement.attempts.total").tag("outcome", "failure").counter()
         assertThat(counter).isNotNull

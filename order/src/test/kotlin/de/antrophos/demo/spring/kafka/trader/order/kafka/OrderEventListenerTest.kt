@@ -125,7 +125,7 @@ class OrderEventListenerTest {
     fun `SettlementFailed transitions EXECUTED to COMPENSATION_IN_PROGRESS via tradeId lookup`() {
         val tradeId = UUID.randomUUID()
         val order = savedOrder(tradeId = tradeId, status = OrderStatus.EXECUTED.name)
-        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, "Insufficient funds"))
+        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, order.id, "Insufficient funds"))
 
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val updated = orderRepository.findById(order.id).orElseThrow()
@@ -142,6 +142,39 @@ class OrderEventListenerTest {
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val updated = orderRepository.findById(order.id).orElseThrow()
             assertEquals(OrderStatus.COMPENSATION_COMPLETE.name, updated.status)
+        }
+    }
+
+    @Test
+    fun `SettlementFailed reaches COMPENSATION_IN_PROGRESS even when tradeId not yet set on order`() {
+        val tradeId = UUID.randomUUID()
+        // Order has no tradeId — simulates SettlementFailed arriving before TradeExecuted is processed
+        val order = savedOrder(status = OrderStatus.EXECUTED.name)
+        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, order.id, "Always-fail trader"))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val updated = orderRepository.findById(order.id).orElseThrow()
+            assertEquals(OrderStatus.COMPENSATION_IN_PROGRESS.name, updated.status)
+        }
+    }
+
+    @Test
+    fun `full compensation chain completes when SettlementFailed arrives before TradeExecuted`() {
+        val tradeId = UUID.randomUUID()
+        // Order has no tradeId — simulates the race condition
+        val order = savedOrder(status = OrderStatus.EXECUTED.name)
+        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, order.id, "Always-fail trader"))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            assertEquals(OrderStatus.COMPENSATION_IN_PROGRESS.name,
+                orderRepository.findById(order.id).orElseThrow().status)
+        }
+
+        kafkaTemplate.send("compensation-results", tradeId.toString(), TradeVoided(tradeId, order.id))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            assertEquals(OrderStatus.COMPENSATION_COMPLETE.name,
+                orderRepository.findById(order.id).orElseThrow().status)
         }
     }
 

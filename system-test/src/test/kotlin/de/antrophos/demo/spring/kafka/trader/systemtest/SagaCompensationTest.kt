@@ -3,21 +3,14 @@ package de.antrophos.demo.spring.kafka.trader.systemtest
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementFailed
-import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.serialization.StringSerializer
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-import org.springframework.kafka.core.DefaultKafkaProducerFactory
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.support.serializer.JsonSerializer
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
@@ -38,62 +31,29 @@ class SagaCompensationTest : SystemTestBase() {
         )
     }
 
-    private val kafkaTemplate: KafkaTemplate<String, Any> by lazy {
-        val props = mapOf(
-            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092",
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java,
-            JsonSerializer.ADD_TYPE_INFO_HEADERS to true
-        )
-        KafkaTemplate(DefaultKafkaProducerFactory(props))
-    }
-
     @Test
     fun `saga compensation flow reaches COMPENSATION_COMPLETE after SettlementFailed`() {
+        // trader-comp-001 is configured in docker-compose.full.yml via
+        // SETTLEMENT_ALWAYS_FAIL_TRADER_IDS so settlement always fails deterministically.
         val orderId = placeOrder()
 
-        // Wait for saga to reach SETTLEMENT_REQUESTED (trade has been executed)
-        await.atMost(60, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(1)).until {
-            try {
-                val saga = getSaga(orderId)
-                saga != null && saga.step in listOf("SETTLEMENT_REQUESTED", "SETTLED", "COMPENSATION_REQUESTED", "COMPENSATION_COMPLETE")
-            } catch (_: Exception) { false }
-        }
-
-        val sagaAtSettlement = getSaga(orderId)!!
-        if (sagaAtSettlement.step == "SETTLED") {
-            // Happy path won the race; skip this test run
-            return
-        }
-
-        // Get the tradeId to inject SettlementFailed
-        val tradeId = sagaAtSettlement.tradeId
-        assertNotNull(tradeId, "tradeId must be set by SETTLEMENT_REQUESTED")
-
-        // Inject SettlementFailed if not already in compensation path
-        if (sagaAtSettlement.step == "SETTLEMENT_REQUESTED") {
-            kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId!!, "Simulated settlement failure"))
-        }
-
         // Wait for saga to reach COMPENSATION_COMPLETE
-        await.atMost(60, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(1)).until {
+        await.atMost(90, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(1)).until {
             try {
                 getSaga(orderId)?.step == "COMPENSATION_COMPLETE"
             } catch (_: Exception) { false }
         }
 
-        val finalSaga = getSaga(orderId)!!
-        assertEquals("COMPENSATION_COMPLETE", finalSaga.step)
+        assertEquals("COMPENSATION_COMPLETE", getSaga(orderId)!!.step)
 
-        // Wait for order to reach COMPENSATION_COMPLETE
-        await.atMost(30, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(1)).until {
+        // Wait for order status to reflect COMPENSATION_COMPLETE
+        await.atMost(60, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(1)).until {
             try {
                 getOrder(orderId)?.status == "COMPENSATION_COMPLETE"
             } catch (_: Exception) { false }
         }
 
-        val finalOrder = getOrder(orderId)!!
-        assertEquals("COMPENSATION_COMPLETE", finalOrder.status)
+        assertEquals("COMPENSATION_COMPLETE", getOrder(orderId)!!.status)
     }
 
     private fun placeOrder(): UUID {

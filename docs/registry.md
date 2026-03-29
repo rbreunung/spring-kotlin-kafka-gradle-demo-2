@@ -73,5 +73,9 @@ The registry status tracks **document completeness**, not implementation progres
 | BUG-002 | BUG | Settlement service DLQ misconfigured — ByteArraySerializer/JsonSerializer mismatch causes retry loop on second order | resolved |
 | RETRO-016 | RETRO | FEAT-010 implementation retrospective | complete |
 | RETRO-017 | RETRO | Bug-fix: BUG-002 settlement DLQ serializer mismatch | complete |
-| BUG-003 | BUG | Settlement service fails all orders after the first — original exception unknown due to missing error logging | open |
+| BUG-003 | BUG | Settlement service fails all orders after the first — original exception unknown due to missing error logging | resolved |
+| RETRO-018 | RETRO | Bug-fix: BUG-003 settlement fails after first order — missing kotlin plugin.jpa | complete |
+| BUG-004 | BUG | SagaCompensationTest flaky — timing race between test injection and real settlement | resolved |
+| RETRO-019 | RETRO | Bug-fix: BUG-004 SagaCompensationTest timing race | complete |
 | RETRO-REVIEW-003 | RETRO-REVIEW | Retro review — RETRO-010 through RETRO-017 | complete |
+| BUG-005 | BUG | Order status stuck — SettlementFailed arrives before TradeExecuted sets tradeId | resolved |

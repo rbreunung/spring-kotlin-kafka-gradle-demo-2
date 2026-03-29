@@ -14,6 +14,11 @@ class SettlementKafkaListener(private val settlementService: SettlementService) 
     @KafkaListener(topics = ["settlement-requests"], groupId = "settlement-service")
     fun onSettlementRequested(event: SettlementRequested) {
         log.info("Received SettlementRequested for tradeId={}", event.trade.id)
-        settlementService.settle(event.trade, event.order)
+        try {
+            settlementService.settle(event.trade, event.order)
+        } catch (ex: Exception) {
+            log.error("Settlement failed for tradeId={}", event.trade.id, ex)
+            throw ex
+        }
     }
 }

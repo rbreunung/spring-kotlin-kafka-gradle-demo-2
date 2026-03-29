@@ -115,6 +115,8 @@ Deserialization uses the same pattern as previous services: `JsonDeserializer` +
 
 Unique constraint: `(traderId, symbol)` — enforced via `@Table(uniqueConstraints = ...)`.
 
+> **Note:** Because `PositionEntity` is a Kotlin `data class`, the `:settlement` module requires the `kotlin("plugin.jpa")` compiler plugin. Without it, Hibernate cannot instantiate the entity from a `SELECT` result set (no no-arg constructor). See BUG-003.
+
 ```kotlin
 @Entity
 @Table(

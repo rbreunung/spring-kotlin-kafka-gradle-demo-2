@@ -14,7 +14,7 @@ class SettlementEventPublisher(private val kafkaTemplate: KafkaTemplate<String, 
         kafkaTemplate.send("settlements", tradeId.toString(), PositionSettled(tradeId, position))
     }
 
-    fun publishSettlementFailed(tradeId: UUID, reason: String) {
-        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, reason))
+    fun publishSettlementFailed(tradeId: UUID, orderId: UUID, reason: String) {
+        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, orderId, reason))
     }
 }

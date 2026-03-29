@@ -39,7 +39,7 @@ class SettlementServiceTest {
     @Test
     fun `settle increments settlement attempts total with outcome success on success`() {
         val registry = SimpleMeterRegistry()
-        val service = SettlementService(positionRepository, eventPublisher, 0.0, 0L, registry)
+        val service = SettlementService(positionRepository, eventPublisher, 0.0, 0L, "", registry)
         whenever(positionRepository.findByTraderIdAndSymbol(any(), any())).thenReturn(null)
         doAnswer { it.arguments[0] as PositionEntity }.whenever(positionRepository).save(any())
 

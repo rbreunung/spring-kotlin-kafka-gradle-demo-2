@@ -192,7 +192,7 @@ sequenceDiagram
     participant Exec as ExecutionService
     participant Order as OrderService
 
-    Settlement-->>Kafka: SettlementFailed(tradeId, reason)
+    Settlement-->>Kafka: SettlementFailed(tradeId, orderId, reason)
 
     Kafka-->>Saga: SettlementFailed
     Saga->>Saga: persist SETTLEMENT_FAILED (audit)

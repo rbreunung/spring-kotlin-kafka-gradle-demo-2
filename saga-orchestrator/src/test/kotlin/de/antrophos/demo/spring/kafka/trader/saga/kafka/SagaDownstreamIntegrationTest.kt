@@ -154,7 +154,7 @@ class SagaDownstreamIntegrationTest {
         val tradeId = UUID.randomUUID()
         seedSagaState(orderId, SagaStep.SETTLEMENT_REQUESTED, tradeId = tradeId)
 
-        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, "Insufficient funds"))
+        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, orderId, "Insufficient funds"))
 
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
             val entity = sagaStateRepository.findById(orderId).orElse(null)
