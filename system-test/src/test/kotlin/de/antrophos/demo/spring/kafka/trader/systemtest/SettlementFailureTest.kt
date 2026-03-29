@@ -72,7 +72,7 @@ class SettlementFailureTest : SystemTestBase() {
         val tradeId = saga.tradeId!!
 
         // Inject a late SettlementFailed for the already-settled trade
-        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, "test-late-failure"))
+        kafkaTemplate.send("settlements", tradeId.toString(), SettlementFailed(tradeId, orderId, "test-late-failure"))
 
         // Wait a few seconds then verify saga is still SETTLED (terminal state protection)
         Thread.sleep(5_000)
