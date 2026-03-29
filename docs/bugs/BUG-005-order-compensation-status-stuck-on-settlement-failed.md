@@ -86,5 +86,7 @@ Added `orderId: UUID` to `SettlementFailed` in the shared events module. The set
   - `settlement/.../BulkheadFallbackTest.kt` — updated mock verify call
   - `order/.../kafka/OrderEventListenerTest.kt` — added two reproduction tests covering the race scenario
   - `system-test/.../SettlementFailureTest.kt` — updated `SettlementFailed` construction to include `orderId`
+  - `saga-orchestrator/.../SagaDownstreamIntegrationTest.kt` — updated `SettlementFailed` construction
+  - `saga-orchestrator/.../SagaOrchestratorCompensationTest.kt` — updated `SettlementFailed` construction (2 occurrences)
 - **Test added:** `order/src/test/kotlin/.../order/kafka/OrderEventListenerTest.kt` — `SettlementFailed reaches COMPENSATION_IN_PROGRESS even when tradeId not yet set on order` and `full compensation chain completes when SettlementFailed arrives before TradeExecuted`
 - **Commit:** `df4259f`
