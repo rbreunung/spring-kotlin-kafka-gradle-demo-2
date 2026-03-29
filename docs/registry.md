@@ -82,3 +82,4 @@ The registry status tracks **document completeness**, not implementation progres
 | FEAT-013 | FEAT | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
 | PLAN-013 | PLAN | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
 | ADR-003 | ADR | Pre-built JAR pattern for service Dockerfiles | accepted |
+| RETRO-021 | RETRO | FEAT-013 feature spec retrospective | complete |
