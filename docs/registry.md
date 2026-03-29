@@ -78,4 +78,4 @@ The registry status tracks **document completeness**, not implementation progres
 | BUG-004 | BUG | SagaCompensationTest flaky — timing race between test injection and real settlement | resolved |
 | RETRO-019 | RETRO | Bug-fix: BUG-004 SagaCompensationTest timing race | complete |
 | RETRO-REVIEW-003 | RETRO-REVIEW | Retro review — RETRO-010 through RETRO-017 | complete |
-| BUG-005 | BUG | Order status stuck — SettlementFailed arrives before TradeExecuted sets tradeId | in-progress |
+| BUG-005 | BUG | Order status stuck — SettlementFailed arrives before TradeExecuted sets tradeId | resolved |

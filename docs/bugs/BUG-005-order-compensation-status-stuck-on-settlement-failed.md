@@ -1,15 +1,9 @@
 # BUG-005: Order status stuck — SettlementFailed arrives before TradeExecuted sets tradeId
 
-Status: open
+Status: resolved
 Severity: high
 Date: 2026-03-29
 Reporter: observed via CI failure on PR #15
-
-## Progress
-
-Phase: investigating
-Hypothesis: SettlementFailed arrives at order service before TradeExecuted has set tradeId on the order entity, causing findByTradeId to return null and the COMPENSATION_IN_PROGRESS transition to be silently skipped
-Last Updated: 2026-03-29
 
 ---
 
@@ -82,7 +76,15 @@ The race window is determined by how quickly settlement fails. With Resilience4j
 
 ## Fix Summary
 
-> Agent: fill after fix is implemented.
+Added `orderId: UUID` to `SettlementFailed` in the shared events module. The settlement service's fallback methods (`settleFallback`, `settleBulkheadFallback`) now pass `order.id` when publishing the event. The order service's `onSettlement(SettlementFailed)` handler was simplified to use `event.orderId` directly instead of `findByTradeId(event.tradeId)`, removing the dependency on `TradeExecuted` being processed first.
 
-- **Test added:** —
-- **Commit:** —
+- **Files changed:**
+  - `shared/.../events/SettlementFailed.kt` — added `orderId: UUID` field
+  - `settlement/.../kafka/SettlementEventPublisher.kt` — added `orderId` parameter to `publishSettlementFailed`
+  - `settlement/.../SettlementService.kt` — pass `order.id` in both fallback methods
+  - `order/.../kafka/OrderEventListener.kt` — use `event.orderId` directly, removed `findByTradeId` lookup
+  - `settlement/.../BulkheadFallbackTest.kt` — updated mock verify call
+  - `order/.../kafka/OrderEventListenerTest.kt` — added two reproduction tests covering the race scenario
+  - `system-test/.../SettlementFailureTest.kt` — updated `SettlementFailed` construction to include `orderId`
+- **Test added:** `order/src/test/kotlin/.../order/kafka/OrderEventListenerTest.kt` — `SettlementFailed reaches COMPENSATION_IN_PROGRESS even when tradeId not yet set on order` and `full compensation chain completes when SettlementFailed arrives before TradeExecuted`
+- **Commit:** `df4259f`
