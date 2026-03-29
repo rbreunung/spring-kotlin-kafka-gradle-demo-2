@@ -1,6 +1,6 @@
 # BUG-003: Settlement service fails all orders after the first — original exception not logged
 
-Status: open
+Status: resolved
 Severity: high
 Date: 2026-03-20
 Reporter: rbreunung
@@ -71,35 +71,29 @@ None within a stack run. Only the first order per fresh stack startup succeeds.
 
 ---
 
-## Hypotheses (unconfirmed — original exception not yet captured)
-
-The following were considered and not yet ruled out:
-
-1. **JPA merge issue with Kotlin `data class copy()`**: `PositionEntity` uses Kotlin `data class`. `applyTrade` calls `existing.copy(quantity = newQty, ...)` which creates a new detached entity instance. Spring Data `save()` calls `merge()` for non-null ID. This should UPDATE, but JPA behaviour with detached `data class` copies may differ from expectations.
-
-2. **`@Retry` + non-transactional `updatePosition`**: `settle()` is not `@Transactional`. If attempt 1 succeeds in saving to DB but fails at `publishPositionSettled`, Resilience4j retries the entire `settle()`. On retry, `updatePosition` runs again, potentially double-counting the position quantity. If a constraint is violated on retry, all subsequent orders to the same trader/symbol would fail.
-
-3. **Resilience4j state corruption**: Unlikely with `@Retry` (stateless per call), but possible if `@Bulkhead` max-concurrent-calls is exhausted due to a stuck thread from order 1.
-
-4. **H2 connection pool / locking**: H2 `mem:settlementdb` may exhibit locking behaviour after an uncommitted transaction from a previous processing attempt.
-
-## Required Next Steps
-
-1. **Implement structured error logging** in `SettlementKafkaListener` (or via a custom `CommonErrorHandler`) to capture and log the original exception with `tradeId` before it propagates. This is the critical missing piece.
-   - See: `settlement/src/main/kotlin/.../settlement/kafka/SettlementKafkaListener.kt`
-   - See: RETRO-017 Suggested Improvement #2
-
-2. **Re-run and capture the actual exception** — once logging is in place, the root cause will be immediately visible.
-
-3. **Write a module-level test** that processes two `SettlementRequested` events sequentially for the same `traderId`/`symbol` and asserts both produce `PositionSettled`.
-
 ## Root Cause
 
-> To be filled after structured error logging is implemented and the actual exception is captured.
+`PositionEntity` is a Kotlin `data class` annotated with `@Entity`, but the `settlement` module was missing the `kotlin("plugin.jpa")` compiler plugin. Without this plugin, Kotlin does not generate the no-arg constructor that Hibernate requires to hydrate entities from a SQL `SELECT` result set.
+
+**Why order 1 succeeded:** `SettlementService.updatePosition()` takes the `createPosition()` path for a new position, which calls `positionRepository.save(newEntity)` → `em.persist()`. Hibernate persists the entity constructed in code — no SELECT is needed, so no no-arg constructor is needed.
+
+**Why orders 2+ failed:** The `applyTrade()` path calls `positionRepository.findByTraderIdAndSymbol()`, which executes a `SELECT`. Hibernate attempts to instantiate `PositionEntity` from the result set, requires a no-arg constructor, finds none, and throws:
+
+```
+org.hibernate.InstantiationException: No default constructor for entity 'de.antrophos.demo.spring.kafka.trader.settlement.domain.PositionEntity'
+```
+
+This exception propagated through Resilience4j (3 retry attempts, all failing the same way), `settleFallback` published `SettlementFailed`, and the saga compensated. The exception was invisible in logs because `SettlementKafkaListener` had no exception handling.
+
+**Why `PositionPersistenceTest` passed despite the bug:** The test uses `@DataJpaTest`, which wraps each test method in a single transaction. When `findByTraderIdAndSymbol()` is called within that transaction, Hibernate returns the entity from the first-level cache (no SELECT needed), avoiding the instantiation problem.
 
 ## Fix Summary
 
-> To be filled after root cause is confirmed.
+Added `kotlin("plugin.jpa")` to `settlement/build.gradle.kts`. This plugin generates a no-arg constructor for all `@Entity`-annotated classes, allowing Hibernate to hydrate entities from the database.
 
-- **Test added:** —
-- **Commit:** —
+The fix mirrors the existing pattern in `saga-orchestrator`, which has `kotlin("plugin.jpa")` and uses `SagaStateEntity` as a `data class`.
+
+Also added structured error logging (try-catch) in `SettlementKafkaListener.onSettlementRequested()` so that any future settlement exception is logged with `tradeId` before propagating.
+
+- **Test added:** `settlement/src/test/kotlin/.../settlement/SequentialOrdersIntegrationTest.kt` — `second SettlementRequested for same traderId and symbol also produces PositionSettled`
+- **Commit:** `523cff1` — `fix(BUG-003): add kotlin plugin.jpa to settlement — fixes no-arg constructor for PositionEntity`
