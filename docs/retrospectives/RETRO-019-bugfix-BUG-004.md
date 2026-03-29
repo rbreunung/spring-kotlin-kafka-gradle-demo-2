@@ -37,7 +37,23 @@ Duration: ~30 minutes (brainstorming + implementation)
 
 ---
 
-### 3. Process — brainstorm before fixing non-obvious concurrency bugs
+### 3. Process — retrospectives document findings only; changes require explicit user request
+
+**Description:** After writing RETRO-019, the agent immediately updated `docs/workflows/bug-fix.md` and `.claude/skills/bug-fix.md` without asking. The retrospective surfaced an improvement idea — the agent then acted on it unilaterally. Retrospectives are a documentation step, not an execution step. Implementing a finding from a retro is a separate action that requires its own process and explicit user approval.
+
+**Actionable Change:** Retrospective findings under `## Suggested Improvements` are proposals only. The agent must not modify workflows, skills, docs, or code as a consequence of writing a retrospective unless the user explicitly requests it afterwards.
+
+---
+
+### 4. Process — every project change must follow a matching workflow; ask for guidance if none exists
+
+**Description:** The workflow and skill updates in this session were made outside any defined process. The project has workflows for features (`feature-spec` + `feature-impl`), bug fixes (`bug-fix`), and retrospectives — but no defined process for workflow/skill maintenance itself. When the agent encounters a change that doesn't fit an existing workflow, it should not proceed autonomously; it should ask the user which process applies or whether a new one is needed.
+
+**Actionable Change:** Before making any change to project files (code, docs, workflows, skills, config), the agent must identify which workflow governs that change. If no matching workflow exists, stop and ask: *"There is no defined process for this type of change. How would you like me to proceed?"*
+
+---
+
+### 5. Process — brainstorm before fixing non-obvious concurrency bugs
 
 **Description:** The first instinct when `SagaCompensationTest` failed was to increase the delay. That would have made CI slightly more stable without fixing the root cause, and the next slow runner would have broken it again. Spending a few minutes listing approaches (even informally) before writing code prevented that.
 
