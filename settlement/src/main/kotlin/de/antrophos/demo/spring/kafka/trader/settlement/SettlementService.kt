@@ -23,14 +23,19 @@ class SettlementService(
     private val eventPublisher: SettlementEventPublisher,
     @Value("\${settlement.simulate-failure-probability:0.0}") private val failureProbability: Double,
     @Value("\${settlement.artificial-delay-ms:0}") private val artificialDelayMs: Long,
+    @Value("\${settlement.always-fail-trader-ids:}") private val alwaysFailTraderIds: String,
     private val meterRegistry: MeterRegistry
 ) {
+
+    private val alwaysFailSet: Set<String> by lazy {
+        alwaysFailTraderIds.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    }
 
     @Bulkhead(name = "settlementOperation", fallbackMethod = "settleBulkheadFallback")
     @Retry(name = "settlementOperation", fallbackMethod = "settleFallback")
     fun settle(trade: Trade, order: Order): Position {
         if (artificialDelayMs > 0) Thread.sleep(artificialDelayMs)
-        simulateFailure(trade)
+        simulateFailure(trade, order)
         val position = updatePosition(trade, order)
         eventPublisher.publishPositionSettled(trade.id, position)
         meterRegistry.counter("settlement.attempts.total", "outcome", "success").increment()
@@ -101,7 +106,10 @@ class SettlementService(
         )
     }
 
-    private fun simulateFailure(trade: Trade) {
+    private fun simulateFailure(trade: Trade, order: Order) {
+        if (order.traderId in alwaysFailSet) {
+            throw SettlementException("Always-fail trader configured: ${order.traderId}")
+        }
         if (failureProbability > 0.0 && Math.random() < failureProbability) {
             throw SettlementException("Simulated failure for tradeId=${trade.id}")
         }

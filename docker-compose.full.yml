@@ -73,9 +73,7 @@ services:
       - "8083:8083"
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
-      # Keeps the settlement window open long enough for SagaCompensationTest to inject
-      # SettlementFailed before PositionSettled arrives (1-second poll interval needs margin).
-      SETTLEMENT_ARTIFICIAL_DELAY_MS: "3000"
+      SETTLEMENT_ALWAYS_FAIL_TRADER_IDS: "trader-comp-001"
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
     depends_on:
       kafka:
