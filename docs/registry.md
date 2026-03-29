@@ -76,4 +76,5 @@ The registry status tracks **document completeness**, not implementation progres
 | BUG-003 | BUG | Settlement service fails all orders after the first — original exception unknown due to missing error logging | resolved |
 | RETRO-018 | RETRO | Bug-fix: BUG-003 settlement fails after first order — missing kotlin plugin.jpa | complete |
 | BUG-004 | BUG | SagaCompensationTest flaky — timing race between test injection and real settlement | resolved |
+| RETRO-019 | RETRO | Bug-fix: BUG-004 SagaCompensationTest timing race | complete |
 | RETRO-REVIEW-003 | RETRO-REVIEW | Retro review — RETRO-010 through RETRO-017 | complete |
