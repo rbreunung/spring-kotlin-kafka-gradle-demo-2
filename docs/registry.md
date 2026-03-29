@@ -58,6 +58,8 @@ The registry status tracks **document completeness**, not implementation progres
 | FEAT-009 | FEAT | Observability — Micrometer Metrics and Distributed Tracing | complete |
 | PLAN-009 | PLAN | Observability — Micrometer Metrics and Distributed Tracing | complete |
 | FEAT-010 | FEAT | Notification Service — WebSocket Push for Real-Time Order Status | complete |
+| PLAN-010 | PLAN | Notification Service — WebSocket Push for Real-Time Order Status | complete |
+| RETRO-020 | RETRO | FEAT-010 feature spec retrospective (re-run) | complete |
 | FEAT-011 | FEAT | Cancel In-Flight Orders — User-Initiated Saga Rollback | draft |
 | RETRO-009 | RETRO | FEAT-008 feature spec retrospective | complete |
 | RETRO-REVIEW-002 | RETRO-REVIEW | Retro review — RETRO-003 through RETRO-009 | complete |
@@ -79,3 +81,7 @@ The registry status tracks **document completeness**, not implementation progres
 | RETRO-019 | RETRO | Bug-fix: BUG-004 SagaCompensationTest timing race | complete |
 | RETRO-REVIEW-003 | RETRO-REVIEW | Retro review — RETRO-010 through RETRO-017 | complete |
 | BUG-005 | BUG | Order status stuck — SettlementFailed arrives before TradeExecuted sets tradeId | resolved |
+| FEAT-013 | FEAT | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
+| PLAN-013 | PLAN | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
+| ADR-003 | ADR | Pre-built JAR pattern for service Dockerfiles | accepted |
+| RETRO-021 | RETRO | FEAT-013 feature spec retrospective | complete |

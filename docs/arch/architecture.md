@@ -88,10 +88,10 @@ enum class Side { BUY, SELL }
 | `TradeExecuted(trade)` | ExecutionService | SagaOrchestrator, OrderService, SettlementService |
 | `SettlementRequested(trade, order)` | SagaOrchestrator | SettlementService |
 | `PositionSettled(tradeId, position)` | SettlementService | SagaOrchestrator, OrderService |
-| `SettlementFailed(tradeId, reason)` | SettlementService | SagaOrchestrator, OrderService |
+| `SettlementFailed(tradeId, orderId, reason)` | SettlementService | SagaOrchestrator, OrderService |
 | `CompensationRequested(orderId, tradeId, reason)` | SagaOrchestrator | ExecutionService |
 | `TradeVoided(tradeId, orderId)` | ExecutionService | SagaOrchestrator, OrderService |
-| `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |
+| `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService |
 | `TraderNotified(traderId, orderId, message)` | NotificationService | — |
 
 ## Gradle Module Layout
@@ -122,6 +122,12 @@ Version management:
 
 - `docker-compose.yml` — Kafka + Zipkin (daily dev; services run on JVM)
 - `docker-compose.full.yml` — Kafka + Zipkin + all 6 services (demo/CI; each service built from `Dockerfile`)
+
+### Docker Build Pattern
+
+Service Dockerfiles use the **pre-built JAR pattern** (ADR-003): each Dockerfile expects a pre-built `*.jar` in `<service>/build/libs/` and only copies it into a JRE image. JAR files must be built on the host before `docker compose build` is invoked. Use `./gradlew systemTest` — this task declares `dependsOn` on all 6 `bootJar` tasks and enforces correct ordering automatically.
+
+**Do not run `docker compose -f docker-compose.full.yml build` directly** without first building JARs — it will fail with a COPY error.
 
 ## Diagram Color Conventions
 
@@ -239,6 +245,7 @@ sequenceDiagram
 |---|---|---|
 | [ADR-001](adr/ADR-001-saga-state-as-recovery-anchor.md) | Saga state entity is the authoritative recovery anchor for future compensation logic | accepted |
 | [ADR-002](adr/ADR-002-testcontainers-dockercompose-for-e2e-tests.md) | Testcontainers `DockerComposeContainer` wrapping `docker-compose.full.yml` for E2E system tests | accepted |
+| [ADR-003](adr/ADR-003-pre-built-jar-dockerfile-pattern.md) | Service Dockerfiles copy pre-built JARs from host; no in-Docker Gradle builds | accepted |
 
 ## Testing Conventions
 
