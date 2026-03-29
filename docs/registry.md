@@ -79,3 +79,6 @@ The registry status tracks **document completeness**, not implementation progres
 | RETRO-019 | RETRO | Bug-fix: BUG-004 SagaCompensationTest timing race | complete |
 | RETRO-REVIEW-003 | RETRO-REVIEW | Retro review — RETRO-010 through RETRO-017 | complete |
 | BUG-005 | BUG | Order status stuck — SettlementFailed arrives before TradeExecuted sets tradeId | resolved |
+| FEAT-013 | FEAT | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
+| PLAN-013 | PLAN | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
+| ADR-003 | ADR | Pre-built JAR pattern for service Dockerfiles | accepted |
