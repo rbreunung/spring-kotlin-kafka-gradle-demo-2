@@ -91,7 +91,7 @@ enum class Side { BUY, SELL }
 | `SettlementFailed(tradeId, orderId, reason)` | SettlementService | SagaOrchestrator, OrderService |
 | `CompensationRequested(orderId, tradeId, reason)` | SagaOrchestrator | ExecutionService |
 | `TradeVoided(tradeId, orderId)` | ExecutionService | SagaOrchestrator, OrderService |
-| `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService (future) |
+| `NotificationRequested(traderId, orderId, message)` | SagaOrchestrator | NotificationService |
 | `TraderNotified(traderId, orderId, message)` | NotificationService | — |
 
 ## Gradle Module Layout

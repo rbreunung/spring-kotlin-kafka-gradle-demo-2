@@ -1,7 +1,7 @@
 # FEAT-010: Notification Service — WebSocket Push for Real-Time Order Status
 
-Status: draft
-Date: 2026-03-16
+Status: complete
+Date: 2026-03-29
 Author: Claude
 
 ---
@@ -30,20 +30,20 @@ and all existing saga + order tests remain unchanged.
 
 ## Goals
 
-- [ ] Add `spring-boot-starter-websocket` to `:notification` module; expose on
+- [x] Add `spring-boot-starter-websocket` to `:notification` module; expose on
       port 8090
-- [ ] STOMP WebSocket config: `/ws` handshake endpoint, simple in-memory broker,
+- [x] STOMP WebSocket config: `/ws` handshake endpoint, simple in-memory broker,
       broker prefix `/topic`
-- [ ] On `NotificationRequested` consumed: broadcast STOMP message to
+- [x] On `NotificationRequested` consumed: broadcast STOMP message to
       `/topic/trader/{traderId}` AND publish `TraderNotified` to
       `trader-notifications` Kafka topic (best-effort; STOMP failure does not
       block Kafka publish)
-- [ ] Static HTML/JS test client (`src/main/resources/static/index.html`) —
+- [x] Static HTML/JS test client (`src/main/resources/static/index.html`) —
       connects to `/ws`, subscribes to `/topic/trader/{traderId}`, displays
       incoming messages
-- [ ] Integration tests: `NotificationKafkaListener` → STOMP broadcast verified
+- [x] Integration tests: `NotificationKafkaListener` → STOMP broadcast verified
       via `SimpMessagingTemplate` mock; `TraderNotified` published on Kafka
-- [ ] System-test: `NotificationTest` — place order → poll until saga step is
+- [x] System-test: `NotificationTest` — place order → poll until saga step is
       `SETTLED` → verify `TraderNotified` is present on `trader-notifications`
       topic
 
@@ -60,6 +60,11 @@ and all existing saga + order tests remain unchanged.
 - No TLS/WSS
 
 ## Architecture
+
+### Ports & Network Listeners
+
+Port agreed at spec time: 8090
+Conflict check completed: yes — no conflict with other services (order: 8080, risk: 8081, execution: 8082, settlement: 8083, saga-orchestrator: 8085, Zipkin: 9411)
 
 ### Component Design
 
@@ -128,6 +133,7 @@ sequenceDiagram
 ### `NotificationPayload` (DTO, not persisted)
 
 ```kotlin
+
 data class NotificationPayload(
     val orderId: UUID,
     val message: String,
@@ -209,37 +215,20 @@ spring:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew :notification:test` — all tests pass; STOMP broadcast verified
+- [x] `./gradlew :notification:test` — all tests pass; STOMP broadcast verified
       via `SimpMessagingTemplate` mock; `TraderNotified` published to
       `trader-notifications`
-- [ ] `docker compose -f docker-compose.full.yml up -d` → open
+- [x] `docker compose -f docker-compose.full.yml up -d` → open
       `http://localhost:8090`, subscribe to `/topic/trader/T001`, place order
       → push notification received in browser when saga reaches SETTLED
-- [ ] System-test: `NotificationTest` — place order → saga reaches `SETTLED` →
+- [x] System-test: `NotificationTest` — place order → saga reaches `SETTLED` →
       `TraderNotified` message present on `trader-notifications` Kafka topic
-- [ ] No changes to existing system-test assertions (`HappyPathSagaFlowTest`
+- [x] No changes to existing system-test assertions (`HappyPathSagaFlowTest`
       still expects `SETTLED` as the terminal saga step)
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
-
-## Files to Create / Modify
-
-| Path | Action |
-|---|---|
-| `notification/build.gradle.kts` | Modify — add `spring-boot-starter-websocket` |
-| `notification/src/main/resources/application.yml` | Modify — add server port, Kafka producer config |
-| `notification/src/test/resources/application.yml` | Create — sentinel Kafka + producer config |
-| `notification/src/main/kotlin/.../notification/config/WebSocketConfig.kt` | Create |
-| `notification/src/main/kotlin/.../notification/kafka/NotificationKafkaListener.kt` | Modify — replace stub with real logic |
-| `notification/src/main/kotlin/.../notification/kafka/NotificationEventPublisher.kt` | Create |
-| `notification/src/main/kotlin/.../notification/NotificationService.kt` | Create |
-| `notification/src/main/kotlin/.../notification/dto/NotificationPayload.kt` | Create |
-| `notification/src/main/resources/static/index.html` | Create — HTML/JS test client |
-| `saga-orchestrator/src/main/kotlin/.../saga_orchestrator/domain/SagaStep.kt` | Modify — add comment on NOTIFICATION_SENT reserved value |
-| `docs/arch/architecture.md` | Modify — update NotificationService row (port 8090, real impl) |
-| `system-test/src/test/.../NotificationTest.kt` | Create |
+The STOMP WebSocket endpoint uses SockJS (`registry.addEndpoint("/ws").withSockJS()`) for broader client compatibility. The `/app` application destination prefix is configured but not used by any controller in this feature — the service only pushes via `SimpMessagingTemplate`, it does not subscribe to client-sent STOMP frames.
 
 ## Related Docs
 
