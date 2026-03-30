@@ -21,4 +21,3 @@ Follow the workflow defined in `docs/workflows/feature-spec.md` exactly.
 - At workflow start, create a TaskCreate entry for each numbered step; mark complete with TaskUpdate as you go
 - No writes to `/tmp` — use `build/agent-debug/` for any temp output
 - No pipes, heredocs, or multiline bash strings — see Bash Command Style in AGENTS.md
-- Final verification: use `./gradlew :module:clean :module:test` (not just `:module:test`)
