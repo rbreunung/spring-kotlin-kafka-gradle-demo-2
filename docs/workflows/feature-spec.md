@@ -200,11 +200,7 @@ If **C**: the branch is ready for the `feature-impl` workflow.
 
 Always ask: "Would you like to add a retrospective for this spec session?" Wait for the answer before declaring the workflow complete.
 
-If yes:
-1. Allocate RETRO-NNN from registry
-2. Copy `docs/templates/retrospective-template.md` to `docs/retrospectives/RETRO-NNN-spec-FEAT_ID.md`
-3. Ask 3 quick questions: what went well, what was difficult, improvement ideas
-4. Fill the template and commit: `chore(RETRO-NNN): feature spec retrospective for FEAT_ID`
+If yes: follow `docs/workflows/retrospective.md`. Task context (FEAT_ID, workflow type `feature-spec`) is already loaded — skip STEP 1 and STEP 2 of that workflow and start at STEP 3.
 
 ---
 
