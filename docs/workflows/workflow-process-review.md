@@ -41,7 +41,7 @@ Before making any changes, allocate the RETRO-REVIEW ID and create a branch:
 ```bash
 git checkout main    # or master
 git pull
-git checkout -b chore/retro-review-NNN
+git checkout -b chore/workflow-process-review-NNN
 ```
 
 All workflow edits and the review doc commit go on this branch.
@@ -91,13 +91,10 @@ For each agreed improvement, make the change:
 
 | Target | Action |
 |---|---|
-| Workflow skill | Edit `.claude/skills/[workflow].md` |
-| Reference doc | Edit `docs/workflows/[workflow].md` to match |
+| Workflow | Edit `docs/workflows/[workflow].md` |
 | AGENTS.md | Edit `AGENTS.md` |
 | Feature spec | Edit `docs/features/FEAT-NNN-*.md` |
 | Document template | Edit `docs/templates/[template].md` |
-
-**Important:** When editing a workflow skill (`.claude/skills/`), always update the corresponding `docs/workflows/` file to match — both files must stay in sync. They serve different agents but must contain identical workflow logic.
 
 Commit each logical group of changes:
 ```
@@ -118,9 +115,25 @@ chore: [brief description of improvement] — retro review finding
 ### STEP 7: Offer Integration
 
 Ask the user:
-> "The retro-review changes are on `chore/retro-review-NNN`. How would you like to integrate them?
+> "The retro-review changes are on `chore/workflow-process-review-NNN`. How would you like to integrate them?
 > - **A) Open a pull/merge request** — create a PR/MR for review
 > - **B) Merge locally** — merge into main now
 > - **C) Keep on branch** — continue work before integrating"
 
 If **B**: confirm explicitly with the user before merging.
+
+---
+
+## Completion Checklist
+
+Use this to verify the workflow was followed completely before declaring done:
+
+- [ ] RETRO-REVIEW-NNN allocated and row added to `docs/registry.md` immediately (STEP 1b)
+- [ ] Branch created: `chore/workflow-process-review-NNN` (STEP 1b)
+- [ ] All unreviewed RETRO-NNN documents read (STEP 1)
+- [ ] Themes identified and presented to user (STEPs 2–4)
+- [ ] All agreed improvements applied to target files per STEP 5 table (STEP 5)
+- [ ] Commits made for each logical group of changes (STEP 5)
+- [ ] `docs/retrospectives/RETRO-REVIEW-NNN.md` written and committed (STEP 6)
+- [ ] RETRO-REVIEW-NNN status updated to `complete` in `docs/registry.md` (STEP 6)
+- [ ] Offer Integration step presented to user (STEP 7)

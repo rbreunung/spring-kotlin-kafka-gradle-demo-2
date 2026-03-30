@@ -200,8 +200,22 @@ If **C**: the branch is ready for the `feature-impl` workflow.
 
 Always ask: "Would you like to add a retrospective for this spec session?" Wait for the answer before declaring the workflow complete.
 
-If yes:
-1. Allocate RETRO-NNN from registry
-2. Copy `docs/templates/retrospective-template.md` to `docs/retrospectives/RETRO-NNN-spec-FEAT_ID.md`
-3. Ask 3 quick questions: what went well, what was difficult, improvement ideas
-4. Fill the template and commit: `chore(RETRO-NNN): feature spec retrospective for FEAT_ID`
+If yes: follow `docs/workflows/retrospective.md`. Task context (FEAT_ID, workflow type `feature-spec`) is already loaded — skip STEP 1 and STEP 2 of that workflow and start at STEP 3.
+
+---
+
+## Completion Checklist
+
+Use this to verify the workflow was followed completely before declaring done:
+
+- [ ] FEAT-NNN allocated and row added to `docs/registry.md` immediately (STEP 1)
+- [ ] PLAN-NNN allocated and row added to `docs/registry.md` (STEP 10)
+- [ ] Branch created: `feat/FEAT-NNN-kebab-title` (STEP 2)
+- [ ] `docs/features/FEAT-NNN-kebab-title.md` written (STEP 8)
+- [ ] `docs/plans/PLAN-NNN-kebab-title.md` written with vertical slices (STEP 10)
+- [ ] `docs/arch/architecture.md` updated if new components or decisions introduced (STEP 9)
+- [ ] ADR written if a significant architectural decision was made (STEP 9)
+- [ ] FEAT-NNN and PLAN-NNN status set to `complete` in `docs/registry.md` (STEP 11)
+- [ ] Registry stub check: no orphan `draft` entries without a corresponding file (STEP 11)
+- [ ] Offer Integration step presented to user (STEP 12)
+- [ ] Retrospective offered — follow `docs/workflows/retrospective.md` if yes (STEP 13)
