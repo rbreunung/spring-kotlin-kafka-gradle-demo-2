@@ -132,7 +132,7 @@ Use this to verify the workflow was followed completely before declaring done:
 - [ ] Branch created: `chore/workflow-process-review-NNN` (STEP 1b)
 - [ ] All unreviewed RETRO-NNN documents read (STEP 1)
 - [ ] Themes identified and presented to user (STEPs 2–4)
-- [ ] All agreed improvements applied to `docs/workflows/` files only (STEP 5)
+- [ ] All agreed improvements applied to target files per STEP 5 table (STEP 5)
 - [ ] Commits made for each logical group of changes (STEP 5)
 - [ ] `docs/retrospectives/RETRO-REVIEW-NNN.md` written and committed (STEP 6)
 - [ ] RETRO-REVIEW-NNN status updated to `complete` in `docs/registry.md` (STEP 6)
