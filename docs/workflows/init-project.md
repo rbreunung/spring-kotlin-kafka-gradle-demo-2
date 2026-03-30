@@ -146,3 +146,16 @@ Tell the user:
 > - `docs/registry.md` — document ID registry
 >
 > **Next step:** Say **'spec feature [feature name]'** to define your first feature, or read `docs/USER-MANUAL.md` for a full overview."
+
+---
+
+## Completion Checklist
+
+Use this to verify the workflow was followed completely before declaring done:
+
+- [ ] Five Q&A questions asked and answered (STEP 2)
+- [ ] `docs/project-idea.md` created (STEP 3)
+- [ ] `docs/arch/architecture.md` skeleton created (STEP 4)
+- [ ] `AGENTS.md` placeholders replaced with actual project values (STEP 5)
+- [ ] `docs/registry.md` initialized with FEAT-000 row (STEP 6)
+- [ ] Commit made: `chore: initialize project from template` (STEP 7)
