@@ -159,11 +159,7 @@ Make only obvious, minimal improvements. Do not rewrite documentation.
 
 Ask: "Would you like to add a retrospective for this bug fix?"
 
-If yes:
-1. Allocate RETRO-NNN from registry
-2. Copy `docs/templates/retrospective-template.md`
-3. Write `docs/retrospectives/RETRO-NNN-bugfix-BUG-NNN.md`
-4. Commit: `chore(RETRO-NNN): bug fix retrospective for BUG-NNN`
+If yes: follow `docs/workflows/retrospective.md`. Task context (BUG-NNN, workflow type `bug-fix`) is already loaded — skip STEP 1 and STEP 2 of that workflow and start at STEP 3.
 
 ### STEP 12: Offer Integration
 
@@ -181,3 +177,21 @@ If **A**: generate PR title (`fix(BUG-NNN): [short description]`) and body summa
 
 Confirm the PR description with the user before creating.
 If **B**: confirm explicitly with the user before merging.
+
+---
+
+## Completion Checklist
+
+Use this to verify the workflow was followed completely before declaring done:
+
+- [ ] BUG-NNN allocated and row added to `docs/registry.md` immediately (Phase 2 STEP 1)
+- [ ] Branch created: `fix/BUG-NNN-kebab-title` (Phase 2 STEP 2)
+- [ ] `docs/bugs/BUG-NNN-kebab-title.md` created with all Phase 1 fields filled (Phase 2 STEP 1)
+- [ ] Failing reproduction test written and confirmed to FAIL before fix (STEP 4)
+- [ ] Fix implemented and all unit/integration tests pass (STEPs 5–6)
+- [ ] System tests run or user explicitly notified if Docker unavailable (STEP 7)
+- [ ] `## Root Cause` and `## Fix Summary` filled in bug report (STEP 9)
+- [ ] `## Progress` section removed from bug report (STEP 9)
+- [ ] BUG-NNN status set to `resolved` in `docs/registry.md` (STEP 9)
+- [ ] Retrospective offered — follow `docs/workflows/retrospective.md` if yes (STEP 11)
+- [ ] Offer Integration step presented to user (STEP 12)
