@@ -32,10 +32,35 @@ Load these into context before working on any task (if not already loaded):
 | Feature Impl | "implement feature FEAT-NNN" | `feature-impl` | After feature spec is approved |
 | Impl Review | "review implementation FEAT-NNN" | `feature-impl` | Re-check impl against spec at any time |
 | Bug Fix | "fix a bug" | `bug-fix` | When a defect is reported |
-| Retro Review | "run retrospective review" | `retro-review` | Periodically to improve workflows |
+| Retrospective | "run retrospective" | `retrospective` | After any feature-spec, feature-impl, or bug-fix workflow to reflect on the session |
+| Workflow Process Review | "run workflow process review" (also: "run retrospective review") | `workflow-process-review` | Periodically to improve workflows — every 5–10 features |
 
 **Claude Code (local, Skill tool available):** `Skill: <skill-name>` to invoke.
 **Claude Code (cloud/mobile) / Opencode / other:** read `docs/workflows/<skill-name>.md` and follow the steps directly.
+
+---
+
+## Workflow Architecture
+
+| Layer | Path | Purpose |
+|---|---|---|
+| Source of truth | `docs/workflows/` | Agent-agnostic steps — plain language, no tool names |
+| Claude Code adapter | `.claude/skills/` | YAML frontmatter for Skill invocation + Claude Code tool mappings |
+| opencode adapter | `.opencode/workflow-adapter.md` | Interactive-by-default guidance + plan-first deferred-write mode |
+
+**To change a workflow:** edit `docs/workflows/[workflow].md` only. The `.claude/skills/` shims delegate to those files and contain no workflow logic of their own.
+
+**To add support for a new agent tool:** create a thin adapter (e.g., `.cursor/rules/`) with a tool-mapping table ("when workflow says X, use tool Y") and any mode constraints specific to that tool.
+
+### Tool Mapping Reference
+
+| Workflow Instruction | Claude Code | opencode (interactive) | opencode (plan-first) |
+|---|---|---|---|
+| "Ask the user [question]" | Conversational reply | Ask normally | Ask normally — never deferred |
+| "Read file [path]" | Read tool | Read normally | Read normally |
+| "Write file at [path]" | Write tool | Write the file | Output as `📄` code block |
+| "Run bash command [cmd]" | Bash tool | Run the command | Show with `🔧` prefix, defer |
+| "Commit with message [msg]" | Bash: git add + commit | git add + git commit | Show with `💾` prefix, defer |
 
 ---
 
@@ -48,7 +73,7 @@ Load these into context before working on any task (if not already loaded):
 - `## Progress` section: embedded in active workflow docs; removed when workflow completes
 - Directories: created on demand — never create empty directories
 - Architecture diagrams: Mermaid, embedded in `docs/arch/architecture.md`
-- `docs/workflows/` contains human-readable copies of all `.claude/skills/` files. Both are authoritative — keep them in sync (see Git Conventions sync rule).
+- `docs/workflows/` is the **source of truth** for all workflow logic. `.claude/skills/` files are thin shims that delegate to `docs/workflows/` — they contain no workflow logic of their own. Edit only `docs/workflows/` when changing a workflow. See Workflow Architecture section above.
 
 ## Bash Command Style
 
@@ -105,5 +130,5 @@ Apply these at all times — for workflow tasks and ad-hoc requests:
 - Commit format: `feat(FEAT-NNN): description` / `fix(BUG-NNN): description` / `chore: description`
 - Commit after each passing test iteration — do not accumulate uncommitted work
 - At workflow end: use the Offer Integration step — ask whether to open a PR/MR, merge locally, or keep on branch
-- When editing any workflow skill (`.claude/skills/`), always update the corresponding `docs/workflows/` file to match. Both files must stay in sync — they serve different agents but contain identical workflow logic.
+- When changing any workflow, edit `docs/workflows/[workflow].md` only. The `.claude/skills/` shims point to those files and require no update unless the skill name or trigger description changes.
 - **Must read:** `docs/workflows/git-for-agents.md` — allowed and prohibited git command patterns, branch rules, and commit discipline.
