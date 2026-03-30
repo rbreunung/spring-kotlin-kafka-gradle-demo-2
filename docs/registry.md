@@ -87,3 +87,4 @@ The registry status tracks **document completeness**, not implementation progres
 | PLAN-013 | PLAN | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
 | ADR-003 | ADR | Pre-built JAR pattern for service Dockerfiles | accepted |
 | RETRO-021 | RETRO | FEAT-013 feature spec retrospective | complete |
+| RETRO-REVIEW-004 | RETRO-REVIEW | Agent-agnostic workflow architecture | in-progress |

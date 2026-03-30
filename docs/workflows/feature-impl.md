@@ -203,11 +203,7 @@ docs(FEAT-NNN): update architecture for implementation
 
 Ask: "Would you like to add a retrospective for this implementation?"
 
-If yes:
-1. Allocate RETRO-NNN from registry
-2. Copy `docs/templates/retrospective-template.md`
-3. Write `docs/retrospectives/RETRO-NNN-impl-FEAT-NNN.md`
-4. Commit: `chore(RETRO-NNN): feature impl retrospective for FEAT-NNN`
+If yes: follow `docs/workflows/retrospective.md`. Task context (FEAT-NNN, workflow type `feature-impl`) is already loaded — skip STEP 1 and STEP 2 of that workflow and start at STEP 3.
 
 ### STEP 9: Offer Integration
 
@@ -224,3 +220,18 @@ If **A**: generate PR title (`feat(FEAT-NNN): [feature title]`) and body summari
 
 Confirm the PR description with the user before creating.
 If **B**: confirm explicitly with the user before merging.
+
+---
+
+## Completion Checklist
+
+Use this to verify the workflow was followed completely before declaring done:
+
+- [ ] All vertical slices in `docs/plans/PLAN-NNN-*.md` marked `[x]` (STEP 4)
+- [ ] Full test suite passes: `./gradlew :module:clean :module:test` (STEP 5)
+- [ ] Implementation Review table written in `PLAN-NNN-*.md` with `Status: complete` (STEP 6)
+- [ ] `## Progress` section removed from `PLAN-NNN-*.md` (STEP 6)
+- [ ] `docs/arch/architecture.md` updated if implementation deviated from spec (STEP 7)
+- [ ] ADR written if a new architectural decision was made (STEP 7)
+- [ ] Retrospective offered — follow `docs/workflows/retrospective.md` if yes (STEP 8)
+- [ ] Offer Integration step presented to user (STEP 9)
