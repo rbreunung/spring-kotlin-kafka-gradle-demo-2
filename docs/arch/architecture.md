@@ -239,6 +239,42 @@ sequenceDiagram
     end
 ```
 
+### Cancel Order — User-Initiated Abort (FEAT-011)
+
+A trader may cancel an order at any non-terminal step through the REST endpoint `DELETE /orders/{id}`. The cancellation workflow handles different scenarios:
+
+**Business rules:**
+- `OrderService` rejects the cancel with **HTTP 409 Conflict** if the order is not in `PENDING` status.
+- `SagaOrchestrator` handles cancellation based on the current saga state:
+  - Early cancellation (`RISK_REQUESTED`, `RISK_APPROVED`, `EXECUTION_REQUESTED`): Clean abort to `CANCELLATION_COMPLETE` state
+  - Late cancellation (`EXECUTION_COMPLETE`, `SETTLEMENT_REQUESTED`): Trigger compensation via `CompensationRequested`, which will eventually result in `COMPENSATION_COMPLETE`
+- On successful cancellation, order status transitions to `CANCELLATION_IN_PROGRESS` (awaiting saga resolution)
+
+```mermaid
+sequenceDiagram
+    participant Trader
+    participant OrderService
+    participant SagaOrchestrator
+
+    rect rgb(229, 231, 235)
+        Note over Trader,OrderService: Cancel Request
+        Trader->>OrderService: DELETE /orders/{id}
+        OrderService->>OrderService: validate status == PENDING
+        Note right of OrderService: HTTP 409 if not PENDING
+        OrderService->>OrderService: set status → CANCELLATION_IN_PROGRESS
+        OrderService-->>Kafka: OrderCancelled
+    end
+
+    rect rgb(229, 231, 235)
+        Note over SagaOrchestrator: Saga State Transition
+        Kafka-->>SagaOrchestrator: OrderCancelled
+        SagaOrchestrator->>SagaOrchestrator: check saga step 
+        Note right of SagaOrchestrator: Cancel early → CANCELLATION_COMPLETE
+        Note right of SagaOrchestrator: Cancel late → CANCEL_REQUESTED → COMPENSATION_REQUESTED
+        SagaOrchestrator->>SagaOrchestrator: finalize cancellation and set order status to CANCELLED
+    end
+```
+
 ## Key Design Decisions
 
 | ID | Decision | Status |

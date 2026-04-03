@@ -66,7 +66,7 @@ class OrderCommandServiceTest {
     }
 
     @Test
-    fun `cancel on PENDING order sets CANCELLED and publishes OrderCancelled`() {
+    fun `cancel on PENDING order sets CANCELLATION_IN_PROGRESS and publishes OrderCancelled`() {
         val id = UUID.randomUUID()
         val entity = pendingEntity(id)
         `when`(orderRepository.findById(id)).thenReturn(Optional.of(entity))
@@ -74,7 +74,7 @@ class OrderCommandServiceTest {
 
         service.cancel(id)
 
-        assertEquals(OrderStatus.CANCELLED.name, entity.status)
+        assertEquals(OrderStatus.CANCELLATION_IN_PROGRESS.name, entity.status)
         verify(kafkaTemplate).send(eq("orders"), eq(id.toString()), any())
     }
 

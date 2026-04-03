@@ -54,6 +54,75 @@ class OrderCancellationTest : SystemTestBase() {
         assertEquals("CANCELLED", cancelledOrder?.status)
     }
 
+    @Test
+    fun `cancelling during settlement race triggers compensation when settlement completes`() {
+        val orderId = placeOrder()
+
+        await.atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofSeconds(1)).until {
+            getSaga(orderId)?.step == "SETTLEMENT_REQUESTED"
+        }
+
+        // Cancel when saga is at SETTLEMENT_REQUESTED
+        val saga = getSaga(orderId)
+        requireNotNull(saga) { "Saga should exist at SETTLEMENT_REQUESTED" }
+
+        restTemplate.delete("${orderServiceBaseUrl()}/orders/$orderId")
+
+        await.atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofSeconds(1)).until {
+            getSaga(orderId)?.step == "CANCEL_PENDING"
+        }
+
+        await.atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until {
+            val finalSaga = getSaga(orderId)
+            finalSaga?.step == "COMPENSATION_COMPLETE" || finalSaga?.step == "CANCELLATION_COMPLETE"
+        }
+
+        await.atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until {
+            getOrder(orderId)?.status == "COMPENSATED" || getOrder(orderId)?.status == "CANCELLED"
+        }
+
+        val finalSaga = getSaga(orderId)
+        assertNotNull(finalSaga)
+        assertTrue(
+            finalSaga.step == "COMPENSATION_COMPLETE" || finalSaga.step == "CANCELLATION_COMPLETE",
+            "Final saga step should be COMPENSATION_COMPLETE or CANCELLATION_COMPLETE, was: ${finalSaga.step}"
+        )
+
+        val finalOrder = getOrder(orderId)
+        assertNotNull(finalOrder)
+        assertTrue(
+            finalOrder.status == "COMPENSATED" || finalOrder.status == "CANCELLED",
+            "Final order status should be COMPENSATED or CANCELLED, was: ${finalOrder.status}"
+        )
+    }
+
+    @Test
+    fun `cancelling after execution complete triggers compensation flow`() {
+        val orderId = placeOrder()
+
+        await.atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofSeconds(1)).until {
+            getSaga(orderId)?.step == "EXECUTION_COMPLETE"
+        }
+
+        // Cancel when saga is at EXECUTION_COMPLETE
+        restTemplate.delete("${orderServiceBaseUrl()}/orders/$orderId")
+
+        await.atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until {
+            getSaga(orderId)?.step == "COMPENSATION_REQUESTED"
+        }
+
+        await.atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until {
+            getSaga(orderId)?.step == "COMPENSATION_COMPLETE"
+        }
+
+        await.atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until {
+            getOrder(orderId)?.status == "COMPENSATED"
+        }
+
+        val finalOrder = getOrder(orderId)
+        assertEquals("COMPENSATED", finalOrder?.status)
+    }
+
     private fun placeOrder(): UUID {
         val request = mapOf(
             "traderId" to "trader-cancel-001",
@@ -81,6 +150,20 @@ class OrderCancellationTest : SystemTestBase() {
         val id: UUID,
         val status: String,
         val createdAt: Instant,
+        val updatedAt: Instant
+    )
+
+    private fun getSaga(orderId: UUID): SagaResponse? = try {
+        restTemplate.getForEntity("${sagaServiceBaseUrl()}/sagas/$orderId", SagaResponse::class.java).body
+    } catch (_: HttpClientErrorException.NotFound) {
+        null
+    } catch (_: Exception) {
+        null
+    }
+
+    data class SagaResponse(
+        val id: UUID,
+        val step: String,
         val updatedAt: Instant
     )
 }

@@ -124,7 +124,7 @@ Zipkin UI: http://localhost:9411
 ```
 trader/
 ├── shared/              # Kotlin library: domain classes + Kafka event types
-├── order/               # Spring Boot: REST POST /orders (port 8080)
+├── order/               # Spring Boot: REST POST /orders, DELETE /orders/{id} (port 8080)
 ├── risk/                # Spring Boot: Kafka consumer/producer (Resilience4j CB)
 ├── execution/           # Spring Boot: Kafka consumer/producer
 ├── settlement/          # Spring Boot: Kafka consumer/producer (Resilience4j retry)
@@ -139,8 +139,14 @@ trader/
 
 ## Saga Flow
 
+**Happy path:**
 ```
 OrderPlaced → RiskApproved → TradeExecuted → PositionSettled → TraderNotified
+```
+
+**User-initiated cancellation** (`DELETE /orders/{id}` while order is PENDING):
+```
+OrderPlaced → DELETE /orders/{id} → OrderCancelled → Saga deleted
 ```
 
 Compensating events on failure: `RiskRejected` → `OrderRejected`, `SettlementFailed` → DLQ.

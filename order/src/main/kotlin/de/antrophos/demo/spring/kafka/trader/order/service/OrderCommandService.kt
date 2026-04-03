@@ -61,7 +61,7 @@ class OrderCommandService(
         if (entity.status != OrderStatus.PENDING.name) {
             throw OrderNotCancellableException(id, entity.status)
         }
-        entity.status = OrderStatus.CANCELLED.name
+        entity.status = OrderStatus.CANCELLATION_IN_PROGRESS.name
         entity.updatedAt = Instant.now()
         orderRepository.save(entity)
         kafkaTemplate.send("orders", id.toString(), OrderCancelled(id))
