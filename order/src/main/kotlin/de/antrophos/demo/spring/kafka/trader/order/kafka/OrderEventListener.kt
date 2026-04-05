@@ -3,6 +3,7 @@ package de.antrophos.demo.spring.kafka.trader.order.kafka
 import de.antrophos.demo.spring.kafka.trader.order.domain.OrderStatus
 import de.antrophos.demo.spring.kafka.trader.order.repository.OrderRepository
 import de.antrophos.demo.spring.kafka.trader.order.service.OrderCommandService
+import de.antrophos.demo.spring.kafka.trader.shared.events.OrderCancellationComplete
 import de.antrophos.demo.spring.kafka.trader.shared.events.PositionSettled
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
@@ -63,5 +64,10 @@ class OrderEventListener(
     @KafkaListener(topics = ["compensation-results"], groupId = "order-service")
     fun onCompensationResult(event: TradeVoided) {
         commandService.applyTransition(event.orderId, OrderStatus.COMPENSATION_COMPLETE, fromStatus = OrderStatus.COMPENSATION_IN_PROGRESS)
+    }
+
+    @KafkaListener(topics = ["cancellation-results"], groupId = "order-service")
+    fun onCancellationComplete(event: OrderCancellationComplete) {
+        commandService.applyTransition(event.orderId, OrderStatus.CANCELLED, fromStatus = OrderStatus.CANCELLATION_IN_PROGRESS)
     }
 }

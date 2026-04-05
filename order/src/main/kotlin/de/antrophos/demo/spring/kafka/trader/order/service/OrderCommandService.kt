@@ -58,7 +58,8 @@ class OrderCommandService(
     fun cancel(id: UUID) {
         val entity = orderRepository.findById(id)
             .orElseThrow { OrderNotFoundException(id) }
-        if (entity.status != OrderStatus.PENDING.name) {
+        val cancellableStatuses = setOf(OrderStatus.PENDING, OrderStatus.RISK_APPROVED)
+        if (entity.status !in cancellableStatuses.map { it.name }) {
             throw OrderNotCancellableException(id, entity.status)
         }
         entity.status = OrderStatus.CANCELLATION_IN_PROGRESS.name

@@ -6,6 +6,7 @@ import de.antrophos.demo.spring.kafka.trader.order.repository.OrderRepository
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Position
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Side
 import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
+import de.antrophos.demo.spring.kafka.trader.shared.events.OrderCancellationComplete
 import de.antrophos.demo.spring.kafka.trader.shared.events.PositionSettled
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskApproved
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskRejected
@@ -33,7 +34,7 @@ import kotlin.test.assertEquals
 @SpringBootTest
 @EmbeddedKafka(
     partitions = 1,
-    topics = ["orders", "risk-results", "executions", "settlements", "compensation-results"]
+    topics = ["orders", "risk-results", "executions", "settlements", "compensation-results", "cancellation-results"]
 )
 @TestPropertySource(properties = [
     "spring.kafka.bootstrap-servers=\${spring.embedded.kafka.brokers}",
@@ -186,6 +187,17 @@ class OrderEventListenerTest {
         await.during(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(5)).untilAsserted {
             val updated = orderRepository.findById(order.id).orElseThrow()
             assertEquals(OrderStatus.SETTLED.name, updated.status)
+        }
+    }
+
+    @Test
+    fun `OrderCancellationComplete transitions CANCELLATION_IN_PROGRESS to CANCELLED`() {
+        val order = savedOrder(status = OrderStatus.CANCELLATION_IN_PROGRESS.name)
+        kafkaTemplate.send("cancellation-results", order.id.toString(), OrderCancellationComplete(order.id))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val updated = orderRepository.findById(order.id).orElseThrow()
+            assertEquals(OrderStatus.CANCELLED.name, updated.status)
         }
     }
 }

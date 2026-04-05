@@ -79,7 +79,20 @@ class OrderCommandServiceTest {
     }
 
     @Test
-    fun `cancel on non-PENDING order throws OrderNotCancellableException`() {
+    fun `cancel on RISK_APPROVED order sets CANCELLATION_IN_PROGRESS and publishes OrderCancelled`() {
+        val id = UUID.randomUUID()
+        val entity = pendingEntity(id).apply { status = OrderStatus.RISK_APPROVED.name }
+        `when`(orderRepository.findById(id)).thenReturn(Optional.of(entity))
+        `when`(orderRepository.save(any(OrderEntity::class.java))).thenAnswer { it.arguments[0] }
+
+        service.cancel(id)
+
+        assertEquals(OrderStatus.CANCELLATION_IN_PROGRESS.name, entity.status)
+        verify(kafkaTemplate).send(eq("orders"), eq(id.toString()), any())
+    }
+
+    @Test
+    fun `cancel on non-cancellable order throws OrderNotCancellableException`() {
         val id = UUID.randomUUID()
         val entity = pendingEntity(id).apply { status = OrderStatus.EXECUTED.name }
         `when`(orderRepository.findById(id)).thenReturn(Optional.of(entity))

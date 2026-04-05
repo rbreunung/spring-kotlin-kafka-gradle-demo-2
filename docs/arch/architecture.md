@@ -271,7 +271,9 @@ sequenceDiagram
         SagaOrchestrator->>SagaOrchestrator: check saga step 
         Note right of SagaOrchestrator: Cancel early → CANCELLATION_COMPLETE
         Note right of SagaOrchestrator: Cancel late → CANCEL_REQUESTED → COMPENSATION_REQUESTED
-        SagaOrchestrator->>SagaOrchestrator: finalize cancellation and set order status to CANCELLED
+        SagaOrchestrator-->>Kafka: OrderCancellationComplete (cancellation-results)
+        Kafka-->>OrderService: OrderCancellationComplete
+        OrderService->>OrderService: set order status to CANCELLED
     end
 ```
 

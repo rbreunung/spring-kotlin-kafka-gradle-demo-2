@@ -65,6 +65,7 @@ class SagaOrchestrator(
                     step = SagaStep.CANCELLATION_COMPLETE.name,
                     updatedAt = Instant.now()
                 ))
+                publisher.publishCancellationComplete(event.orderId)
             }
             SagaStep.EXECUTION_COMPLETE -> {
                 // Trigger compensation for existing trade

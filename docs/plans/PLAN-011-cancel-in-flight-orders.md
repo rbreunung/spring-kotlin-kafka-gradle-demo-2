@@ -7,15 +7,15 @@ Feature: [FEAT-011](../features/FEAT-011-cancel-in-flight-orders.md)
 ## Implementation Review
 
 Status: passed
-Reviewed: 2026-03-30
+Reviewed: 2026-04-05
 
 | Acceptance Criterion | Covering Test | Status |
 |---|---|---|
 | `OrderCancelled` event available in shared module | `./gradlew :shared:build` passes. The event is importable from other modules via the `:shared` dependency. | ✅ |
-| Cancel REST endpoint implemented with proper state transitions | Integration test: `OrderCancellationServiceTest` passes. | ✅ |
-| Saga orchestrator handles cancellations with atomic transitions | Integration test: `SagaOrchestratorCancellationTest` passes. | ✅ |
-| All vertical slices are testable independently | All unit/integration tests pass. | ✅ |
-| No plan gaps identified | Feature spec reviewed with resolved decisions. | ✅ |
+| Cancel REST endpoint accepts PENDING and RISK_APPROVED orders | `OrderCommandServiceTest` — `cancel on PENDING order` and `cancel on RISK_APPROVED order` pass; `cancel on non-cancellable order` throws. | ✅ |
+| Saga orchestrator handles cancellations with atomic transitions | `SagaOrderPlacedIntegrationTest` — `OrderCancelled in RISK_REQUESTED state sets saga to CANCELLATION_COMPLETE` and `OrderCancelled in SETTLEMENT_REQUESTED state sets saga to CANCEL_PENDING` pass. | ✅ |
+| Order status transitions from CANCELLATION_IN_PROGRESS to CANCELLED | `OrderEventListenerTest` — `OrderCancellationComplete transitions CANCELLATION_IN_PROGRESS to CANCELLED` passes. | ✅ |
+| All vertical slices are testable independently | All unit/integration tests pass: `./gradlew :shared:test :order:test :saga-orchestrator:test`. | ✅ |
 
 ## Completed Vertical Slices
 

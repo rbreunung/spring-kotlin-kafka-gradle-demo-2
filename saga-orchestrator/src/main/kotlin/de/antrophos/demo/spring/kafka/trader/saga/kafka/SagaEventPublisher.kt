@@ -5,6 +5,7 @@ import de.antrophos.demo.spring.kafka.trader.shared.domain.Trade
 import de.antrophos.demo.spring.kafka.trader.shared.events.CompensationRequested
 import de.antrophos.demo.spring.kafka.trader.shared.events.ExecutionRequested
 import de.antrophos.demo.spring.kafka.trader.shared.events.NotificationRequested
+import de.antrophos.demo.spring.kafka.trader.shared.events.OrderCancellationComplete
 import de.antrophos.demo.spring.kafka.trader.shared.events.RiskCheckRequested
 import de.antrophos.demo.spring.kafka.trader.shared.events.SettlementRequested
 import org.springframework.kafka.core.KafkaTemplate
@@ -32,5 +33,9 @@ class SagaEventPublisher(private val kafkaTemplate: KafkaTemplate<String, Any>) 
 
     fun publishCompensationRequested(orderId: UUID, tradeId: UUID, reason: String) {
         kafkaTemplate.send("compensation-requests", orderId.toString(), CompensationRequested(orderId, tradeId, reason))
+    }
+
+    fun publishCancellationComplete(orderId: UUID) {
+        kafkaTemplate.send("cancellation-results", orderId.toString(), OrderCancellationComplete(orderId))
     }
 }
