@@ -93,7 +93,7 @@ class SagaOrderPlacedIntegrationTest {
     }
 
     @Test
-    fun `OrderCancelled in RISK_REQUESTED state removes saga state`() {
+    fun `OrderCancelled in RISK_REQUESTED state sets saga to CANCELLATION_COMPLETE`() {
         val orderId = UUID.randomUUID()
         kafkaTemplate.send("orders", orderId.toString(), OrderPlaced(anOrder(orderId)))
 
@@ -104,7 +104,37 @@ class SagaOrderPlacedIntegrationTest {
         kafkaTemplate.send("orders", orderId.toString(), OrderCancelled(orderId))
 
         await.atMost(Duration.ofSeconds(10)).untilAsserted {
-            assertNull(sagaStateRepository.findById(orderId).orElse(null))
+            val saga = sagaStateRepository.findById(orderId).orElse(null)
+            assertNotNull(saga)
+            assertEquals(SagaStep.CANCELLATION_COMPLETE.name, saga.step)
+        }
+    }
+
+    @Test
+    fun `OrderCancelled in SETTLEMENT_REQUESTED state sets saga to CANCEL_PENDING`() {
+        val orderId = UUID.randomUUID()
+        kafkaTemplate.send("orders", orderId.toString(), OrderPlaced(anOrder(orderId)))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            assertNotNull(sagaStateRepository.findById(orderId).orElse(null))
+        }
+
+        // Simulate progression to SETTLEMENT_REQUESTED state
+        val orderEntity = sagaStateRepository.findById(orderId).orElse(null)
+        assertNotNull(orderEntity)
+        val updatedEntity = sagaStateRepository.save(
+            orderEntity.copy(
+                step = SagaStep.SETTLEMENT_REQUESTED.name,
+                tradeId = UUID.randomUUID()
+            )
+        )
+
+        kafkaTemplate.send("orders", orderId.toString(), OrderCancelled(orderId))
+
+        await.atMost(Duration.ofSeconds(10)).untilAsserted {
+            val saga = sagaStateRepository.findById(orderId).orElse(null)
+            assertNotNull(saga)
+            assertEquals(SagaStep.CANCEL_PENDING.name, saga.step)
         }
     }
 }

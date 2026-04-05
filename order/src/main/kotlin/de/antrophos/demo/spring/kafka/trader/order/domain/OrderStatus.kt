@@ -4,6 +4,7 @@ enum class OrderStatus {
     PENDING, RISK_APPROVED, RISK_REJECTED,
     EXECUTED,
     SETTLED, EXECUTION_FAILED,
+    CANCELLATION_IN_PROGRESS,  // non-terminal; cancel requested, awaiting saga resolution
     CANCELLED,
     COMPENSATION_IN_PROGRESS,  // non-terminal; set when SettlementFailed
     COMPENSATION_COMPLETE;     // terminal; set when TradeVoided

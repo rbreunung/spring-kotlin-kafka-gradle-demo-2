@@ -10,7 +10,7 @@ A banking-domain Spring Boot / Kotlin / Kafka demo modeling securities order flo
 
 | Tool | Version | Notes |
 |---|---|---|
-| JDK | 17+ | Required to run services locally. [Adoptium](https://adoptium.net) |
+| JDK | 21 | Required to run services locally. [Adoptium](https://adoptium.net) |
 | Docker Desktop | Any recent | Required for Kafka (and full-stack mode). Must be running. |
 
 No other installation needed — Gradle is included via the wrapper (`./gradlew`).
@@ -124,7 +124,7 @@ Zipkin UI: http://localhost:9411
 ```
 trader/
 ├── shared/              # Kotlin library: domain classes + Kafka event types
-├── order/               # Spring Boot: REST POST /orders (port 8080)
+├── order/               # Spring Boot: REST POST /orders, DELETE /orders/{id} (port 8080)
 ├── risk/                # Spring Boot: Kafka consumer/producer (Resilience4j CB)
 ├── execution/           # Spring Boot: Kafka consumer/producer
 ├── settlement/          # Spring Boot: Kafka consumer/producer (Resilience4j retry)
@@ -139,11 +139,282 @@ trader/
 
 ## Saga Flow
 
+**Happy path:**
 ```
 OrderPlaced → RiskApproved → TradeExecuted → PositionSettled → TraderNotified
 ```
 
-Compensating events on failure: `RiskRejected` → `OrderRejected`, `SettlementFailed` → DLQ.
+**User-initiated cancellation** (`DELETE /orders/{id}` while order is PENDING or RISK_APPROVED):
+```
+DELETE /orders/{id} → OrderCancelled → CANCELLATION_COMPLETE (saga) → CANCELLED (order)
+```
+
+**Post-execution cancellation** (order already executed — triggers compensation):
+```
+DELETE /orders/{id} → OrderCancelled → CANCEL_REQUESTED → CompensationRequested → TradeVoided → COMPENSATION_COMPLETE
+```
+
+Compensating events on settlement failure: `SettlementFailed` → `CompensationRequested` → `TradeVoided` → `COMPENSATION_COMPLETE`.
+
+---
+
+## Manual Testing
+
+Start the full stack first (see [Full Docker Workflow](#full-docker-workflow) or [Daily Dev Workflow](#daily-dev-workflow)).
+
+All examples use `ORDER_ID` captured from the place-order response. The saga-orchestrator is on port `8085`; the order service is on port `8080`.
+
+---
+
+### Place an order
+
+**bash / zsh:**
+```bash
+curl -s -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"traderId":"trader-001","symbol":"AAPL","quantity":100,"side":"BUY"}' \
+  | tee /tmp/order.json
+
+ORDER_ID=$(cat /tmp/order.json | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+echo "Order ID: $ORDER_ID"
+```
+
+**PowerShell:**
+```powershell
+$response = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/orders" `
+  -ContentType "application/json" `
+  -Body '{"traderId":"trader-001","symbol":"AAPL","quantity":100,"side":"BUY"}'
+
+$ORDER_ID = $response.id
+Write-Host "Order ID: $ORDER_ID"
+```
+
+---
+
+### Check order status
+
+**bash / zsh:**
+```bash
+curl -s http://localhost:8080/orders/$ORDER_ID | python3 -m json.tool
+```
+
+**PowerShell:**
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/orders/$ORDER_ID"
+```
+
+Expected `status` values in sequence: `PENDING` → `RISK_APPROVED` → `EXECUTED` → `SETTLED`
+
+---
+
+### Check saga state
+
+**bash / zsh:**
+```bash
+curl -s http://localhost:8085/sagas/$ORDER_ID | python3 -m json.tool
+```
+
+**PowerShell:**
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8085/sagas/$ORDER_ID"
+```
+
+Expected `step` values in sequence: `RISK_REQUESTED` → `RISK_APPROVED` → `EXECUTION_REQUESTED` → `EXECUTION_COMPLETE` → `SETTLEMENT_REQUESTED` → `SETTLED`
+
+---
+
+### Watch the happy path (poll until settled)
+
+**bash / zsh:**
+```bash
+while true; do
+  STATUS=$(curl -s http://localhost:8080/orders/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+  STEP=$(curl -s http://localhost:8085/sagas/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['step'])" 2>/dev/null || echo "n/a")
+  echo "$(date +%H:%M:%S)  order=$STATUS  saga=$STEP"
+  [[ "$STATUS" == "SETTLED" || "$STATUS" == "RISK_REJECTED" || "$STATUS" == "COMPENSATION_COMPLETE" ]] && break
+  sleep 2
+done
+```
+
+**PowerShell:**
+```powershell
+do {
+  $order = Invoke-RestMethod -Uri "http://localhost:8080/orders/$ORDER_ID"
+  $saga  = try { Invoke-RestMethod -Uri "http://localhost:8085/sagas/$ORDER_ID" } catch { @{step="n/a"} }
+  Write-Host "$(Get-Date -Format HH:mm:ss)  order=$($order.status)  saga=$($saga.step)"
+  Start-Sleep -Seconds 2
+} until ($order.status -in @("SETTLED","RISK_REJECTED","COMPENSATION_COMPLETE"))
+```
+
+---
+
+### Cancel an order (before execution)
+
+Place a fresh order, then cancel it immediately before the saga advances past risk check.
+
+**bash / zsh:**
+```bash
+ORDER_ID=$(curl -s -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"traderId":"trader-001","symbol":"MSFT","quantity":50,"side":"SELL"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+curl -s -X DELETE http://localhost:8080/orders/$ORDER_ID -w "\nHTTP %{http_code}\n"
+
+# Poll until terminal
+while true; do
+  STATUS=$(curl -s http://localhost:8080/orders/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+  echo "order=$STATUS"
+  [[ "$STATUS" == "CANCELLED" || "$STATUS" == "COMPENSATION_COMPLETE" ]] && break
+  sleep 1
+done
+```
+
+**PowerShell:**
+```powershell
+$order = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/orders" `
+  -ContentType "application/json" `
+  -Body '{"traderId":"trader-001","symbol":"MSFT","quantity":50,"side":"SELL"}'
+$ORDER_ID = $order.id
+
+Invoke-RestMethod -Method Delete -Uri "http://localhost:8080/orders/$ORDER_ID"
+
+do {
+  $o = Invoke-RestMethod -Uri "http://localhost:8080/orders/$ORDER_ID"
+  Write-Host "order=$($o.status)"
+  Start-Sleep -Seconds 1
+} until ($o.status -in @("CANCELLED","COMPENSATION_COMPLETE"))
+```
+
+Expected outcome: order status → `CANCELLED`, saga step → `CANCELLATION_COMPLETE`
+
+---
+
+### Trigger a risk rejection
+
+Any order with `quantity > 10000` is hard-rejected by the risk service.
+
+**bash / zsh:**
+```bash
+ORDER_ID=$(curl -s -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"traderId":"trader-001","symbol":"AAPL","quantity":99999,"side":"BUY"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+# Poll — should reach RISK_REJECTED quickly
+while true; do
+  STATUS=$(curl -s http://localhost:8080/orders/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+  STEP=$(curl -s http://localhost:8085/sagas/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['step'])" 2>/dev/null || echo "n/a")
+  echo "order=$STATUS  saga=$STEP"
+  [[ "$STATUS" == "RISK_REJECTED" ]] && break
+  sleep 1
+done
+```
+
+**PowerShell:**
+```powershell
+$order = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/orders" `
+  -ContentType "application/json" `
+  -Body '{"traderId":"trader-001","symbol":"AAPL","quantity":99999,"side":"BUY"}'
+$ORDER_ID = $order.id
+
+do {
+  $o = Invoke-RestMethod -Uri "http://localhost:8080/orders/$ORDER_ID"
+  $s = try { Invoke-RestMethod -Uri "http://localhost:8085/sagas/$ORDER_ID" } catch { @{step="n/a"} }
+  Write-Host "order=$($o.status)  saga=$($s.step)"
+  Start-Sleep -Seconds 1
+} until ($o.status -eq "RISK_REJECTED")
+```
+
+Expected outcome: order status → `RISK_REJECTED`, saga step → `RISK_REJECTED`
+
+---
+
+### Trigger settlement failure and compensation
+
+The trader ID `trader-comp-001` is pre-configured in `docker-compose.full.yml` to always fail settlement. This exercises the FEAT-008 compensation flow: `SettlementFailed` → `CompensationRequested` → `TradeVoided`.
+
+> **Note:** Only works with `docker compose -f docker-compose.full.yml up --build`. In the daily dev workflow, add `SETTLEMENT_ALWAYS_FAIL_TRADER_IDS=trader-comp-001` to your shell before starting the settlement service.
+
+**bash / zsh:**
+```bash
+ORDER_ID=$(curl -s -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"traderId":"trader-comp-001","symbol":"AAPL","quantity":100,"side":"BUY"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+# Poll — should flow through EXECUTED → SETTLEMENT_FAILED → COMPENSATION_COMPLETE
+while true; do
+  STATUS=$(curl -s http://localhost:8080/orders/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+  STEP=$(curl -s http://localhost:8085/sagas/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['step'])" 2>/dev/null || echo "n/a")
+  echo "$(date +%H:%M:%S)  order=$STATUS  saga=$STEP"
+  [[ "$STATUS" == "COMPENSATION_COMPLETE" ]] && break
+  sleep 2
+done
+```
+
+**PowerShell:**
+```powershell
+$order = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/orders" `
+  -ContentType "application/json" `
+  -Body '{"traderId":"trader-comp-001","symbol":"AAPL","quantity":100,"side":"BUY"}'
+$ORDER_ID = $order.id
+
+do {
+  $o = Invoke-RestMethod -Uri "http://localhost:8080/orders/$ORDER_ID"
+  $s = try { Invoke-RestMethod -Uri "http://localhost:8085/sagas/$ORDER_ID" } catch { @{step="n/a"} }
+  Write-Host "$(Get-Date -Format HH:mm:ss)  order=$($o.status)  saga=$($s.step)"
+  Start-Sleep -Seconds 2
+} until ($o.status -eq "COMPENSATION_COMPLETE")
+```
+
+Expected saga steps in sequence: `RISK_REQUESTED` → `EXECUTION_REQUESTED` → `EXECUTION_COMPLETE` → `SETTLEMENT_REQUESTED` → `SETTLEMENT_FAILED` → `COMPENSATION_REQUESTED` → `COMPENSATION_COMPLETE`
+
+---
+
+### Enable random settlement failures (local dev)
+
+Set the failure probability before starting the settlement service:
+
+**bash / zsh:**
+```bash
+export SETTLEMENT_SIMULATE_FAILURE_PROBABILITY=0.5   # 50 % of orders will fail settlement
+./gradlew :settlement:bootRun
+```
+
+**PowerShell:**
+```powershell
+$env:SETTLEMENT_SIMULATE_FAILURE_PROBABILITY = "0.5"
+./gradlew :settlement:bootRun
+```
+
+---
+
+### List orders
+
+**bash / zsh:**
+```bash
+# All orders
+curl -s http://localhost:8080/orders | python3 -m json.tool
+
+# Filter by trader
+curl -s "http://localhost:8080/orders?traderId=trader-001" | python3 -m json.tool
+
+# Filter by status
+curl -s "http://localhost:8080/orders?status=SETTLED" | python3 -m json.tool
+```
+
+**PowerShell:**
+```powershell
+# All orders
+Invoke-RestMethod -Uri "http://localhost:8080/orders"
+
+# Filter by trader
+Invoke-RestMethod -Uri "http://localhost:8080/orders?traderId=trader-001"
+
+# Filter by status
+Invoke-RestMethod -Uri "http://localhost:8080/orders?status=SETTLED"
+```
 
 ---
 

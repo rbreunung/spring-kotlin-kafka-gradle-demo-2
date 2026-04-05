@@ -60,7 +60,7 @@ The registry status tracks **document completeness**, not implementation progres
 | FEAT-010 | FEAT | Notification Service — WebSocket Push for Real-Time Order Status | complete |
 | PLAN-010 | PLAN | Notification Service — WebSocket Push for Real-Time Order Status | complete |
 | RETRO-020 | RETRO | FEAT-010 feature spec retrospective (re-run) | complete |
-| FEAT-011 | FEAT | Cancel In-Flight Orders — User-Initiated Saga Rollback | draft |
+| FEAT-011 | FEAT | Cancel In-Flight Orders — User-Initiated Saga Rollback | complete |
 | RETRO-009 | RETRO | FEAT-008 feature spec retrospective | complete |
 | RETRO-REVIEW-002 | RETRO-REVIEW | Retro review — RETRO-003 through RETRO-009 | complete |
 | RETRO-010 | RETRO | FEAT-008 implementation retrospective | complete |
@@ -77,6 +77,7 @@ The registry status tracks **document completeness**, not implementation progres
 | RETRO-017 | RETRO | Bug-fix: BUG-002 settlement DLQ serializer mismatch | complete |
 | BUG-003 | BUG | Settlement service fails all orders after the first — original exception unknown due to missing error logging | resolved |
 | RETRO-018 | RETRO | Bug-fix: BUG-003 settlement fails after first order — missing kotlin plugin.jpa | complete |
+| PLAN-011 | PLAN | Cancel In-Flight Orders — User-Initiated Saga Rollback | complete |
 | BUG-004 | BUG | SagaCompensationTest flaky — timing race between test injection and real settlement | resolved |
 | RETRO-019 | RETRO | Bug-fix: BUG-004 SagaCompensationTest timing race | complete |
 | RETRO-REVIEW-003 | RETRO-REVIEW | Retro review — RETRO-010 through RETRO-017 | complete |
@@ -86,4 +87,5 @@ The registry status tracks **document completeness**, not implementation progres
 | PLAN-013 | PLAN | CI and Docker Build Reliability — Pre-built JARs, Gradle Task Aliases, and Rate Limit Mitigations | complete |
 | ADR-003 | ADR | Pre-built JAR pattern for service Dockerfiles | accepted |
 | RETRO-021 | RETRO | FEAT-013 feature spec retrospective | complete |
+| RETRO-022 | RETRO | FEAT-011 feature-impl retrospective | complete |
 | RETRO-REVIEW-004 | RETRO-REVIEW | Agent-agnostic workflow architecture | in-progress |

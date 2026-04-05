@@ -1,6 +1,6 @@
 # FEAT-011: Cancel In-Flight Orders — User-Initiated Saga Rollback
 
-Status: draft
+Status: complete
 Date: 2026-03-16
 Author: Claude
 
