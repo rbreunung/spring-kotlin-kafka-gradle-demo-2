@@ -290,6 +290,106 @@ Expected outcome: order status → `CANCELLED`, saga step → `CANCELLATION_COMP
 
 ---
 
+### Trigger a risk rejection
+
+Any order with `quantity > 10000` is hard-rejected by the risk service.
+
+**bash / zsh:**
+```bash
+ORDER_ID=$(curl -s -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"traderId":"trader-001","symbol":"AAPL","quantity":99999,"side":"BUY"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+# Poll — should reach RISK_REJECTED quickly
+while true; do
+  STATUS=$(curl -s http://localhost:8080/orders/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+  STEP=$(curl -s http://localhost:8085/sagas/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['step'])" 2>/dev/null || echo "n/a")
+  echo "order=$STATUS  saga=$STEP"
+  [[ "$STATUS" == "RISK_REJECTED" ]] && break
+  sleep 1
+done
+```
+
+**PowerShell:**
+```powershell
+$order = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/orders" `
+  -ContentType "application/json" `
+  -Body '{"traderId":"trader-001","symbol":"AAPL","quantity":99999,"side":"BUY"}'
+$ORDER_ID = $order.id
+
+do {
+  $o = Invoke-RestMethod -Uri "http://localhost:8080/orders/$ORDER_ID"
+  $s = try { Invoke-RestMethod -Uri "http://localhost:8085/sagas/$ORDER_ID" } catch { @{step="n/a"} }
+  Write-Host "order=$($o.status)  saga=$($s.step)"
+  Start-Sleep -Seconds 1
+} until ($o.status -eq "RISK_REJECTED")
+```
+
+Expected outcome: order status → `RISK_REJECTED`, saga step → `RISK_REJECTED`
+
+---
+
+### Trigger settlement failure and compensation
+
+The trader ID `trader-comp-001` is pre-configured in `docker-compose.full.yml` to always fail settlement. This exercises the FEAT-008 compensation flow: `SettlementFailed` → `CompensationRequested` → `TradeVoided`.
+
+> **Note:** Only works with `docker compose -f docker-compose.full.yml up --build`. In the daily dev workflow, add `SETTLEMENT_ALWAYS_FAIL_TRADER_IDS=trader-comp-001` to your shell before starting the settlement service.
+
+**bash / zsh:**
+```bash
+ORDER_ID=$(curl -s -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"traderId":"trader-comp-001","symbol":"AAPL","quantity":100,"side":"BUY"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+# Poll — should flow through EXECUTED → SETTLEMENT_FAILED → COMPENSATION_COMPLETE
+while true; do
+  STATUS=$(curl -s http://localhost:8080/orders/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+  STEP=$(curl -s http://localhost:8085/sagas/$ORDER_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['step'])" 2>/dev/null || echo "n/a")
+  echo "$(date +%H:%M:%S)  order=$STATUS  saga=$STEP"
+  [[ "$STATUS" == "COMPENSATION_COMPLETE" ]] && break
+  sleep 2
+done
+```
+
+**PowerShell:**
+```powershell
+$order = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/orders" `
+  -ContentType "application/json" `
+  -Body '{"traderId":"trader-comp-001","symbol":"AAPL","quantity":100,"side":"BUY"}'
+$ORDER_ID = $order.id
+
+do {
+  $o = Invoke-RestMethod -Uri "http://localhost:8080/orders/$ORDER_ID"
+  $s = try { Invoke-RestMethod -Uri "http://localhost:8085/sagas/$ORDER_ID" } catch { @{step="n/a"} }
+  Write-Host "$(Get-Date -Format HH:mm:ss)  order=$($o.status)  saga=$($s.step)"
+  Start-Sleep -Seconds 2
+} until ($o.status -eq "COMPENSATION_COMPLETE")
+```
+
+Expected saga steps in sequence: `RISK_REQUESTED` → `EXECUTION_REQUESTED` → `EXECUTION_COMPLETE` → `SETTLEMENT_REQUESTED` → `SETTLEMENT_FAILED` → `COMPENSATION_REQUESTED` → `COMPENSATION_COMPLETE`
+
+---
+
+### Enable random settlement failures (local dev)
+
+Set the failure probability before starting the settlement service:
+
+**bash / zsh:**
+```bash
+export SETTLEMENT_SIMULATE_FAILURE_PROBABILITY=0.5   # 50 % of orders will fail settlement
+./gradlew :settlement:bootRun
+```
+
+**PowerShell:**
+```powershell
+$env:SETTLEMENT_SIMULATE_FAILURE_PROBABILITY = "0.5"
+./gradlew :settlement:bootRun
+```
+
+---
+
 ### List orders
 
 **bash / zsh:**
