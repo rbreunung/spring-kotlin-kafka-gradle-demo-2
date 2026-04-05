@@ -206,7 +206,6 @@ Gaps: —
 **Files to touch:**
 - `ui/Dockerfile` — pre-built JAR pattern (ADR-003): `COPY ui/build/libs/*.jar app.jar`
 - `docker-compose.full.yml` — add `ui` service with port 8091, env vars for service URLs, `depends_on: [order, saga-orchestrator, notification]`
-- `docs/arch/architecture.md` — add `:ui` row to Services table and port 8091 to infrastructure table
 
 **Test description:** `docker inspect <ui-container>` shows port 8091 exposed; `curl http://localhost:8091` returns HTML. Manual verification.
 
@@ -214,14 +213,13 @@ Gaps: —
 
 ---
 
-### Slice 12: Architecture doc + README updates
+### Slice 12: README update
 
-**What it delivers:** `docs/arch/architecture.md` reflects the new `:ui` service and port 8091; README manual testing section updated with UI instructions
+**What it delivers:** README manual testing section updated with Web UI instructions
 
 **Files to touch:**
-- `docs/arch/architecture.md` — add `:ui` to Services table, Gradle module layout, and infrastructure table
-- `README.md` — add "Web UI" section to manual testing, note `http://localhost:8091` for trader and `/admin` for admin
+- `README.md` — add "Web UI" section to manual testing, note `http://localhost:8091` for trader view and `http://localhost:8091/admin` for admin view
 
-**Test description:** Docs review — no references to six services where seven are now expected.
+**Test description:** Docs review — README covers the full docker-compose.full.yml stack including the UI service.
 
 **Status:** [ ] todo
