@@ -37,6 +37,7 @@ flowchart LR
 | `ExecutionService` | Kafka consumer/producer (port 8082); simulates trade execution on exchange; publishes `TradeExecuted` |
 | `SettlementService` | Kafka consumer/producer (port 8083); updates positions; transactional Kafka producer; Resilience4j retry + bulkhead |
 | `NotificationService` | Kafka consumer/producer + WebSocket/STOMP push (port 8090); consumes `NotificationRequested`; broadcasts to `/topic/trader/{traderId}`; publishes `TraderNotified` to `trader-notifications` |
+| `UIService` | BFF (Backend for Frontend) Spring Boot app (port 8091); proxies REST to OrderService and SagaOrchestrator; aggregates Actuator health from all 6 services; serves React + Vite SPA (Trader view at `/`, Admin view at `/admin`) |
 | `SystemTest` | E2E test module using Testcontainers with real Kafka for end-to-end verification of all use cases |
 
 ## Kafka Topics
@@ -104,6 +105,7 @@ enum class Side { BUY, SELL }
 :settlement        — Spring Boot app: Kafka consumer/producer
 :notification      — Spring Boot app: Kafka consumer/producer + WebSocket/STOMP push (port 8090)
 :saga-orchestrator — Spring Boot app: Kafka consumer/producer (orchestrates saga)
+:ui                — Spring Boot app: BFF (port 8091), React + Vite SPA (Trader + Admin views)
 :system-test       — Test module: E2E tests using Testcontainers (requires Docker)
 ```
 
@@ -121,7 +123,7 @@ Version management:
 | Zipkin | `openzipkin/zipkin:3` | 9411 | Distributed trace UI; added in FEAT-009 |
 
 - `docker-compose.yml` — Kafka + Zipkin (daily dev; services run on JVM)
-- `docker-compose.full.yml` — Kafka + Zipkin + all 6 services (demo/CI; each service built from `Dockerfile`)
+- `docker-compose.full.yml` — Kafka + Zipkin + all 7 services including `:ui` (demo/CI; each service built from `Dockerfile`)
 
 ### Docker Build Pattern
 
