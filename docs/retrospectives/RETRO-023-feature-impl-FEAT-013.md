@@ -37,3 +37,15 @@ Duration: multi-session (implementation spanned 2+ interrupted sessions)
 **Actionable Change:** Add a line to STEP 6 in `feature-impl.md`:
 
 > For each completed slice, verify the committed implementation matches the slice description — not just that the test passes, but that the approach matches what was planned. Note any deviations in `## Implementation Notes` in the feature spec.
+
+## Post-Implementation Observations
+
+### Build Configuration Review (2026-04-07)
+
+A subsequent review of the Gradle test configuration identified 3 minor issues that do not affect functionality:
+
+- **Duplicate `useJUnitPlatform()`** in `system-test/build.gradle.kts:40` — redundant; inherited from root `subprojects` block
+- **Hardcoded mockito-kotlin version** in `execution/build.gradle.kts:45` and `settlement/build.gradle.kts:45` — should use `libs.mockito.kotlin` from version catalog
+- **Redundant bootJar dependencies** declared in both root `systemTest` task and `system-test/build.gradle.kts:45-48` — keep only in `system-test/build.gradle.kts`
+
+**Status:** Minor technical debt; no functionality impacted.
