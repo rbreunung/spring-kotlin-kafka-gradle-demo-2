@@ -16,16 +16,16 @@ Two related pain points surfaced after BUG-004 and BUG-005 fixes:
 
 ## Goals
 
-- [ ] Simplify all 6 service Dockerfiles to single-stage: copy pre-built JAR from host into JRE image (eliminates JDK image dependency)
-- [ ] Add `systemTest` Gradle task that builds all bootJars then runs system tests (enforces correct ordering)
-- [ ] Add `unitTest` Gradle task alias for `test -x :system-test:test` (local convenience, mirrors CI)
-- [ ] Add `dockerVolumeClean` Gradle task for routine data volume cleanup (preserves images)
-- [ ] Add `dockerImageClean` Gradle task for explicit image cleanup (separate, deliberate operation)
-- [ ] Update CI `system-test.yml` to use `./gradlew systemTest`
-- [ ] Add Docker Hub pre-pull step to CI (unconditional — reduces total pulls to 3 unique images)
-- [ ] Add optional Docker Hub login step to CI (guarded by secrets — raises rate limit from shared-IP anonymous to per-account)
-- [ ] Update `README.md` "Running Tests" section: document `unitTest` and `systemTest` aliases; add system test prerequisites (Docker must be running)
-- [ ] Update `README.md` "Full Docker Workflow" section: correct the `--build` description (no longer builds JARs from source); add `./gradlew bootJar` prerequisite step
+- [x] Simplify all 6 service Dockerfiles to single-stage: copy pre-built JAR from host into JRE image (eliminates JDK image dependency)
+- [x] Add `systemTest` Gradle task that builds all bootJars then runs system tests (enforces correct ordering)
+- [x] Add `unitTest` Gradle task alias for `test -x :system-test:test` (local convenience, mirrors CI)
+- [x] Add `dockerVolumeClean` Gradle task for routine data volume cleanup (preserves images)
+- [x] Add `dockerImageClean` Gradle task for explicit image cleanup (separate, deliberate operation)
+- [x] Update CI `system-test.yml` to use `./gradlew systemTest`
+- [x] Add Docker Hub pre-pull step to CI (unconditional — reduces total pulls to 3 unique images)
+- [x] Add optional Docker Hub login step to CI (guarded by secrets — raises rate limit from shared-IP anonymous to per-account)
+- [x] Update `README.md` "Running Tests" section: document `unitTest` and `systemTest` aliases; add system test prerequisites (Docker must be running)
+- [x] Update `README.md` "Full Docker Workflow" section: correct the `--build` description (no longer builds JARs from source); add `./gradlew bootJar` prerequisite step
 
 ## Non-Goals
 
@@ -123,21 +123,23 @@ Two new steps added before the test step:
 
 ## Acceptance Criteria
 
-- [ ] `./gradlew systemTest` builds all 6 service bootJars then runs `:system-test:test` end-to-end; system tests pass
-- [ ] `./gradlew unitTest` runs all tests excluding the `:system-test` module
-- [ ] All 6 service Dockerfiles contain no `./gradlew` invocations; each has a single `FROM eclipse-temurin:21-jre-alpine` stage
-- [ ] `docker compose -f docker-compose.full.yml build` succeeds when called after `./gradlew bootJar` for all services
-- [ ] CI `system-test.yml` uses `./gradlew systemTest` and passes end-to-end on GitHub Actions
-- [ ] `./gradlew dockerVolumeClean` removes Docker volumes without removing pulled images
-- [ ] Docker Hub login step in `system-test.yml` is guarded and skips silently when secrets are absent
-- [ ] `README.md` "Running Tests" section documents `./gradlew unitTest` and `./gradlew systemTest` with Docker prerequisite for the latter
-- [ ] `README.md` "Full Docker Workflow" section no longer states that `--build` builds JARs from source; includes `./gradlew bootJar` as a prerequisite step
+- [x] `./gradlew systemTest` builds all 6 service bootJars then runs `:system-test:test` end-to-end; system tests pass
+- [x] `./gradlew unitTest` runs all tests excluding the `:system-test` module
+- [x] All 6 service Dockerfiles contain no `./gradlew` invocations; each has a single `FROM eclipse-temurin:21-jre-alpine` stage
+- [x] `docker compose -f docker-compose.full.yml build` succeeds when called after `./gradlew bootJar` for all services
+- [x] CI `system-test.yml` uses `./gradlew systemTest` and passes end-to-end on GitHub Actions
+- [x] `./gradlew dockerVolumeClean` removes Docker volumes without removing pulled images
+- [x] Docker Hub login step in `system-test.yml` is guarded and skips silently when secrets are absent
+- [x] `README.md` "Running Tests" section documents `./gradlew unitTest` and `./gradlew systemTest` with Docker prerequisite for the latter
+- [x] `README.md` "Full Docker Workflow" section no longer states that `--build` builds JARs from source; includes `./gradlew bootJar` as a prerequisite step
 
 ## Implementation Notes
 
-> Agent: fill this section during feature-impl if implementation differs from spec.
+**`mustRunAfter` → `dependsOn` in `system-test/build.gradle.kts`**
 
-[Any deviations from the design discovered during implementation.]
+The spec used `mustRunAfter` to order `:system-test:test` after the 6 `bootJar` tasks. This only controls ordering when both tasks are present in the same Gradle invocation — it does not add them as prerequisites when `:system-test:test` is called directly. As a result, `./gradlew :system-test:test` failed with `ContainerLaunchException` because the service JARs were not built.
+
+Decision: replaced `mustRunAfter` with `dependsOn`. This makes `:system-test:test` always build all 6 service JARs first, regardless of how it is invoked. `./gradlew clean test` (root-level batch) and `./gradlew :system-test:test` both work correctly. The `systemTest` root task remains as a convenience alias but is now functionally equivalent to `:system-test:test`.
 
 ## Related Docs
 

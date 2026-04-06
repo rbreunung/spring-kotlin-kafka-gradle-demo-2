@@ -88,6 +88,7 @@ The registry status tracks **document completeness**, not implementation progres
 | ADR-003 | ADR | Pre-built JAR pattern for service Dockerfiles | accepted |
 | RETRO-021 | RETRO | FEAT-013 feature spec retrospective | complete |
 | RETRO-022 | RETRO | FEAT-011 feature-impl retrospective | complete |
+| RETRO-023 | RETRO | feature-impl retrospective for FEAT-013 | complete |
 | RETRO-REVIEW-004 | RETRO-REVIEW | Agent-agnostic workflow architecture | in-progress |
 | FEAT-014 | FEAT | Web UI — React Trader and Admin Dashboard | complete |
 | PLAN-014 | PLAN | Web UI — React Trader and Admin Dashboard | complete |

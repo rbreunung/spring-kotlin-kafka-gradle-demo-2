@@ -70,12 +70,10 @@ class SagaOrchestrator(
             SagaStep.EXECUTION_COMPLETE -> {
                 // Trigger compensation for existing trade
                 log.info("Saga cancellation requested at step {} for orderId={}; triggering compensation", currentStep, event.orderId)
-                // Update to cancellation requested state
                 val updatedEntity = repository.save(entity.copy(
-                    step = SagaStep.CANCEL_REQUESTED.name,
+                    step = SagaStep.COMPENSATION_REQUESTED.name,
                     updatedAt = Instant.now()
                 ))
-                // If we have a tradeId, trigger compensation via FEAT-008 pattern
                 if (updatedEntity.tradeId != null) {
                     publisher.publishCompensationRequested(event.orderId, updatedEntity.tradeId, "User-initiated cancellation")
                 }
@@ -88,6 +86,17 @@ class SagaOrchestrator(
                     updatedAt = Instant.now()
                 ))
                 // Do NOT trigger compensation immediately - wait for settlement outcome
+            }
+            SagaStep.SETTLED -> {
+                // Cancel arrived after full settlement — trigger compensation to void the trade
+                log.info("Saga cancellation requested at step {} for orderId={}; triggering post-settlement compensation", currentStep, event.orderId)
+                val updatedEntity = repository.save(entity.copy(
+                    step = SagaStep.COMPENSATION_REQUESTED.name,
+                    updatedAt = Instant.now()
+                ))
+                if (updatedEntity.tradeId != null) {
+                    publisher.publishCompensationRequested(event.orderId, updatedEntity.tradeId, "User-initiated cancellation - order already settled")
+                }
             }
             else -> {
                 // For other steps (terminal or already compensating), do not cancel
@@ -122,14 +131,23 @@ class SagaOrchestrator(
         val entity = findOrWarn(orderId, "onTradeExecuted") ?: return
         if (isTerminalOrWarn(entity, "onTradeExecuted")) return
         val order = objectMapper.readValue<Order>(entity.orderJson)
-        val complete = repository.save(
+        repository.save(
             entity.copy(
                 step = SagaStep.EXECUTION_COMPLETE.name,
                 tradeId = event.trade.id,
                 updatedAt = Instant.now()
             )
         )
-        repository.save(complete.copy(step = SagaStep.SETTLEMENT_REQUESTED.name, updatedAt = Instant.now()))
+        // Conditional transition: only advance to SETTLEMENT_REQUESTED if the saga is still at
+        // EXECUTION_COMPLETE. A concurrent cancel (onOrderCancelled) may have already moved the
+        // saga to COMPENSATION_REQUESTED — in that case we must not overwrite it.
+        val updated = repository.transitionStep(
+            orderId, SagaStep.EXECUTION_COMPLETE.name, SagaStep.SETTLEMENT_REQUESTED.name, Instant.now()
+        )
+        if (updated == 0) {
+            log.info("onTradeExecuted: saga {} was concurrently modified from EXECUTION_COMPLETE (cancel in progress?), skipping SETTLEMENT_REQUESTED", orderId)
+            return
+        }
         publisher.publishSettlementRequested(event.trade, order)
         log.info("Trade executed for orderId={}, tradeId={}, transitioning EXECUTION_COMPLETE → SETTLEMENT_REQUESTED", orderId, event.trade.id)
     }
@@ -145,10 +163,9 @@ class SagaOrchestrator(
         }
         val order = objectMapper.readValue<Order>(entity.orderJson)
         if (entity.step == SagaStep.CANCEL_PENDING.name) {
-            // Cancellation wins - we still trigger compensation but mark as set
+            // Cancellation wins - trigger compensation for the settled position
             log.info("Position settled for orderId={} after cancellation request - triggering compensation", orderId)
-            repository.save(entity.copy(step = SagaStep.SETTLED.name, updatedAt = Instant.now()))
-            // Even though we've settled the position, still trigger compensation due to cancellation
+            repository.save(entity.copy(step = SagaStep.COMPENSATION_REQUESTED.name, updatedAt = Instant.now()))
             if (entity.tradeId != null) {
                 publisher.publishCompensationRequested(orderId, entity.tradeId, "User-initiated cancellation - trade settled despite cancellation")
             }

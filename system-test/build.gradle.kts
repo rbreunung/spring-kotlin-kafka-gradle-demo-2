@@ -41,7 +41,11 @@ tasks.test {
     useJUnitPlatform()
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
-    systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", "4")
+    systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", "2")
+    dependsOn(
+        ":order:bootJar", ":risk:bootJar", ":execution:bootJar",
+        ":settlement:bootJar", ":saga-orchestrator:bootJar", ":notification:bootJar"
+    )
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
