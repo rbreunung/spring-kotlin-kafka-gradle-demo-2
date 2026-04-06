@@ -63,7 +63,7 @@ class OrderEventListener(
 
     @KafkaListener(topics = ["compensation-results"], groupId = "order-service")
     fun onCompensationResult(event: TradeVoided) {
-        commandService.applyTransition(event.orderId, OrderStatus.COMPENSATION_COMPLETE, fromStatus = OrderStatus.COMPENSATION_IN_PROGRESS)
+        commandService.applyTransition(event.orderId, OrderStatus.COMPENSATION_COMPLETE)
     }
 
     @KafkaListener(topics = ["cancellation-results"], groupId = "order-service")

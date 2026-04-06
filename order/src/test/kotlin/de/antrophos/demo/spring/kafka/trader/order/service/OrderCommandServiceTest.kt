@@ -94,7 +94,7 @@ class OrderCommandServiceTest {
     @Test
     fun `cancel on non-cancellable order throws OrderNotCancellableException`() {
         val id = UUID.randomUUID()
-        val entity = pendingEntity(id).apply { status = OrderStatus.EXECUTED.name }
+        val entity = pendingEntity(id).apply { status = OrderStatus.CANCELLATION_IN_PROGRESS.name }
         `when`(orderRepository.findById(id)).thenReturn(Optional.of(entity))
 
         assertThrows<OrderNotCancellableException> { service.cancel(id) }
