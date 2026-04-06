@@ -31,7 +31,7 @@ jobs:
           restore-keys: gradle-
 
       - name: Run unit tests
-        run: ./gradlew test -x :system-test:test
+        run: ./gradlew unitTest
 
       - name: Upload test reports on failure
         if: failure()

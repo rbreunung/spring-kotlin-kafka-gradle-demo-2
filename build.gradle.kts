@@ -22,3 +22,34 @@ subprojects {
         useJUnitPlatform()
     }
 }
+
+tasks.register("unitTest") {
+    description = "Run all unit tests, excluding system tests"
+    group = "verification"
+    dependsOn(subprojects
+        .filter { it.name != "system-test" }
+        .map { "${it.path}:test" })
+}
+
+tasks.register("systemTest") {
+    description = "Build all service JARs then run system tests (see ADR-003)"
+    group = "verification"
+    dependsOn(
+        ":order:bootJar", ":risk:bootJar", ":execution:bootJar",
+        ":settlement:bootJar", ":saga-orchestrator:bootJar", ":notification:bootJar",
+        ":system-test:test"
+    )
+}
+
+
+tasks.register<Exec>("dockerVolumeClean") {
+    description = "Remove Docker data volumes only — preserves pulled images to avoid rate limit re-downloads"
+    group = "docker"
+    commandLine("docker", "volume", "prune", "-f")
+}
+
+tasks.register<Exec>("dockerImageClean") {
+    description = "Remove unused Docker images — use sparingly to avoid Docker Hub rate limits"
+    group = "docker"
+    commandLine("docker", "system", "prune", "-f")
+}

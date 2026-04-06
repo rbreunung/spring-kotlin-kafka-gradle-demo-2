@@ -51,12 +51,13 @@ docker compose down
 
 Everything in containers — closest to production, good for demos and CI.
 
-**Build and start everything:**
+**Build JARs and start everything:**
 ```bash
+./gradlew bootJar          # build all service JARs first (required)
 docker compose -f docker-compose.full.yml up --build
 ```
-- Builds all JARs and Docker images from source
-- Starts Kafka + all 6 services
+- `bootJar` compiles each service and places the JAR in `<service>/build/libs/`
+- `--build` copies those JARs into Docker images and starts Kafka + all 6 services
 - `OrderService` REST API available at `http://localhost:8080`
 - Services wait for Kafka to be healthy before starting
 
@@ -65,22 +66,34 @@ docker compose -f docker-compose.full.yml up --build
 docker compose -f docker-compose.full.yml down
 ```
 
-> **Note:** Code changes require `--build` to rebuild images. Use the daily dev workflow for fast iteration.
+> **Note:** Code changes require re-running `./gradlew bootJar` followed by `--build` to rebuild images. Use the daily dev workflow for fast iteration.
+
+**Clean up Docker data volumes** (keeps images, avoids re-download on next run):
+```bash
+./gradlew dockerVolumeClean
+```
 
 ---
 
 ## Running Tests
 
+### Unit and integration tests (no Docker needed)
 ```bash
-# All modules (uses embedded Kafka — no Docker needed)
-./gradlew test
+./gradlew unitTest
+```
+Uses Spring Kafka's embedded broker. No external Kafka or Docker required.
 
-# Single module
+### System tests (Docker required)
+```bash
+./gradlew systemTest
+```
+Builds all service JARs, then starts the full stack via Testcontainers + Docker Compose and runs end-to-end tests. Docker must be running.
+
+### Single module
+```bash
 ./gradlew :order:test
 ./gradlew :shared:test
 ```
-
-Tests use Spring Kafka's embedded broker — no external Kafka required.
 
 ---
 

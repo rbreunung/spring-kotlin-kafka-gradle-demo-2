@@ -1,9 +1,5 @@
-FROM eclipse-temurin:21-jdk-alpine AS build
-WORKDIR /workspace
-COPY . .
-RUN ./gradlew :notification:bootJar --no-daemon
-
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /workspace/notification/build/libs/*.jar app.jar
+COPY notification/build/libs/*.jar app.jar
+EXPOSE 8090
 ENTRYPOINT ["java", "-jar", "app.jar"]
